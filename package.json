@@ -1,0 +1,15 @@
+{
+  "name": "clojure-plus",
+  "main": "./lib/clojure-plus",
+  "version": "0.0.0",
+  "description": "Git commands to help your workflow, with a beautiful diff view",
+  "keywords": [],
+  "repository": "https://github.com/mauricioszabo/clojure-plus",
+  "license": "MIT",
+  "engines": {
+    "atom": ">=1.0.0 <2.0.0"
+  },
+  "dependencies": {
+    "atom-space-pen-views": "^2.2.0"
+  }
+}
