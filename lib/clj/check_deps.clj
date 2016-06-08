@@ -3,7 +3,9 @@
 (defn fq-path-to-relative [fq-path]
   (let [root (System/getProperty "user.dir")
         size (count root)]
-    (.substring fq-path size)))
+    (if (.startsWith fq-path root)
+      (.substring fq-path (inc size))
+      fq-path)))
 
 (defn symbols-in-project []
   (let [rt (clojure.lang.RT/baseLoader)]
@@ -18,7 +20,8 @@
                                    (.getResource file-path)
                                    (.getFile)))]
           :when (when file-str (not (re-find #"\.jar!" file-str)))]
-      (assoc meta-symbol :fqname (str ns-name "/" (.key symbol-map))))))
+      (assoc meta-symbol :fqname (str ns-name "/" (.key symbol-map))
+                         :fqpath file-str))))
 
 (defn find-dependencies [symbols to-find]
   (let [search (fn search [sexp]
