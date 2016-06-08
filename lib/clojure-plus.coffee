@@ -1,10 +1,13 @@
 {CompositeDisposable} = require 'atom'
 SelectView = require './select-view'
+EvryProvider = require './evry-provider'
 fs = require 'fs'
 
 module.exports =
   currentWatches: {}
   lastClear: null
+
+  everythingProvider: -> new EvryProvider()
 
   activate: (state) ->
     atom.commands.add 'atom-text-editor', 'clojure-plus:watch-expression', =>
@@ -19,6 +22,7 @@ module.exports =
       if pack.name == 'proto-repl'
         protoRepl.onDidConnect ->
           protoRepl.executeCode("(def __watches__ (atom {}))", ns: "user", displayInRepl: false)
+          protoRepl.executeCode(fs.readFileSync(__dirname + "/clj/check_deps.clj").toString(), displayInRepl: false)
 
     atom.commands.add 'atom-text-editor', 'clojure-plus:evaluate-top-block', =>
       @executeTopLevel()
