@@ -20,17 +20,22 @@ module.exports =
         protoRepl.executeCode("(def __watches__ (atom {}))", ns: "user", displayInRepl: false)
     , 5000
 
-
     atom.commands.add 'atom-text-editor', 'clojure-plus:evaluate-top-block', =>
       @executeTopLevel()
 
     atom.commands.add 'atom-text-editor', 'clojure-plus:import-for-missing-symbol', =>
       @importForMissing()
 
+    atom.commands.add 'atom-text-editor', 'clojure-plus:display-full-symbol-name', =>
+      editor = atom.workspace.getActiveTextEditor()
+      [range, symbol] = @getRangeAndVar(editor)
+      protoRepl.executeCodeInNs("`" + symbol, inlineOptions: {editor: editor, range: range})
+
   importForMissing: ->
       editor = atom.workspace.getActiveTextEditor()
-      varRange = editor.getLastCursor().getCurrentWordBufferRange(wordRegex: /[a-zA-Z0-9\-.$!?\/><*]+/)
-      varNameRaw = editor.getTextInBufferRange(varRange)
+      # varRange = editor.getLastCursor().getCurrentWordBufferRange(wordRegex: /[a-zA-Z0-9\-.$!?\/><*]+/)
+      # varNameRaw = editor.getTextInBufferRange(varRange)
+      [varRange, varNameRaw] = @getRangeAndVar(editor)
       varName = varNameRaw?.replace(/"/g, '\\"')
       if !varName
         atom.notifications.addError("Position your cursor in a clojure var name")
@@ -56,6 +61,11 @@ module.exports =
           new SelectView(items)
       	else
       	  atom.notifications.addError("Import with namespace alias not found")
+
+  getRangeAndVar: (editor) ->
+    varRange = editor.getLastCursor().getCurrentWordBufferRange(wordRegex: /[a-zA-Z0-9\-.$!?\/><*]+/)
+    varName = editor.getTextInBufferRange(varRange)
+    [varRange, varName]
 
   checkDependents: ->
     cljCode = fs.readFileSync(__dirname + "/clj/check_deps.clj").toString()
