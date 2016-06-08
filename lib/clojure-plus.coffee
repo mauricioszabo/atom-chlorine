@@ -15,10 +15,10 @@ module.exports =
           (swap! user/__watches__ update-in [..ID..] #(conj (or % []) ..SEL..)) ..SEL..)"
         #expression: "(do (println ..SEL.. ) ..SEL..)"
 
-    setTimeout ->
-      protoRepl.onDidConnect ->
-        protoRepl.executeCode("(def __watches__ (atom {}))", ns: "user", displayInRepl: false)
-    , 5000
+    atom.packages.onDidActivatePackage (pack) ->
+      if pack.name == 'proto-repl'
+        protoRepl.onDidConnect ->
+          protoRepl.executeCode("(def __watches__ (atom {}))", ns: "user", displayInRepl: false)
 
     atom.commands.add 'atom-text-editor', 'clojure-plus:evaluate-top-block', =>
       @executeTopLevel()
@@ -33,8 +33,6 @@ module.exports =
 
   importForMissing: ->
       editor = atom.workspace.getActiveTextEditor()
-      # varRange = editor.getLastCursor().getCurrentWordBufferRange(wordRegex: /[a-zA-Z0-9\-.$!?\/><*]+/)
-      # varNameRaw = editor.getTextInBufferRange(varRange)
       [varRange, varNameRaw] = @getRangeAndVar(editor)
       varName = varNameRaw?.replace(/"/g, '\\"')
       if !varName
@@ -102,7 +100,6 @@ module.exports =
 
   executeTopLevel: ->
     editor = atom.workspace.getActiveTextEditor()
-    # Repl.EditorUtils.getCursorInBlockRange(editor, {topLevel: true})
 
     # Copy-paste from proto-repl... sorry...
     if editor = atom.workspace.getActiveTextEditor()
@@ -133,7 +130,6 @@ module.exports =
   scheduleWatch: (result, options) ->
     delete options.resultHandler
     protoRepl.repl.inlineResultHandler(result, options)
-    # protoRepl.executeCode("@user/__watches__",
     protoRepl.executeCode '(map (fn [[k v]] (str k "#" (with-out-str (print-method v *out*)))) @user/__watches__)',
       displayInRepl: false, resultHandler: (res) => @handleWatches(res)
 
