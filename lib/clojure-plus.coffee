@@ -4,6 +4,24 @@ EvryProvider = require './evry-provider'
 fs = require 'fs'
 
 module.exports =
+  config:
+    afterRefreshCmd:
+      description: "Command to run after each refresh (success or failure)"
+      type: 'string'
+      default: "(alter-var-root #'clojure.test/*load-tests* (constantly true))"
+    beforeRefreshCmd:
+      description: "Command to run before each refresh (success or failure)"
+      type: 'string'
+      default: "(alter-var-root #'clojure.test/*load-tests* (constantly false))"
+    refreshAllCmd:
+      description: "Path to a file with the refresh all namespaces' command"
+      type: 'string'
+      default: "~/atom/.packages/clojure-plus/lib/clj/refresh_all.clj"
+    refreshCmd:
+      description: "Path to a file with the refresh namespaces' command"
+      type: 'string'
+      default: "~/atom/.packages/clojure-plus/lib/clj/refresh.clj"
+
   currentWatches: {}
   lastClear: null
 

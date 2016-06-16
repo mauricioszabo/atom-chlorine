@@ -8,6 +8,7 @@ module.exports = class SelectView extends SelectListView
     @setItems(items)
     @panel ?= atom.workspace.addModalPanel(item: this)
     @panel.show()
+
     @focusFilterEditor()
 
   viewForItem: (item) ->
