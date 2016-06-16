@@ -1,2 +1,3 @@
-(require '[clojre.tools.namespace.repl :as repl])
-(repl/refresh)
+(do
+  (require '[clojure.tools.namespace.repl :as repl])
+  (repl/refresh))
