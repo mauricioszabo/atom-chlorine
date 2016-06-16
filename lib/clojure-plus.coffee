@@ -1,15 +1,56 @@
 {CompositeDisposable} = require 'atom'
 SelectView = require './select-view'
 EvryProvider = require './evry-provider'
+CljCommands = require './clj-commands'
 fs = require 'fs'
 
 module.exports =
+  config:
+    notify:
+      description: "Notify when refresh was done"
+      type: "boolean"
+      default: true
+    refreshAfterConnect:
+      description: "Refresh after REPL is connected"
+      type: "boolean"
+      default: true
+    refreshAfterSave:
+      description: "Refresh after saving a file"
+      type: "boolean"
+      default: true
+    afterRefreshCmd:
+      description: "Command to run after each refresh (success or failure)"
+      type: 'string'
+      default: "(alter-var-root #'clojure.test/*load-tests* (constantly true))"
+    beforeRefreshCmd:
+      description: "Command to run before each refresh (success or failure)"
+      type: 'string'
+      default: "(alter-var-root #'clojure.test/*load-tests* (constantly false))"
+    refreshAllCmd:
+      description: "Path to a file with the refresh all namespaces' command"
+      type: 'string'
+      default: "~/.atom/packages/clojure-plus/lib/clj/refresh_all.clj"
+    refreshCmd:
+      description: "Path to a file with the refresh namespaces' command"
+      type: 'string'
+      default: "~/.atom/packages/clojure-plus/lib/clj/refresh.clj"
+
   currentWatches: {}
   lastClear: null
 
   everythingProvider: -> new EvryProvider()
 
   activate: (state) ->
+    @commands = new CljCommands()
+
+    atom.commands.add 'atom-text-editor', 'clojure-plus:refresh-namespaces', =>
+      @commands.runRefresh()
+    atom.commands.add 'atom-text-editor', 'clojure-plus:clear-and-refresh-namespaces', =>
+      @commands.runRefresh(true)
+
+    atom.commands.add 'atom-text-editor', 'clojure-plus:test-item', =>
+      new SelectView([{label: "FOO"}, {label: "FAR"}])
+
     atom.commands.add 'atom-text-editor', 'clojure-plus:watch-expression', =>
       @markCustomExpr
         type: "watch"
@@ -18,11 +59,18 @@ module.exports =
           (swap! user/__watches__ update-in [..ID..] #(conj (or % []) ..SEL..)) ..SEL..)"
         #expression: "(do (println ..SEL.. ) ..SEL..)"
 
-    atom.packages.onDidActivatePackage (pack) ->
+    atom.workspace.observeTextEditors (editor) =>
+      editor.onDidSave =>
+        if atom.config.get('clojure-plus.refreshAfterSave') && editor.getGrammar().scopeName == 'source.clojure'
+          @commands.runRefresh()
+
+    atom.packages.onDidActivatePackage (pack) =>
       if pack.name == 'proto-repl'
-        protoRepl.onDidConnect ->
-          protoRepl.executeCode("(def __watches__ (atom {}))", ns: "user", displayInRepl: false)
-          protoRepl.executeCode(fs.readFileSync(__dirname + "/clj/check_deps.clj").toString(), displayInRepl: false)
+        protoRepl.onDidConnect =>
+          # protoRepl.executeCode("(def __watches__ (atom {}))", ns: "user", displayInRepl: false)
+          # protoRepl.executeCode(fs.readFileSync(__dirname + "/clj/check_deps.clj").toString(), displayInRepl: false)
+          if atom.config.get('clojure-plus.refreshAfterConnect')
+            @commands.runRefresh()
 
     atom.commands.add 'atom-text-editor', 'clojure-plus:evaluate-top-block', =>
       @executeTopLevel()
