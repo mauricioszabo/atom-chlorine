@@ -48,6 +48,9 @@ module.exports =
     atom.commands.add 'atom-text-editor', 'clojure-plus:clear-and-refresh-namespaces', =>
       @commands.runRefresh(true)
 
+    atom.commands.add 'atom-text-editor', 'clojure-plus:test-item', =>
+      new SelectView([{label: "FOO"}, {label: "FAR"}])
+
     atom.commands.add 'atom-text-editor', 'clojure-plus:watch-expression', =>
       @markCustomExpr
         type: "watch"

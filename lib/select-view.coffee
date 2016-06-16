@@ -3,7 +3,6 @@
 module.exports = class SelectView extends SelectListView
   initialize: (items) ->
     super
-    @storeFocusedElement()
     @addClass('overlay from-top')
     @setItems(items)
     @panel ?= atom.workspace.addModalPanel(item: this)
@@ -20,6 +19,8 @@ module.exports = class SelectView extends SelectListView
   confirmed: (item) ->
     item.run()
     @cancel()
+    e = atom.workspace.getActiveTextEditor()
+    atom.views.getView(e).focus()
 
   cancelled: ->
     @panel.destroy()
