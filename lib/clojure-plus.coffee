@@ -34,6 +34,10 @@ module.exports =
       description: "Path to a file with the refresh namespaces' command"
       type: 'string'
       default: "~/.atom/packages/clojure-plus/lib/clj/refresh.clj"
+    tempDir:
+      description: "Temporary directory to unpack JAR files (used by goto-var)"
+      type: "string"
+      default: "/tmp/jar-path"
 
   currentWatches: {}
   lastClear: null
@@ -41,10 +45,12 @@ module.exports =
   everythingProvider: -> new EvryProvider()
 
   activate: (state) ->
-    @commands = new CljCommands()
+    @commands = new CljCommands(@currentWatches)
 
     atom.commands.add 'atom-text-editor', 'clojure-plus:refresh-namespaces', =>
       @commands.runRefresh()
+    atom.commands.add 'atom-text-editor', 'clojure-plus:goto-var-definition', =>
+      @commands.openFileContainingVar()
     atom.commands.add 'atom-text-editor', 'clojure-plus:clear-and-refresh-namespaces', =>
       @commands.runRefresh(true)
 
@@ -67,8 +73,8 @@ module.exports =
     atom.packages.onDidActivatePackage (pack) =>
       if pack.name == 'proto-repl'
         protoRepl.onDidConnect =>
-          # protoRepl.executeCode("(def __watches__ (atom {}))", ns: "user", displayInRepl: false)
-          # protoRepl.executeCode(fs.readFileSync(__dirname + "/clj/check_deps.clj").toString(), displayInRepl: false)
+          @commands.prepare()
+
           if atom.config.get('clojure-plus.refreshAfterConnect')
             @commands.runRefresh()
 
@@ -133,10 +139,20 @@ module.exports =
     cljVar = editor.getTextInBufferRange(region)
     expression = expression.replace(/\.\.SEL\.\./g, cljVar)
     expression = expression.replace(/\.\.ID\.\./g, mark.id)
+
     mark.expression = expression
     mark.editor = editor
+
     editor.decorateMarker(mark, type: "highlight", class: "clojure-watch-expr " + type)
     @currentWatches[mark.id] = mark
+
+    topRanges = protoRepl.EditorUtils.getTopLevelRanges(editor)
+    topRange = topRanges.find (range) => range.containsPoint(region.start)
+    text = editor.getTextInBufferRange(topRange).trim()
+    text = @updateWithMarkers(editor, text, topRange)
+    mark.topLevelExpr = text
+
+    @commands.assignWatches()
 
   removeMarkIfExists: (editor, region)->
     for _, mark of @currentWatches
@@ -156,8 +172,8 @@ module.exports =
     # Copy-paste from proto-repl... sorry...
     if editor = atom.workspace.getActiveTextEditor()
       if range = protoRepl.EditorUtils.getCursorInBlockRange(editor, topLevel: true)
-        text = editor.getTextInBufferRange(range).trim()
-        text = @updateWithMarkers(editor, text, range)
+        oldText = editor.getTextInBufferRange(range).trim()
+        text = @updateWithMarkers(editor, oldText, range)
 
         # Highlight the area that's being executed temporarily
         marker = editor.markBufferRange(range)
@@ -169,14 +185,14 @@ module.exports =
         , 350)
 
         options =
-          displayCode: text
+          displayCode: oldText
           resultHandler: (a,b) => @scheduleWatch(a, b)
           displayInRepl: false
           inlineOptions:
             editor: editor
             range: range
 
-        protoRepl.executeCodeInNs "(do (in-ns 'user) (def __watches__ (atom {})))", ns: "user", displayInRepl: true
+        protoRepl.executeCodeInNs "(do (in-ns 'user) (def __watches__ (atom {})))", ns: "user", displayInRepl: false
         protoRepl.executeCodeInNs(text, options)
 
   scheduleWatch: (result, options) ->
@@ -188,15 +204,12 @@ module.exports =
   handleWatches: (result, options) ->
     return unless result.value
     values = protoRepl.parseEdn(result.value)
-    console.log(result.values, values)
     for row in values
       id = row.replace(/#.*/, "")
       data = row.replace(/\d+#/, "")
-      console.log(row, @currentWatches, id, data)
       watch = @currentWatches[id]
       if watch
         protoRepl.repl.displayInline(watch.editor, watch.getBufferRange(), protoRepl.ednToDisplayTree(data))
-
 
   updateWithMarkers: (editor, text, blockRange) ->
     lines = text.split("\n")
