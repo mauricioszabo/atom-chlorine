@@ -18,7 +18,6 @@ module.exports = class CljCommands
     notify = atom.config.get('clojure-plus.notify')
     protoRepl.executeCode before, ns: "user", displayInRepl: false
     protoRepl.executeCode refreshCmd, ns: "user", displayInRepl: false, resultHandler: (result) =>
-      console.log "Refreshed? ", result
       if result.value
         value = protoRepl.parseEdn(result.value)
         if !value.cause
@@ -61,7 +60,6 @@ module.exports = class CljCommands
       tmpPath = '"' +
                 atom.config.get('clojure-plus.tempDir').replace(/\\/g, "\\\\").replace(/"/g, "\\\"") +
                 '"'
-      console.log "TEMP PATH", tmpPath
 
       if selected
         text = "(--check-deps--/goto-var '#{selected} #{tmpPath})"
