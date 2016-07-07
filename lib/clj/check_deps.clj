@@ -1,4 +1,4 @@
-(ns check-deps)
+(ns --check-deps--)
 
 (defn fq-path-to-relative [fq-path]
   (let [root (System/getProperty "user.dir")
@@ -49,3 +49,30 @@
 ;                         (in-ns (-> s (clojure.string/split #"/") first symbol))
 ;                         (search (try (load-string quoted) (catch Exception e)))))]
 ;       (filter have-sym? symbols))) all-ss 'accounts.double-entry.models.adjustment/schema)
+
+(defn decompress-all [temp-dir line [jar-path partial-jar-path within-file-path]]
+  (let [decompressed-path (str temp-dir "/" partial-jar-path)
+        decompressed-file-path (str decompressed-path "/" within-file-path)
+        decompressed-path-dir (clojure.java.io/file decompressed-path)]
+    (when-not (.exists decompressed-path-dir)
+      (println "decompressing" jar-path "to" decompressed-path)
+      (.mkdirs decompressed-path-dir)
+      (clojure.java.shell/sh "unzip" jar-path "-d" decompressed-path))
+    [decompressed-file-path line]))
+
+(defn goto-var [var-sym temp-dir]
+  (require 'clojure.repl)
+  (require 'clojure.java.shell)
+  (require 'clojure.java.io)
+  (let [the-var (or (some->> (or (get (ns-aliases *ns*) var-sym) (find-ns var-sym))
+                             clojure.repl/dir-fn
+                             first
+                             name
+                             (str (name var-sym) "/")
+                             symbol)
+                    var-sym)
+        {:keys [file line]} (meta (eval `(var ~the-var)))
+        file-path (.getPath (.getResource (clojure.lang.RT/baseLoader) file))]
+    (if-let [[_ & jar-data] (re-find #"file:(.+/\.m2/repository/(.+\.jar))!/(.+)" file-path)]
+      (decompress-all temp-dir line jar-data)
+      [(clojure.string/replace file-path #"/project/" "") line])))

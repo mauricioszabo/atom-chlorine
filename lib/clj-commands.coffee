@@ -2,6 +2,12 @@ fs = require 'fs'
 process = require 'process'
 
 module.exports = class CljCommands
+  constructor: (@watches) ->
+
+  prepare: ->
+    code = @getFile("~/.atom/packages/clojure-plus/lib/clj/check_deps.clj")
+    protoRepl.executeCode code, displayInRepl: false
+
   runRefresh: (all) ->
     before = atom.config.get('clojure-plus.beforeRefreshCmd')
     after = atom.config.get('clojure-plus.afterRefreshCmd')
@@ -12,13 +18,13 @@ module.exports = class CljCommands
     notify = atom.config.get('clojure-plus.notify')
     protoRepl.executeCode before, ns: "user", displayInRepl: false
     protoRepl.executeCode refreshCmd, ns: "user", displayInRepl: false, resultHandler: (result) =>
-      console.log "Refreshed? ", result
       if result.value
         value = protoRepl.parseEdn(result.value)
         if !value.cause
           @lastRefreshSucceeded = true
           atom.notifications.addSuccess("Refresh successful.") if notify
           protoRepl.appendText("Refresh successful.")
+          @assignWatches()
         else
           @lastRefreshSucceeded = false
           causes = value.via.map (e) -> e.message
@@ -35,9 +41,40 @@ module.exports = class CljCommands
 
   getRefreshCmd: (all) ->
     key = if all then 'clojure-plus.refreshAllCmd' else 'clojure-plus.refreshCmd'
-    file = @translateFile(atom.config.get(key))
-    fs.readFileSync(file).toString()
+    @getFile(atom.config.get(key))
 
-  translateFile: (file) ->
+  assignWatches: ->
+    console.log "Assigning watches"
+    for id, mark of @watches
+      if mark.isValid()
+        ns = protoRepl.EditorUtils.findNsDeclaration(mark.editor)
+        opts = { displayInRepl: false }
+        opts.ns = ns if ns
+        protoRepl.executeCode(mark.topLevelExpr, opts)
+      else
+        delete @watches[id]
+
+  openFileContainingVar: ->
+    if editor = atom.workspace.getActiveTextEditor()
+      selected = editor.getWordUnderCursor(wordRegex: /[a-zA-Z0-9\-.$!?:\/><\+*]+/)
+      tmpPath = '"' +
+                atom.config.get('clojure-plus.tempDir').replace(/\\/g, "\\\\").replace(/"/g, "\\\"") +
+                '"'
+
+      if selected
+        text = "(--check-deps--/goto-var '#{selected} #{tmpPath})"
+
+        protoRepl.executeCodeInNs text,
+          displayInRepl: false
+          resultHandler: (result)=>
+            if result.value
+              # @appendText("Opening #{result.value}")
+              [file, line] = protoRepl.parseEdn(result.value)
+              atom.workspace.open(file, {initialLine: line-1, searchAllPanes: true})
+            else
+              protoRepl.appendText("Error trying to open: #{result.error}")
+
+  getFile: (file) ->
     home = process.env.HOME
-    file.replace("~", home)
+    fileName = file.replace("~", home)
+    fs.readFileSync(fileName).toString()
