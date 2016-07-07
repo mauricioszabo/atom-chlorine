@@ -51,7 +51,7 @@
 ;       (filter have-sym? symbols))) all-ss 'accounts.double-entry.models.adjustment/schema)
 
 (defn decompress-all [temp-dir line [jar-path partial-jar-path within-file-path]]
-  (let [decompressed-path (str temp-dir partial-jar-path)
+  (let [decompressed-path (str temp-dir "/" partial-jar-path)
         decompressed-file-path (str decompressed-path "/" within-file-path)
         decompressed-path-dir (clojure.java.io/file decompressed-path)]
     (when-not (.exists decompressed-path-dir)
@@ -73,6 +73,6 @@
                     var-sym)
         {:keys [file line]} (meta (eval `(var ~the-var)))
         file-path (.getPath (.getResource (clojure.lang.RT/baseLoader) file))]
-    (if-let [jar-data (re-find #"file:(.+/\.m2/repository/(.+\.jar))!/(.+)" file-path)]
+    (if-let [[_ & jar-data] (re-find #"file:(.+/\.m2/repository/(.+\.jar))!/(.+)" file-path)]
       (decompress-all temp-dir line jar-data)
       [(clojure.string/replace file-path #"/project/" "") line])))
