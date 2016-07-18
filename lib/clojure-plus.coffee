@@ -1,4 +1,4 @@
-{CompositeDisposable} = require 'atom'
+{CompositeDisposable, TextEditor} = require 'atom'
 SelectView = require './select-view'
 EvryProvider = require './evry-provider'
 CljCommands = require './clj-commands'
@@ -45,8 +45,6 @@ module.exports =
   everythingProvider: -> new EvryProvider()
 
   activate: (state) ->
-    @commands = new CljCommands(@currentWatches)
-
     atom.commands.add 'atom-text-editor', 'clojure-plus:refresh-namespaces', =>
       @commands.runRefresh()
     atom.commands.add 'atom-text-editor', 'clojure-plus:goto-var-definition', =>
@@ -72,6 +70,8 @@ module.exports =
 
     atom.packages.onDidActivatePackage (pack) =>
       if pack.name == 'proto-repl'
+        @commands = new CljCommands(@currentWatches, protoRepl)
+
         protoRepl.onDidConnect =>
           @commands.prepare()
 
@@ -97,26 +97,36 @@ module.exports =
         atom.notifications.addError("Position your cursor in a clojure var name")
         return
 
-      nreplCode = "
-	(let [edn-str (refactor-nrepl.ns.resolve-missing/resolve-missing {:symbol \"#{varName}\"})
-	      name (-> edn-str read-string first :name)]
-	  (when name
-	    (let [aliases (refactor-nrepl.ns.libspecs/namespace-aliases)]
-	      (filter #(-> % second (= name))
-		      (mapcat (fn [[k vs]] (map #(vector k %) vs))
-			      (apply merge (vals aliases)))))))"
-      protoRepl.executeCodeInNs nreplCode, displayInRepl: true, resultHandler: (res) ->
-      	result = protoRepl.parseEdn(res.value)
-      	if result && result.length > 0
+      @commands.nsForMissing(varName).then (results) =>
+        command = (namespace, alias) ->
+          atom.clipboard.write("[#{namespace} :as #{alias}]")
+          editor.setTextInBufferRange(varRange, "#{alias}/#{varNameRaw}")
+          atom.notifications.addSuccess("Import copied to clipboard!")
+
+        result = protoRepl.parseEdn(results.value)
+        if result && result.length > 0
           items = result.map (res) ->
-            text = "[#{res[1]} :as #{res[0]}]"
+            alias = if res[1] then res[1] else "[no alias]"
+            text = "[#{res[0]} :as #{alias}]"
             label: text, run: =>
-              atom.clipboard.write(text)
-              editor.setTextInBufferRange(varRange, "#{res[0]}/#{varNameRaw}")
-              atom.notifications.addSuccess("Import copied to clipboard!")
+              if res[1]
+                command(res[0], res[1])
+              else
+                te = new TextEditor(mini: true, placeholderText: "type your namespace alias")
+                panel = atom.workspace.addModalPanel(item: te)
+                atom.commands.add te.element, 'core:confirm': ->
+                  command(res[0], te.getText())
+                  panel.destroy()
+                  atom.views.getView(atom.workspace).focus()
+                , 'core:cancel': ->
+                  panel.destroy()
+                  atom.views.getView(atom.workspace).focus()
+                setTimeout ->
+                  te.focus()
+                  te.getModel().scrollToCursorPosition()
           new SelectView(items)
-      	else
-      	  atom.notifications.addError("Import with namespace alias not found")
+        else
+          atom.notifications.addError("Import with namespace alias not found")
 
   getRangeAndVar: (editor) ->
     varRange = editor.getLastCursor().getCurrentWordBufferRange(wordRegex: /[a-zA-Z0-9\-.$!?\/><*]+/)

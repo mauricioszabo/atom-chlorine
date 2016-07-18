@@ -3,6 +3,16 @@
 
 module.exports = class PromisedRepl
   constructor: (@repl) ->
+    @lastCmd = Promise.resolve()
+
+  syncRun: (code, ns) =>
+    lastPromise = @lastCmd
+    @lastCmd = new Promise (resolve) =>
+      lastPromise.then =>
+        @lastCmd = if(ns)
+          @runCodeInNS(code, ns).then (v) => resolve(v)
+        else
+          @runCodeInCurrentNS(code).then (v) => resolve(v)
 
   runCodeInCurrentNS: (code) ->
     new Promise (resolve) =>
