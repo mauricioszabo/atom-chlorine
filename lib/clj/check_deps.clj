@@ -37,7 +37,6 @@
                       (search (try (load-string quoted) (catch Exception e)))))]
     (filter have-sym? symbols)))
 
-
 (defn decompress-all [temp-dir line [jar-path partial-jar-path within-file-path]]
   (let [decompressed-path (str temp-dir "/" partial-jar-path)
         decompressed-file-path (str decompressed-path "/" within-file-path)
@@ -80,3 +79,14 @@
                          "}")
                    syms)]
     (str "[" (join "," jsons) "]")))
+
+(defn resolve-missing [name]
+  (let [edn-str (refactor-nrepl.ns.resolve-missing/resolve-missing {:symbol name})
+        namespace-names (->> edn-str read-string (map :name) (apply sorted-set))
+        aliases (for [aliases (mapcat second (refactor-nrepl.ns.libspecs/namespace-aliases))
+                      :let [[alias namespaces] aliases]
+                      ns-name namespaces
+                      :when (contains? namespace-names ns-name)]
+                  [ns-name alias])
+        alias-map (group-by first aliases)]
+    (mapcat #(or (get alias-map %) [[% nil]]) namespace-names)))
