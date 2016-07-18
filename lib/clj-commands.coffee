@@ -9,24 +9,27 @@ module.exports = class CljCommands
 
   prepare: ->
     code = @getFile("~/.atom/packages/clojure-plus/lib/clj/check_deps.clj")
-    @repl.executeCode code, displayInRepl: false
+    @promisedRepl.syncRun(code)
 
   runRefresh: (all) ->
     before = atom.config.get('clojure-plus.beforeRefreshCmd')
     after = atom.config.get('clojure-plus.afterRefreshCmd')
+    simple = atom.config.get('clojure-plus.simpleRefresh')
 
-    @repl.executeCode before, ns: "user", displayInRepl: false unless simple && all
+    @promisedRepl.syncRun(before, "user") unless simple && all
     if simple
       @runSimpleRefresh(all)
     else
       @runFullRefresh(all)
-    @repl.executeCode after, ns: "user", displayInRepl: false
+    @promisedRepl.syncRun(after,"user")
 
   runSimpleRefresh: (all) ->
     return if all
     notify = atom.config.get('clojure-plus.notify')
-    refreshCmd = "(require (.name *ns*) :reload)"
-    @repl.executeCodeInNs refreshCmd, displayInRepl: false, resultHandler: (result) =>
+    ns = @repl.EditorUtils.findNsDeclaration(atom.workspace.getActiveTextEditor())
+    refreshCmd = "(require '#{ns} :reload)"
+
+    @promisedRepl.syncRun(refreshCmd).then (result) =>
       if result.value
         atom.notifications.addSuccess("Refresh successful.") if notify
         @repl.appendText("Refresh successful.")
@@ -40,7 +43,7 @@ module.exports = class CljCommands
     refreshCmd = @getRefreshCmd(shouldRefreshAll)
 
     notify = atom.config.get('clojure-plus.notify')
-    @repl.executeCode refreshCmd, ns: "user", displayInRepl: false, resultHandler: (result) =>
+    @promisedRepl.syncRun(refreshCmd, "user").then (result) =>
       if result.value
         value = @repl.parseEdn(result.value)
         if !value.cause
@@ -66,13 +69,10 @@ module.exports = class CljCommands
     @getFile(atom.config.get(key))
 
   assignWatches: ->
-    console.log "Assigning watches"
     for id, mark of @watches
       if mark.isValid()
         ns = @repl.EditorUtils.findNsDeclaration(mark.editor)
-        opts = { displayInRepl: false }
-        opts.ns = ns if ns
-        @repl.executeCode(mark.topLevelExpr, opts)
+        @promisedRepl.syncRun(mark.topLevelExpr, ns)
       else
         delete @watches[id]
 
@@ -86,15 +86,12 @@ module.exports = class CljCommands
       if selected
         text = "(--check-deps--/goto-var '#{selected} #{tmpPath})"
 
-        @repl.executeCodeInNs text,
-          displayInRepl: false
-          resultHandler: (result)=>
-            if result.value
-              # @appendText("Opening #{result.value}")
-              [file, line] = @repl.parseEdn(result.value)
-              atom.workspace.open(file, {initialLine: line-1, searchAllPanes: true})
-            else
-              @repl.appendText("Error trying to open: #{result.error}")
+        @promisedRepl.runCodeInCurrentNS(text).then (result) =>
+          if result.value
+            [file, line] = @repl.parseEdn(result.value)
+            atom.workspace.open(file, {initialLine: line-1, searchAllPanes: true})
+          else
+            @repl.appendText("Error trying to open: #{result.error}")
 
   getFile: (file) ->
     home = process.env.HOME

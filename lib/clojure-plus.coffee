@@ -45,8 +45,6 @@ module.exports =
   everythingProvider: -> new EvryProvider()
 
   activate: (state) ->
-    @commands = new CljCommands(@currentWatches)
-
     atom.commands.add 'atom-text-editor', 'clojure-plus:refresh-namespaces', =>
       @commands.runRefresh()
     atom.commands.add 'atom-text-editor', 'clojure-plus:goto-var-definition', =>
@@ -72,6 +70,8 @@ module.exports =
 
     atom.packages.onDidActivatePackage (pack) =>
       if pack.name == 'proto-repl'
+        @commands = new CljCommands(@currentWatches, protoRepl)
+
         protoRepl.onDidConnect =>
           @commands.prepare()
 
