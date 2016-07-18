@@ -1,6 +1,30 @@
 (ns --check-deps--
   (:require [clojure.string :refer [split join]]))
 
+(defn vars-in-form [form vars]
+  (cond
+    (coll? form) (reduce #(vars-in-form %2 %1) vars form)
+    (symbol? form) (conj vars form)
+    :else vars))
+
+(defn vars-for-file [file-name]
+  (let [code (load-string (str "'(" (slurp  file-name) "\n)"))
+        filtered (filter #(not= 'ns (first %)) code)]
+    (reduce (fn [vars list-of-forms]
+              (vars-in-form (load-string (str "`" list-of-forms)) vars))
+            #{} filtered)))
+
+(defn unused-namespaces [file]
+  (let [nss-in-file (->> file
+                         vars-for-file
+                         (map str)
+                         (filter #(re-find #"/" %))
+                         (map #(first (clojure.string/split % #"/")))
+                         set)
+        parsed-ns (refactor-nrepl.ns.ns-parser/parse-ns file)
+        requires (map #(-> % :ns str) (concat (get-in parsed-ns [:clj :require]) (get-in parsed-ns [:cljs :require])))]
+    (remove #(contains? nss-in-file %) requires)))
+
 (defn fq-path-to-relative [fq-path]
   (let [root (System/getProperty "user.dir")
         size (count root)]
