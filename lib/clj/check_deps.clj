@@ -1,4 +1,5 @@
-(ns --check-deps--)
+(ns --check-deps--
+  (:require [clojure.string :refer [split join]]))
 
 (defn fq-path-to-relative [fq-path]
   (let [root (System/getProperty "user.dir")
@@ -32,23 +33,10 @@
                     (let [sym (-> s :fqname symbol)
                           source (try (clojure.repl/source-fn sym) (catch Exception _))
                           quoted (str "`" source)]
-                      (in-ns (-> s (clojure.string/split #"/") first symbol))
+                      (in-ns (-> s (split #"/") first symbol))
                       (search (try (load-string quoted) (catch Exception e)))))]
     (filter have-sym? symbols)))
 
-
-; ((fn [symbols to-find]
-;     (let [search (fn search [sexp]
-;                    (if (coll? sexp)
-;                      (some search sexp)
-;                      (= sexp to-find)))
-;           have-sym? (fn [s]
-;                       (let [sym (symbol s)
-;                             source (try (clojure.repl/source-fn sym) (catch Exception _))
-;                             quoted (str "`" source)]
-;                         (in-ns (-> s (clojure.string/split #"/") first symbol))
-;                         (search (try (load-string quoted) (catch Exception e)))))]
-;       (filter have-sym? symbols))) all-ss 'accounts.double-entry.models.adjustment/schema)
 
 (defn decompress-all [temp-dir line [jar-path partial-jar-path within-file-path]]
   (let [decompressed-path (str temp-dir "/" partial-jar-path)
@@ -76,3 +64,19 @@
     (if-let [[_ & jar-data] (re-find #"file:(.+/\.m2/repository/(.+\.jar))!/(.+)" file-path)]
       (decompress-all temp-dir line jar-data)
       [(clojure.string/replace file-path #"/project/" "") line])))
+
+(defn symbols-from-ns [ns-ref]
+  (for [sym-name (map first (ns-interns ns-ref))
+        :let [ns-name (.name ns-ref)
+              fq-str (str "#'" ns-name "/" sym-name)
+              fqname (load-string fq-str)]]
+    (merge {:ns ns-name :symbol sym-name} (select-keys (meta fqname) [:line :column]))))
+
+(defn symbols-from-ns-in-json [ns-ref]
+  (let [syms (symbols-from-ns ns-ref)
+        jsons (map #(str "{\"line\":" (:line %)
+                         ",\"column\":" (:column %)
+                         ",\"symbol\":\"" (:symbol %) "\""
+                         "}")
+                   syms)]
+    (str "[" (join "," jsons) "]")))
