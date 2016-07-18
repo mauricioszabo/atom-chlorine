@@ -98,6 +98,9 @@ module.exports = class CljCommands
     fileName = file.replace("~", home)
     fs.readFileSync(fileName).toString()
 
+  nsForMissing: (symbolName) ->
+    @promisedRepl.runCodeInCurrentNS("(--check-deps--/resolve-missing \"#{symbolName}\")")
+
   getSymbolsInEditor: (editor) ->
     @promisedRepl.runCodeInCurrentNS("(--check-deps--/symbols-from-ns-in-json *ns*)").then (result) =>
       return unless result.value
