@@ -83,6 +83,8 @@ module.exports =
 
     atom.commands.add 'atom-text-editor', 'clojure-plus:import-for-missing-symbol', =>
       @importForMissing()
+    atom.commands.add 'atom-text-editor', 'clojure-plus:remove-unused-imports', =>
+      @removeUnusedImport(atom.workspace.getActiveTextEditor())
 
     atom.commands.add 'atom-text-editor', 'clojure-plus:display-full-symbol-name', =>
       editor = atom.workspace.getActiveTextEditor()
@@ -127,6 +129,29 @@ module.exports =
           new SelectView(items)
         else
           atom.notifications.addError("Import with namespace alias not found")
+
+  removeUnusedImport: (editor) ->
+    project = atom.project.getPaths()
+    path = editor.getPath()
+    project = project.filter (p) -> path.indexOf(p) != -1
+    path = path.replace(project + "/", "")
+
+    @commands.unusedImports(path).then (result) =>
+      console.log(result)
+      namespaces = protoRepl.parseEdn(result.value)
+      nsRange = @getNsRange(editor)
+      nsTexts = editor.getTextInBufferRange(nsRange).split("\n")
+      newNsText = nsTexts.filter (row) =>
+        namespaces.some (ns) =>
+          !row.match(new RegExp("[\\(\\[]\\s*#{@escapeRegex(ns)}[\\s\\]\\)]"))
+      editor.setTextInBufferRange(nsRange, newNsText.join("\n"))
+
+  getNsRange: (editor) ->
+    ranges = protoRepl.EditorUtils.getTopLevelRanges(editor)
+    ranges.find (r) => editor.getTextInBufferRange(r).match(/\(\s*ns\b/)
+
+  escapeRegex: (str) ->
+    str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
 
   getRangeAndVar: (editor) ->
     varRange = editor.getLastCursor().getCurrentWordBufferRange(wordRegex: /[a-zA-Z0-9\-.$!?\/><*]+/)
