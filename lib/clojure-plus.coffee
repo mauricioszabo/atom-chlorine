@@ -68,6 +68,7 @@ module.exports =
           @commands.runRefresh()
 
     atom.packages.onDidActivatePackage (pack) =>
+      console.log "Activated ", pack
       if pack.name == 'proto-repl'
         @commands = new CljCommands(@currentWatches, protoRepl)
 
@@ -121,7 +122,6 @@ module.exports =
                   panel.destroy()
                   atom.views.getView(atom.workspace).focus()
                 setTimeout ->
-                  te.focus()
                   te.getModel().scrollToCursorPosition()
           new SelectView(items)
         else
@@ -138,18 +138,21 @@ module.exports =
   markCustomExpr: ({expression, type, region}) ->
     editor = atom.workspace.getActiveTextEditor()
     return unless editor?
-    region = editor.getSelectedBufferRange()
-    console.log "REGION", region
+    region ?= editor.getSelectedBufferRange()
     {row, column} = region.getExtent()
-    console.log "EXTENT", row, column
-    if row == 0 && column == 0
+    if row == 0 && column == 0 # If nothing is selected
       region = editor.getLastCursor()
                      .getCurrentWordBufferRange({wordRegex: /[a-zA-Z0-9\-.$!?:\/><*]+/})
-    return if @removeMarkIfExists(editor, region)
 
-    mark = editor.markBufferRange(region, invalidate: "touch")
+    {row, column} = region.getExtent()
+    return if row == 0 && column == 0 # if no word was found
+
+    mark = editor.markBufferRange(region, invalidate: "touch") unless @removeMarkIfExists(editor, region)
     if mark?
       cljVar = editor.getTextInBufferRange(region)
+      expression = expression.replace(/\.\.FILE_NAME\.\./g, editor.getPath())
+      expression = expression.replace(/\.\.ROW\.\./g, region.start.row + 1)
+      expression = expression.replace(/\.\.COL\.\./g, region.start.column + 1)
       expression = expression.replace(/\.\.SEL\.\./g, cljVar)
       expression = expression.replace(/\.\.ID\.\./g, mark.id)
 
@@ -172,8 +175,6 @@ module.exports =
       if start.column == region.start.column && start.row == region.start.row &&
          end.column == region.end.column && end.row == region.end.row
         mark.destroy()
-
-        delete @currentWatches[mark.id]
         return true
 
     return false

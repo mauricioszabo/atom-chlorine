@@ -73,7 +73,8 @@ module.exports = class CljCommands
       if mark.isValid()
         ns = @repl.EditorUtils.findNsDeclaration(mark.editor)
         console.log("Updating watch", ns, "code:", mark.topLevelExpr)
-        @promisedRepl.syncRun(mark.topLevelExpr, ns)
+        @promisedRepl.syncRun("(def __watches__ (atom {}))", 'user').then =>
+          @promisedRepl.syncRun(mark.topLevelExpr, ns)
       else
         delete @watches[id]
 
