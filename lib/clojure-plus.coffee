@@ -52,15 +52,15 @@ module.exports =
     atom.commands.add 'atom-text-editor', 'clojure-plus:clear-and-refresh-namespaces', =>
       @commands.runRefresh(true)
 
-    atom.commands.add 'atom-text-editor', 'clojure-plus:test-item', =>
-      new SelectView([{label: "FOO"}, {label: "FAR"}])
-
     atom.commands.add 'atom-text-editor', 'clojure-plus:watch-expression', =>
       @markCustomExpr
         type: "watch"
-        expression: "(do
-          (println 'swapping!)
-          (swap! user/__watches__ update-in [..ID..] (fn [x] (conj (or x []) ..SEL..))) ..SEL..)"
+        expression: "(let [__sel__ ..SEL..] (swap! user/__watches__ update-in [..ID..] (fn [x] (conj (or x []) __sel__))) __sel__)"
+
+    atom.commands.add 'atom-text-editor', 'clojure-plus:remove-all-watches', =>
+      for id, watch of @currentWatches
+        watch.destroy()
+        delete @currentWatches[id]
 
     atom.workspace.observeTextEditors (editor) =>
       editor.onDidSave =>
@@ -240,22 +240,3 @@ module.exports =
     for mark in marks
       mark.bufferMarker.invalidate = "touch"
     text
-    # marks = marks.sort (f, s) -> f.compare(s)
-
-    # lastRow = null
-    # for mark in marks
-    #   range = mark.getBufferRange()
-    #   lastCol = 0 if range.start.row != lastRow
-    #   lastRow = range.start.row
-    #
-    #   row = range.start.row - blockRange.start.row
-    #   line = lines[row]
-    #
-    #   scol = range.start.column + lastCol
-    #   ecol = range.end.column + lastCol
-    #   line = line.substring(0, scol) + mark.expression + line.substring(ecol)
-    #   lines[row] = line
-    #
-    #   lastCol = ecol - scol + lastCol
-    #
-    # lines.join("\n")
