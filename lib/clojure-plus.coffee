@@ -46,11 +46,11 @@ module.exports =
 
   activate: (state) ->
     atom.commands.add 'atom-text-editor', 'clojure-plus:refresh-namespaces', =>
-      @commands.runRefresh()
+      @getCommands().runRefresh()
     atom.commands.add 'atom-text-editor', 'clojure-plus:goto-var-definition', =>
-      @commands.openFileContainingVar()
+      @getCommands().openFileContainingVar()
     atom.commands.add 'atom-text-editor', 'clojure-plus:clear-and-refresh-namespaces', =>
-      @commands.runRefresh(true)
+      @getCommands().runRefresh(true)
 
     atom.commands.add 'atom-text-editor', 'clojure-plus:watch-expression', =>
       @markCustomExpr
@@ -65,18 +65,17 @@ module.exports =
     atom.workspace.observeTextEditors (editor) =>
       editor.onDidSave =>
         if atom.config.get('clojure-plus.refreshAfterSave') && editor.getGrammar().scopeName == 'source.clojure'
-          @commands.runRefresh()
+          @getCommands().runRefresh()
 
     atom.packages.onDidActivatePackage (pack) =>
-      console.log "Activated ", pack
       if pack.name == 'proto-repl'
         @commands = new CljCommands(@currentWatches, protoRepl)
 
         protoRepl.onDidConnect =>
-          @commands.prepare()
+          @getCommands().prepare()
 
           if atom.config.get('clojure-plus.refreshAfterConnect')
-            @commands.runRefresh()
+            @getCommands().runRefresh()
 
     atom.commands.add 'atom-text-editor', 'clojure-plus:evaluate-top-block', =>
       @executeTopLevel()
@@ -97,7 +96,7 @@ module.exports =
         atom.notifications.addError("Position your cursor in a clojure var name")
         return
 
-      @commands.nsForMissing(varName).then (results) =>
+      @getCommands().nsForMissing(varName).then (results) =>
         command = (namespace, alias) ->
           atom.clipboard.write("[#{namespace} :as #{alias}]")
           editor.setTextInBufferRange(varRange, "#{alias}/#{varNameRaw}")
@@ -167,7 +166,7 @@ module.exports =
       text = @updateWithMarkers(editor, topRange)
       mark.topLevelExpr = text
 
-    @commands.assignWatches()
+    @getCommands().assignWatches()
 
   removeMarkIfExists: (editor, region)->
     for _, mark of @currentWatches
@@ -205,7 +204,7 @@ module.exports =
             editor: editor
             range: range
 
-        @commands.promisedRepl.syncRun("(do (in-ns 'user) (def __watches__ (atom {})))", 'user').then =>
+        @getCommands().promisedRepl.syncRun("(do (in-ns 'user) (def __watches__ (atom {})))", 'user').then =>
           protoRepl.executeCodeInNs(text, options)
 
   scheduleWatch: (result, options) ->
@@ -235,9 +234,16 @@ module.exports =
       for mark in marks
         mark.bufferMarker.invalidate = "never"
         editor.setTextInBufferRange(mark.getBufferRange(), mark.expression)
-      text = editor.getTextInBufferRange(blockRange).trim()
+
+      # redo top range mark, 'cause we could have changed the limits
+      topRanges = protoRepl.EditorUtils.getTopLevelRanges(editor)
+      newBlockRange = topRanges.find (range) => range.containsPoint(blockRange.start)
+      text = editor.getTextInBufferRange(newBlockRange).trim()
       editor.abortTransaction()
 
     for mark in marks
       mark.bufferMarker.invalidate = "touch"
     text
+
+  getCommands: ->
+    @commands ?= new CljCommands(@currentWatches, protoRepl)

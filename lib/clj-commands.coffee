@@ -5,7 +5,6 @@ PromisedRepl = require './promised-repl'
 module.exports = class CljCommands
   constructor: (@watches, @repl) ->
     @promisedRepl = new PromisedRepl(@repl)
-    window.commands = this
 
   prepare: ->
     code = @getFile("~/.atom/packages/clojure-plus/lib/clj/check_deps.clj")
