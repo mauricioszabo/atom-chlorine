@@ -102,6 +102,10 @@ module.exports = class CljCommands
   nsForMissing: (symbolName) ->
     @promisedRepl.runCodeInCurrentNS("(--check-deps--/resolve-missing \"#{symbolName}\")")
 
+  unusedImports: (filePath) ->
+    filePath = filePath.replace(/"/g, '\\\\').replace(/\\/g, '\\\\')
+    @promisedRepl.runCodeInCurrentNS("(--check-deps--/unused-namespaces \"#{filePath}\")")
+
   getSymbolsInEditor: (editor) ->
     @promisedRepl.runCodeInCurrentNS("(--check-deps--/symbols-from-ns-in-json *ns*)").then (result) =>
       return unless result.value
