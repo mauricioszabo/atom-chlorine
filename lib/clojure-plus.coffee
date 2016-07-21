@@ -135,7 +135,6 @@ module.exports =
     path = path.replace(project + "/", "")
 
     @commands.unusedImports(path).then (result) =>
-      console.log(result)
       namespaces = protoRepl.parseEdn(result.value)
       nsRange = @getNsRange(editor)
       nsTexts = editor.getTextInBufferRange(nsRange).split("\n")
