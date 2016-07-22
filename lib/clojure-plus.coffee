@@ -46,37 +46,42 @@ module.exports =
 
   activate: (state) ->
     atom.commands.add 'atom-text-editor', 'clojure-plus:refresh-namespaces', =>
-      @commands.runRefresh()
+      @getCommands().runRefresh()
     atom.commands.add 'atom-text-editor', 'clojure-plus:goto-var-definition', =>
-      @commands.openFileContainingVar()
+      @getCommands().openFileContainingVar()
     atom.commands.add 'atom-text-editor', 'clojure-plus:clear-and-refresh-namespaces', =>
-      @commands.runRefresh(true)
+      @getCommands().runRefresh(true)
 
-    atom.commands.add 'atom-text-editor', 'clojure-plus:test-item', =>
-      new SelectView([{label: "FOO"}, {label: "FAR"}])
+    @addWatcher("watch", "(let [__sel__ ..SEL..]
+                            (println \"Result at\ ..FILE_NAME.., line\"
+                                     ..ROW..
+                                     \"column\"
+                                     ..COL..
+                                     \" => \"
+                                     __sel__)
+                            (swap! user/__watches__ update-in [..ID..] (fn [x] (conj (or x []) __sel__)))
+                            __sel__)")
 
-    atom.commands.add 'atom-text-editor', 'clojure-plus:watch-expression', =>
-      @markCustomExpr
-        type: "watch"
-        expression: "(do
-          (println 'swapping!)
-          (swap! user/__watches__ update-in [..ID..] #(conj (or % []) ..SEL..)) ..SEL..)"
-        #expression: "(do (println ..SEL.. ) ..SEL..)"
+    atom.commands.add 'atom-text-editor', 'clojure-plus:remove-all-watches', =>
+      for id, watch of @currentWatches
+        watch.destroy()
+        delete @currentWatches[id]
+      @getCommands.assignWatches()
 
     atom.workspace.observeTextEditors (editor) =>
       editor.onDidSave =>
         if atom.config.get('clojure-plus.refreshAfterSave') && editor.getGrammar().scopeName == 'source.clojure'
-          @commands.runRefresh()
+          @getCommands().runRefresh()
 
     atom.packages.onDidActivatePackage (pack) =>
       if pack.name == 'proto-repl'
         @commands = new CljCommands(@currentWatches, protoRepl)
 
         protoRepl.onDidConnect =>
-          @commands.prepare()
+          @getCommands().prepare()
 
           if atom.config.get('clojure-plus.refreshAfterConnect')
-            @commands.runRefresh()
+            @getCommands().runRefresh()
 
     atom.commands.add 'atom-text-editor', 'clojure-plus:evaluate-top-block', =>
       @executeTopLevel()
@@ -99,7 +104,7 @@ module.exports =
         atom.notifications.addError("Position your cursor in a clojure var name")
         return
 
-      @commands.nsForMissing(varName).then (results) =>
+      @getCommands().nsForMissing(varName).then (results) =>
         command = (namespace, alias) ->
           atom.clipboard.write("[#{namespace} :as #{alias}]")
           editor.setTextInBufferRange(varRange, "#{alias}/#{varNameRaw}")
@@ -124,7 +129,6 @@ module.exports =
                   panel.destroy()
                   atom.views.getView(atom.workspace).focus()
                 setTimeout ->
-                  te.focus()
                   te.getModel().scrollToCursorPosition()
           new SelectView(items)
         else
@@ -137,7 +141,6 @@ module.exports =
     path = path.replace(project + "/", "")
 
     @commands.unusedImports(path).then (result) =>
-      console.log(result)
       namespaces = protoRepl.parseEdn(result.value)
       nsRange = @getNsRange(editor)
       nsTexts = editor.getTextInBufferRange(nsRange).split("\n")
@@ -161,33 +164,45 @@ module.exports =
   checkDependents: ->
     cljCode = fs.readFileSync(__dirname + "/clj/check_deps.clj").toString()
 
+  addWatcher: (type, expression) ->
+    atom.commands.add 'atom-text-editor', "clojure-plus:add-#{type}-in-selection", =>
+      @markCustomExpr
+        type: type
+        expression: expression
+
   markCustomExpr: ({expression, type, region}) ->
     editor = atom.workspace.getActiveTextEditor()
     return unless editor?
-    region ?= editor.getLastCursor()
-                    .getCurrentWordBufferRange({wordRegex: /[a-zA-Z0-9\-.$!?:\/><*]+/})
-    return if @removeMarkIfExists(editor, region)
+    region ?= editor.getSelectedBufferRange()
+    {row, column} = region.getExtent()
+    if row == 0 && column == 0 # If nothing is selected
+      region = editor.getLastCursor()
+                     .getCurrentWordBufferRange({wordRegex: /[a-zA-Z0-9\-.$!?:\/><*]+/})
 
-    mark = editor.markBufferRange(region, invalidate: "touch")
-    return unless mark?
+    {row, column} = region.getExtent()
+    return if row == 0 && column == 0 # if no word was found
 
-    cljVar = editor.getTextInBufferRange(region)
-    expression = expression.replace(/\.\.SEL\.\./g, cljVar)
-    expression = expression.replace(/\.\.ID\.\./g, mark.id)
+    mark = editor.markBufferRange(region, invalidate: "touch") unless @removeMarkIfExists(editor, region)
+    if mark?
+      cljVar = editor.getTextInBufferRange(region)
+      expression = expression.replace(/\.\.FILE_NAME\.\./g, editor.getPath())
+      expression = expression.replace(/\.\.ROW\.\./g, region.start.row + 1)
+      expression = expression.replace(/\.\.COL\.\./g, region.start.column + 1)
+      expression = expression.replace(/\.\.SEL\.\./g, cljVar)
+      expression = expression.replace(/\.\.ID\.\./g, mark.id)
 
-    mark.expression = expression
-    mark.editor = editor
+      mark.expression = expression
+      mark.editor = editor
 
-    editor.decorateMarker(mark, type: "highlight", class: "clojure-watch-expr " + type)
-    @currentWatches[mark.id] = mark
+      editor.decorateMarker(mark, type: "highlight", class: "clojure-watch-expr " + type)
+      @currentWatches[mark.id] = mark
 
-    topRanges = protoRepl.EditorUtils.getTopLevelRanges(editor)
-    topRange = topRanges.find (range) => range.containsPoint(region.start)
-    text = editor.getTextInBufferRange(topRange).trim()
-    text = @updateWithMarkers(editor, text, topRange)
-    mark.topLevelExpr = text
+      topRanges = protoRepl.EditorUtils.getTopLevelRanges(editor)
+      topRange = topRanges.find (range) => range.containsPoint(region.start)
+      text = @updateWithMarkers(editor, topRange)
+      mark.topLevelExpr = text
 
-    @commands.assignWatches()
+    @getCommands().assignWatches()
 
   removeMarkIfExists: (editor, region)->
     for _, mark of @currentWatches
@@ -195,8 +210,6 @@ module.exports =
       if start.column == region.start.column && start.row == region.start.row &&
          end.column == region.end.column && end.row == region.end.row
         mark.destroy()
-
-        delete @currentWatches[mark.id]
         return true
 
     return false
@@ -208,7 +221,7 @@ module.exports =
     if editor = atom.workspace.getActiveTextEditor()
       if range = protoRepl.EditorUtils.getCursorInBlockRange(editor, topLevel: true)
         oldText = editor.getTextInBufferRange(range).trim()
-        text = @updateWithMarkers(editor, oldText, range)
+        text = @updateWithMarkers(editor, range)
 
         # Highlight the area that's being executed temporarily
         marker = editor.markBufferRange(range)
@@ -227,8 +240,8 @@ module.exports =
             editor: editor
             range: range
 
-        protoRepl.executeCodeInNs "(do (in-ns 'user) (def __watches__ (atom {})))", ns: "user", displayInRepl: false
-        protoRepl.executeCodeInNs(text, options)
+        @getCommands().promisedRepl.syncRun("(do (in-ns 'user) (def __watches__ (atom {})))", 'user').then =>
+          protoRepl.executeCodeInNs(text, options)
 
   scheduleWatch: (result, options) ->
     delete options.resultHandler
@@ -246,30 +259,27 @@ module.exports =
       if watch
         protoRepl.repl.displayInline(watch.editor, watch.getBufferRange(), protoRepl.ednToDisplayTree(data))
 
-  updateWithMarkers: (editor, text, blockRange) ->
-    lines = text.split("\n")
-
+  updateWithMarkers: (editor, blockRange) ->
     marks = for _, m of @currentWatches then m
     marks = marks.filter (m) ->
       buffer = m.getBufferRange()
       buffer.start.row >= blockRange.start.row && buffer.end.row <= blockRange.end.row && m.editor == editor
 
-    marks = marks.sort (f, s) -> f.compare(s)
+    text = ""
+    editor.transact =>
+      for mark in marks
+        mark.bufferMarker.invalidate = "never"
+        editor.setTextInBufferRange(mark.getBufferRange(), mark.expression)
 
-    lastRow = null
+      # redo top range mark, 'cause we could have changed the limits
+      topRanges = protoRepl.EditorUtils.getTopLevelRanges(editor)
+      newBlockRange = topRanges.find (range) => range.containsPoint(blockRange.start)
+      text = editor.getTextInBufferRange(newBlockRange).trim()
+      editor.abortTransaction()
+
     for mark in marks
-      range = mark.getBufferRange()
-      lastCol = 0 if range.start.row != lastRow
-      lastRow = range.start.row
+      mark.bufferMarker.invalidate = "touch"
+    text
 
-      row = range.start.row - blockRange.start.row
-      line = lines[row]
-
-      scol = range.start.column + lastCol
-      ecol = range.end.column + lastCol
-      line = line.substring(0, scol) + mark.expression + line.substring(ecol)
-      lines[row] = line
-
-      lastCol = ecol - scol + lastCol
-
-    lines.join("\n")
+  getCommands: ->
+    @commands ?= new CljCommands(@currentWatches, protoRepl)

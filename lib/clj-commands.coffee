@@ -5,7 +5,6 @@ PromisedRepl = require './promised-repl'
 module.exports = class CljCommands
   constructor: (@watches, @repl) ->
     @promisedRepl = new PromisedRepl(@repl)
-    window.commands = this
 
   prepare: ->
     code = @getFile("~/.atom/packages/clojure-plus/lib/clj/check_deps.clj")
@@ -72,7 +71,8 @@ module.exports = class CljCommands
     for id, mark of @watches
       if mark.isValid()
         ns = @repl.EditorUtils.findNsDeclaration(mark.editor)
-        @promisedRepl.syncRun(mark.topLevelExpr, ns)
+        @promisedRepl.syncRun("(def __watches__ (atom {}))", 'user').then =>
+          @promisedRepl.syncRun(mark.topLevelExpr, ns)
       else
         delete @watches[id]
 
