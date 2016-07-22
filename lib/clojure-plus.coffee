@@ -52,7 +52,15 @@ module.exports =
     atom.commands.add 'atom-text-editor', 'clojure-plus:clear-and-refresh-namespaces', =>
       @getCommands().runRefresh(true)
 
-    @addWatcher("watch", "(let [__sel__ ..SEL..] (swap! user/__watches__ update-in [..ID..] (fn [x] (conj (or x []) __sel__))) __sel__)")
+    @addWatcher("watch", "(let [__sel__ ..SEL..]
+                            (println \"Result at\ ..FILE_NAME.., line\"
+                                     ..ROW..
+                                     \"column\"
+                                     ..COL..
+                                     \" => \"
+                                     __sel__)
+                            (swap! user/__watches__ update-in [..ID..] (fn [x] (conj (or x []) __sel__)))
+                            __sel__)")
 
     atom.commands.add 'atom-text-editor', 'clojure-plus:remove-all-watches', =>
       for id, watch of @currentWatches
