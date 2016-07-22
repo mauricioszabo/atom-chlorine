@@ -52,10 +52,7 @@ module.exports =
     atom.commands.add 'atom-text-editor', 'clojure-plus:clear-and-refresh-namespaces', =>
       @getCommands().runRefresh(true)
 
-    atom.commands.add 'atom-text-editor', 'clojure-plus:watch-expression', =>
-      @markCustomExpr
-        type: "watch"
-        expression: "(let [__sel__ ..SEL..] (swap! user/__watches__ update-in [..ID..] (fn [x] (conj (or x []) __sel__))) __sel__)"
+    @addWatcher("watch", "(let [__sel__ ..SEL..] (swap! user/__watches__ update-in [..ID..] (fn [x] (conj (or x []) __sel__))) __sel__)")
 
     atom.commands.add 'atom-text-editor', 'clojure-plus:remove-all-watches', =>
       for id, watch of @currentWatches
@@ -157,6 +154,12 @@ module.exports =
 
   checkDependents: ->
     cljCode = fs.readFileSync(__dirname + "/clj/check_deps.clj").toString()
+
+  addWatcher: (type, expression) ->
+    atom.commands.add 'atom-text-editor', "clojure-plus:add-#{type}-in-selection", =>
+      @markCustomExpr
+        type: type
+        expression: expression
 
   markCustomExpr: ({expression, type, region}) ->
     editor = atom.workspace.getActiveTextEditor()
