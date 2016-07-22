@@ -34,6 +34,9 @@ module.exports =
       description: "Path to a file with the refresh namespaces' command"
       type: 'string'
       default: "~/.atom/packages/clojure-plus/lib/clj/refresh.clj"
+    clearReplBeforeRunning:
+      description: "Clears the REPL before running a command"
+      type: 'boolean'
     tempDir:
       description: "Temporary directory to unpack JAR files (used by goto-var)"
       type: "string"
@@ -240,6 +243,8 @@ module.exports =
             editor: editor
             range: range
 
+        console.log "Commands", @getCommands()
+        @getCommands().promisedRepl.clear()
         @getCommands().promisedRepl.syncRun("(do (in-ns 'user) (def __watches__ (atom {})))", 'user').then =>
           protoRepl.executeCodeInNs(text, options)
 
