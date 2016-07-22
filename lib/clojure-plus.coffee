@@ -66,6 +66,7 @@ module.exports =
       for id, watch of @currentWatches
         watch.destroy()
         delete @currentWatches[id]
+      @getCommands.assignWatches()
 
     atom.workspace.observeTextEditors (editor) =>
       editor.onDidSave =>
