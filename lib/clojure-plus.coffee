@@ -243,7 +243,6 @@ module.exports =
             editor: editor
             range: range
 
-        console.log "Commands", @getCommands()
         @getCommands().promisedRepl.clear()
         @getCommands().promisedRepl.syncRun("(do (in-ns 'user) (def __watches__ (atom {})))", 'user').then =>
           protoRepl.executeCodeInNs(text, options)
