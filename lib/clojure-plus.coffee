@@ -70,7 +70,7 @@ module.exports =
       for id, watch of @currentWatches
         watch.destroy()
         delete @currentWatches[id]
-      @getCommands.assignWatches()
+      @getCommands().assignWatches()
 
     atom.workspace.observeTextEditors (editor) =>
       editor.onDidSave =>
@@ -245,7 +245,7 @@ module.exports =
             editor: editor
             range: range
 
-        @getCommands().promisedRepl.clear()
+        # @getCommands().promisedRepl.clear()
         @getCommands().promisedRepl.syncRun("(do (in-ns 'user) (def __watches__ (atom {})))", 'user').then =>
           protoRepl.executeCodeInNs(text, options)
 
