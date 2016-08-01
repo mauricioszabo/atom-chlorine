@@ -114,6 +114,10 @@ module.exports =
           editor.setTextInBufferRange(varRange, "#{alias}/#{varNameRaw}")
           atom.notifications.addSuccess("Import copied to clipboard!")
 
+        if !results.value
+          atom.notifications.addError("Error processing import request", detail: results.error)
+          return
+
         result = protoRepl.parseEdn(results.value)
         if result && result.length > 0
           items = result.map (res) ->
