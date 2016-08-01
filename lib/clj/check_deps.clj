@@ -105,7 +105,7 @@
     (str "[" (join "," jsons) "]")))
 
 (defn resolve-missing [name]
-  (let [edn-str (refactor-nrepl.ns.resolve-missing/resolve-missing {:symbol name})
+  (let [edn-str (or (refactor-nrepl.ns.resolve-missing/resolve-missing {:symbol name}) "[]")
         namespace-names (->> edn-str read-string (map :name) (apply sorted-set))
         aliases (for [aliases (mapcat second (refactor-nrepl.ns.libspecs/namespace-aliases))
                       :let [[alias namespaces] aliases]
