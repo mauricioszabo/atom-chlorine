@@ -37,5 +37,3 @@ module.exports = class EvryProvider
           else
             atom.notifications.addError("Error opening file #{filePath}")
       item
-
-window.P = EvryProvider
