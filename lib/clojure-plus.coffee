@@ -228,6 +228,7 @@ module.exports =
     # Copy-paste from proto-repl... sorry...
     if editor = atom.workspace.getActiveTextEditor()
       if range = protoRepl.EditorUtils.getCursorInBlockRange(editor, topLevel: true)
+        protoRepl.repl?.replTextEditor?.textEditor?.getBuffer()?.clearUndoStack()
         protoRepl.clearRepl() if atom.config.get('clojure-plus.clearRepl')
         oldText = editor.getTextInBufferRange(range).trim()
         text = @updateWithMarkers(editor, range)
