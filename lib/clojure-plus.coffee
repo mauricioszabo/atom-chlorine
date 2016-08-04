@@ -55,6 +55,24 @@ module.exports =
       @getCommands().openFileContainingVar()
     atom.commands.add 'atom-text-editor', 'clojure-plus:clear-and-refresh-namespaces', =>
       @getCommands().runRefresh(true)
+    atom.commands.add 'atom-text-editor', 'clojure-plus:evaluate-top-block', =>
+      @executeTopLevel()
+
+    editorCode = ->
+      editor = atom.workspace.getActiveTextEditor()
+      editor.getTextInRange(editor.getSelectedBufferRange())
+
+    atom.commands.add 'atom-text-editor', 'clojure-plus:execute-selection-and-copy-result', =>
+      @executeAndCopy(editorCode())
+    atom.commands.add 'atom-text-editor', 'clojure-plus:execute-selection-and-copy-pretty-printed-result', =>
+      code = "(clojure.core/with-out-str (clojure.pprint/pprint #{editorCode()})))"
+      @executeAndCopy(code, 'pretty-print')
+    atom.commands.add 'atom-text-editor', 'clojure-plus:import-for-missing-symbol', =>
+      @importForMissing()
+    atom.commands.add 'atom-text-editor', 'clojure-plus:remove-unused-imports', =>
+      @removeUnusedImport(atom.workspace.getActiveTextEditor())
+
+
 
     @addWatcher("watch", "(let [__sel__ ..SEL..]
                             (println \"Result at\ ..FILE_NAME.., line\"
@@ -86,14 +104,6 @@ module.exports =
 
           if atom.config.get('clojure-plus.refreshAfterConnect')
             @getCommands().runRefresh()
-
-    atom.commands.add 'atom-text-editor', 'clojure-plus:evaluate-top-block', =>
-      @executeTopLevel()
-
-    atom.commands.add 'atom-text-editor', 'clojure-plus:import-for-missing-symbol', =>
-      @importForMissing()
-    atom.commands.add 'atom-text-editor', 'clojure-plus:remove-unused-imports', =>
-      @removeUnusedImport(atom.workspace.getActiveTextEditor())
 
     atom.commands.add 'atom-text-editor', 'clojure-plus:display-full-symbol-name', =>
       editor = atom.workspace.getActiveTextEditor()
@@ -253,6 +263,16 @@ module.exports =
         # @getCommands().promisedRepl.clear()
         @getCommands().promisedRepl.syncRun("(do (in-ns 'user) (def __watches__ (atom {})))", 'user').then =>
           protoRepl.executeCodeInNs(text, options)
+
+  executeAndCopy: (code, pprint) ->
+    @getCommands().promisedRepl.syncRun(code).then (result) =>
+      if result.value
+        value = result.value
+        value = protoRepl.parseEdn(value) if pprint
+        atom.clipboard.write(value)
+        atom.notifications.addSuccess("Copied result to clipboard")
+      else
+        atom.notifications.addError("There was an error with your code")
 
   scheduleWatch: (result, options) ->
     delete options.resultHandler
