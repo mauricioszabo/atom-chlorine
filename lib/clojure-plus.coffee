@@ -38,6 +38,10 @@ module.exports =
       description: "Clear REPL before running a command"
       type: 'boolean'
       default: false
+    openPending:
+      description: "When opening a file with Goto Var Definition, keep tab as pending"
+      type: 'boolean'
+      default: true
     tempDir:
       description: "Temporary directory to unpack JAR files (used by goto-var)"
       type: "string"

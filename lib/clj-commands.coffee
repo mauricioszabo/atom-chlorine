@@ -90,7 +90,8 @@ module.exports = class CljCommands
         @promisedRepl.runCodeInCurrentNS(text).then (result) =>
           if result.value
             [file, line] = @repl.parseEdn(result.value)
-            atom.workspace.open(file, {initialLine: line-1, searchAllPanes: true})
+            pending = atom.config.get('clojure-plus.openPending')
+            atom.workspace.open(file, initialLine: line-1, searchAllPanes: true, pending: pending)
           else
             @repl.appendText("Error trying to open: #{result.error}")
 
