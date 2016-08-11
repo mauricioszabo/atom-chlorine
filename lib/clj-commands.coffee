@@ -32,11 +32,11 @@ module.exports = class CljCommands
     @promisedRepl.syncRun(refreshCmd).then (result) =>
       if result.value
         atom.notifications.addSuccess("Refresh successful.") if notify
-        @repl.appendText("Refresh successful.")
+        @repl.info("Refresh successful.")
         @assignWatches()
       else
         atom.notifications.addError("Error refreshing.", detail: result.error) if notify
-        @repl.appendText("Error refreshing. CAUSE: #{result.error}\n")
+        @repl.stderr("Error refreshing. CAUSE: #{result.error}\n")
 
   runFullRefresh: (all) ->
     shouldRefreshAll = all || !@lastRefreshSucceeded
@@ -49,20 +49,20 @@ module.exports = class CljCommands
         if !value.cause
           @lastRefreshSucceeded = true
           atom.notifications.addSuccess("Refresh successful.") if notify
-          @repl.appendText("Refresh successful.")
+          @repl.info("Refresh successful.")
           @assignWatches()
         else
           @lastRefreshSucceeded = false
           causes = value.via.map (e) -> e.message
           causes = "#{value.cause}\n#{causes.join("\n")}"
           atom.notifications.addError("Error refreshing.", detail: causes) if notify
-          @repl.appendText("Error refreshing. CAUSE: #{value.cause}\n")
-          @repl.appendText(result.value)
+          @repl.stderr("Error refreshing. CAUSE: #{value.cause}\n")
+          @repl.stderr(result.value)
       else if !shouldRefreshAll
         @runRefresh(true)
       else
         atom.notifications.addError("Error refreshing.", detail: result.error) if notify
-        @repl.appendText("Error refreshing. CAUSE: #{result.error}\n")
+        @repl.stderr("Error refreshing. CAUSE: #{result.error}\n")
 
   getRefreshCmd: (all) ->
     key = if all then 'clojure-plus.refreshAllCmd' else 'clojure-plus.refreshCmd'
@@ -93,7 +93,7 @@ module.exports = class CljCommands
             pending = atom.config.get('clojure-plus.openPending')
             atom.workspace.open(file, initialLine: line-1, searchAllPanes: true, pending: pending)
           else
-            @repl.appendText("Error trying to open: #{result.error}")
+            @repl.stderr("Error trying to open: #{result.error}")
 
   getFile: (file) ->
     home = process.env.HOME
