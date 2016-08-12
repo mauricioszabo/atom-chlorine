@@ -9,7 +9,7 @@ module.exports = class CljCommands
   prepare: ->
     code = @getFile("~/.atom/packages/clojure-plus/lib/clj/check_deps.clj")
     @promisedRepl.clear()
-    @promisedRepl.syncRun(code)
+    @promisedRepl.syncRun(code, 'user')
 
   runRefresh: (all) ->
     before = atom.config.get('clojure-plus.beforeRefreshCmd')

@@ -103,7 +103,7 @@ module.exports =
       if pack.name == 'proto-repl'
         @commands = new CljCommands(@currentWatches, protoRepl)
 
-        protoRepl.onDidStart =>
+        protoRepl.onDidConnect =>
           @getCommands().prepare()
 
           if atom.config.get('clojure-plus.refreshAfterConnect')
