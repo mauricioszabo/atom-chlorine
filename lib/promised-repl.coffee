@@ -2,7 +2,9 @@
 # repl. Right now, we're only abstracting "proto-repl".
 
 module.exports = class PromisedRepl
-  constructor: (@repl) ->
+  constructor: (@repl) -> @clear()
+
+  clear: ->
     @lastCmd = Promise.resolve()
 
   syncRun: (code, ns) =>

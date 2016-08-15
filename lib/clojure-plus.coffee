@@ -34,6 +34,14 @@ module.exports =
       description: "Path to a file with the refresh namespaces' command"
       type: 'string'
       default: "~/.atom/packages/clojure-plus/lib/clj/refresh.clj"
+    clearRepl:
+      description: "Clear REPL before running a command"
+      type: 'boolean'
+      default: false
+    openPending:
+      description: "When opening a file with Goto Var Definition, keep tab as pending"
+      type: 'boolean'
+      default: true
     tempDir:
       description: "Temporary directory to unpack JAR files (used by goto-var)"
       type: "string"
@@ -51,6 +59,24 @@ module.exports =
       @getCommands().openFileContainingVar()
     atom.commands.add 'atom-text-editor', 'clojure-plus:clear-and-refresh-namespaces', =>
       @getCommands().runRefresh(true)
+    atom.commands.add 'atom-text-editor', 'clojure-plus:evaluate-top-block', =>
+      @executeTopLevel()
+
+    editorCode = ->
+      editor = atom.workspace.getActiveTextEditor()
+      editor.getTextInRange(editor.getSelectedBufferRange())
+
+    atom.commands.add 'atom-text-editor', 'clojure-plus:execute-selection-and-copy-result', =>
+      @executeAndCopy(editorCode())
+    atom.commands.add 'atom-text-editor', 'clojure-plus:execute-selection-and-copy-pretty-printed-result', =>
+      code = "(clojure.core/with-out-str (clojure.pprint/pprint #{editorCode()})))"
+      @executeAndCopy(code, 'pretty-print')
+    atom.commands.add 'atom-text-editor', 'clojure-plus:import-for-missing-symbol', =>
+      @importForMissing()
+    atom.commands.add 'atom-text-editor', 'clojure-plus:remove-unused-imports', =>
+      @removeUnusedImport(atom.workspace.getActiveTextEditor())
+
+
 
     @addWatcher("watch", "(let [__sel__ ..SEL..]
                             (println \"Result at\ ..FILE_NAME.., line\"
@@ -66,7 +92,7 @@ module.exports =
       for id, watch of @currentWatches
         watch.destroy()
         delete @currentWatches[id]
-      @getCommands.assignWatches()
+      @getCommands().assignWatches()
 
     atom.workspace.observeTextEditors (editor) =>
       editor.onDidSave =>
@@ -82,14 +108,6 @@ module.exports =
 
           if atom.config.get('clojure-plus.refreshAfterConnect')
             @getCommands().runRefresh()
-
-    atom.commands.add 'atom-text-editor', 'clojure-plus:evaluate-top-block', =>
-      @executeTopLevel()
-
-    atom.commands.add 'atom-text-editor', 'clojure-plus:import-for-missing-symbol', =>
-      @importForMissing()
-    atom.commands.add 'atom-text-editor', 'clojure-plus:remove-unused-imports', =>
-      @removeUnusedImport(atom.workspace.getActiveTextEditor())
 
     atom.commands.add 'atom-text-editor', 'clojure-plus:display-full-symbol-name', =>
       editor = atom.workspace.getActiveTextEditor()
@@ -109,6 +127,10 @@ module.exports =
           atom.clipboard.write("[#{namespace} :as #{alias}]")
           editor.setTextInBufferRange(varRange, "#{alias}/#{varNameRaw}")
           atom.notifications.addSuccess("Import copied to clipboard!")
+
+        if !results.value
+          atom.notifications.addError("Error processing import request", detail: results.error)
+          return
 
         result = protoRepl.parseEdn(results.value)
         if result && result.length > 0
@@ -220,6 +242,8 @@ module.exports =
     # Copy-paste from proto-repl... sorry...
     if editor = atom.workspace.getActiveTextEditor()
       if range = protoRepl.EditorUtils.getCursorInBlockRange(editor, topLevel: true)
+        protoRepl.repl?.replTextEditor?.textEditor?.getBuffer()?.clearUndoStack()
+        protoRepl.clearRepl() if atom.config.get('clojure-plus.clearRepl')
         oldText = editor.getTextInBufferRange(range).trim()
         text = @updateWithMarkers(editor, range)
 
@@ -240,8 +264,19 @@ module.exports =
             editor: editor
             range: range
 
+        # @getCommands().promisedRepl.clear()
         @getCommands().promisedRepl.syncRun("(do (in-ns 'user) (def __watches__ (atom {})))", 'user').then =>
           protoRepl.executeCodeInNs(text, options)
+
+  executeAndCopy: (code, pprint) ->
+    @getCommands().promisedRepl.syncRun(code).then (result) =>
+      if result.value
+        value = result.value
+        value = protoRepl.parseEdn(value) if pprint
+        atom.clipboard.write(value)
+        atom.notifications.addSuccess("Copied result to clipboard")
+      else
+        atom.notifications.addError("There was an error with your code")
 
   scheduleWatch: (result, options) ->
     delete options.resultHandler

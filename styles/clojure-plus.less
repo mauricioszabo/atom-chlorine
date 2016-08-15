@@ -1,3 +1,11 @@
 atom-text-editor::shadow .selection .region, :host .selection .region {
   background-color: rgba(100, 100, 100, 0.7);
 }
+
+atom-text-editor::shadow .clojure-watch-expr .region {
+  border-bottom: 1px red dotted;
+}
+
+atom-text-editor::shadow .clojure-watch-expr.watch .region {
+  background-color: rgba(0, 200, 100, 0.3);
+}
