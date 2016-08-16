@@ -62,8 +62,8 @@ module.exports =
     atom.commands.add 'atom-text-editor', 'clojure-plus:evaluate-top-block', =>
       @executeTopLevel()
 
-    atom.workspace.observeTextEditors (editor) =>
-      mark = editor.markBufferRange([0,0])
+    fn = (editor) =>
+      mark = editor.markBufferRange([0,0], invalidate: 'never')
       editor.decorateMarker(mark, type: 'highlight', class: 'clojure-sexp')
       editor.onDidChangeCursorPosition =>
         unless editor.getGrammar().scopeName.match(/clojure/)
@@ -73,6 +73,9 @@ module.exports =
         blockRange = protoRepl.EditorUtils.getCursorInClojureBlockRange(editor)
         blockRange ?= editor.getSelectedBufferRange()
         mark.setBufferRange(blockRange)
+
+    atom.workspace.observeTextEditors(fn)
+    atom.workspace.getTextEditors().forEach(fn)
 
     editorCode = ->
       editor = atom.workspace.getActiveTextEditor()
