@@ -93,7 +93,7 @@ module.exports =
 
 
 
-    @addWatcher("watch", "(let [__sel__ ..SEL..]
+    @addWatcher "watch", "(let [__sel__ ..SEL..]
                             (println \"Result at\ ..FILE_NAME.., line\"
                                      ..ROW..
                                      \"column\"
@@ -101,7 +101,13 @@ module.exports =
                                      \" => \"
                                      __sel__)
                             (swap! user/__watches__ update-in [..ID..] (fn [x] (conj (or x []) __sel__)))
-                            __sel__)")
+                            __sel__)"
+
+    @addWatcher "def-local-symbols", "(do (doseq [__s__ (refactor-nrepl.find.find-locals/find-used-locals {:file ..FILE_NAME..
+                                                                                                           :line ..ROW..
+                                                                                                           :column ..COL..})]
+                                            (do (println \"Adding eval to\" __s__) (eval `(def ~__s__ ~'__s__))))
+                                       ..SEL..)"
 
     atom.commands.add 'atom-text-editor', 'clojure-plus:remove-all-watches', =>
       for id, watch of @currentWatches
