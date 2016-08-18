@@ -16,7 +16,7 @@ module.exports = class CljCommands
     after = atom.config.get('clojure-plus.afterRefreshCmd')
     simple = atom.config.get('clojure-plus.simpleRefresh')
 
-    @promisedRepl.clear()
+    @prepare()
     @promisedRepl.syncRun(before, "user") unless simple && all
     if simple
       @runSimpleRefresh(all)

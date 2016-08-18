@@ -1,11 +1,17 @@
 {CompositeDisposable, TextEditor} = require 'atom'
+fs = require 'fs'
+
 SelectView = require './select-view'
 EvryProvider = require './evry-provider'
 CljCommands = require './clj-commands'
-fs = require 'fs'
+highlight = require './sexp-highlight'
 
 module.exports =
   config:
+    highlightSexp:
+      description: "Highlight current SEXP under cursor"
+      type: "boolean"
+      default: false
     notify:
       description: "Notify when refresh was done"
       type: "boolean"
@@ -62,10 +68,12 @@ module.exports =
     atom.commands.add 'atom-text-editor', 'clojure-plus:evaluate-top-block', =>
       @executeTopLevel()
 
+    atom.config.observe("clojure-plus.highlightSexp", highlight)
+    highlight(atom.config.get('clojure-plus.highlightSexp'))
+
     editorCode = ->
       editor = atom.workspace.getActiveTextEditor()
       editor.getTextInRange(editor.getSelectedBufferRange())
-
     atom.commands.add 'atom-text-editor', 'clojure-plus:execute-selection-and-copy-result', =>
       @executeAndCopy(editorCode())
     atom.commands.add 'atom-text-editor', 'clojure-plus:execute-selection-and-copy-pretty-printed-result', =>
@@ -78,7 +86,7 @@ module.exports =
 
 
 
-    @addWatcher("watch", "(let [__sel__ ..SEL..]
+    @addWatcher "watch", "(let [__sel__ ..SEL..]
                             (println \"Result at\ ..FILE_NAME.., line\"
                                      ..ROW..
                                      \"column\"
@@ -86,7 +94,13 @@ module.exports =
                                      \" => \"
                                      __sel__)
                             (swap! user/__watches__ update-in [..ID..] (fn [x] (conj (or x []) __sel__)))
-                            __sel__)")
+                            __sel__)"
+
+    @addWatcher "def-local-symbols", "(do (doseq [__s__ (refactor-nrepl.find.find-locals/find-used-locals {:file ..FILE_NAME..
+                                                                                                           :line ..ROW..
+                                                                                                           :column ..COL..})]
+                                            (do (println \"Adding eval to\" __s__) (eval `(def ~__s__ ~'__s__))))
+                                       ..SEL..)"
 
     atom.commands.add 'atom-text-editor', 'clojure-plus:remove-all-watches', =>
       for id, watch of @currentWatches
