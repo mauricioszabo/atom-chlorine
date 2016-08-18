@@ -1,11 +1,17 @@
 {CompositeDisposable, TextEditor} = require 'atom'
+fs = require 'fs'
+
 SelectView = require './select-view'
 EvryProvider = require './evry-provider'
 CljCommands = require './clj-commands'
-fs = require 'fs'
+highlight = require './sexp-highlight'
 
 module.exports =
   config:
+    highlightSexp:
+      description: "Highlight current SEXP under cursor"
+      type: "boolean"
+      default: false
     notify:
       description: "Notify when refresh was done"
       type: "boolean"
@@ -62,25 +68,12 @@ module.exports =
     atom.commands.add 'atom-text-editor', 'clojure-plus:evaluate-top-block', =>
       @executeTopLevel()
 
-    fn = (editor) =>
-      mark = editor.markBufferRange([0,0], invalidate: 'never')
-      editor.decorateMarker(mark, type: 'highlight', class: 'clojure-sexp')
-      editor.onDidChangeCursorPosition =>
-        unless editor.getGrammar().scopeName.match(/clojure/)
-          mark.setBufferRange([0,0])
-          return
-
-        blockRange = protoRepl.EditorUtils.getCursorInClojureBlockRange(editor)
-        blockRange ?= editor.getSelectedBufferRange()
-        mark.setBufferRange(blockRange)
-
-    atom.workspace.observeTextEditors(fn)
-    atom.workspace.getTextEditors().forEach(fn)
+    atom.config.observe("clojure-plus.highlightSexp", highlight)
+    highlight(atom.config.get('clojure-plus.highlightSexp'))
 
     editorCode = ->
       editor = atom.workspace.getActiveTextEditor()
       editor.getTextInRange(editor.getSelectedBufferRange())
-
     atom.commands.add 'atom-text-editor', 'clojure-plus:execute-selection-and-copy-result', =>
       @executeAndCopy(editorCode())
     atom.commands.add 'atom-text-editor', 'clojure-plus:execute-selection-and-copy-pretty-printed-result', =>
