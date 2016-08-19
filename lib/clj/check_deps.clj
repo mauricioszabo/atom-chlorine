@@ -114,3 +114,38 @@
                   [ns-name alias])
         alias-map (group-by first aliases)]
     (mapcat #(or (get alias-map %) [[% nil]]) namespace-names)))
+
+;; Pretty stack traces
+(defn- clj-trace [stack-line]
+  (let [fn-raw (.getClassName stack-line)
+        [ns-name fn-name] (-> fn-raw
+                             (clojure.string/replace #"_" "-")
+                             (clojure.string/split #"\$"))
+        fq-symbol (ns-resolve (symbol ns-name) (symbol fn-name))
+        filename (:file (meta fq-symbol))
+        file-to-open (when filename (.getPath (.getResource (clojure.lang.RT/baseLoader) filename)))]
+    {:fn (str ns-name "/" fn-name)
+     :file filename
+     :line (.getLineNumber stack-line)
+     :link file-to-open}))
+
+(defn- other-trace [stack-line]
+  {:fn (str (.getClassName stack-line) "/" (.getMethodName stack-line))
+   :file (.getFileName stack-line)
+   :line (.getLineNumber stack-line)})
+
+(defn prettify-stack [stack-line]
+  "Given a stack-line, we'll try to return it in a legible way. You can use it with
+this very simple code:
+
+(try ..your-code-here..
+  (catch Exception e (map prettify-stack (.getStackTrace e))))"
+  (let [filename (.getFileName stack-line)
+        clj-file? (re-find #"\.clj[cxs]?$" filename)]
+
+    (if clj-file?
+      (clj-trace stack-line)
+      (other-trace stack-line))))
+;
+; (try (-main)
+;   (catch Exception e (map prettify-stack (.getStackTrace e))))
