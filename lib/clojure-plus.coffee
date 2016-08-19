@@ -118,6 +118,7 @@ module.exports =
         @commands = new CljCommands(@currentWatches, protoRepl)
 
         protoRepl.onDidConnect =>
+          atom.notifications.addSuccess("REPL connected") if atom.config.get('clojure-plus.notify')
           @getCommands().prepare()
 
           if atom.config.get('clojure-plus.refreshAfterConnect')
@@ -256,10 +257,13 @@ module.exports =
     # Copy-paste from proto-repl... sorry...
     if editor = atom.workspace.getActiveTextEditor()
       if range = protoRepl.EditorUtils.getCursorInBlockRange(editor, topLevel: true)
-        protoRepl.repl?.replTextEditor?.textEditor?.getBuffer()?.clearUndoStack()
+        # protoRepl.repl?.replTextEditor?.textEditor?.getBuffer()?.clearUndoStack()
         protoRepl.clearRepl() if atom.config.get('clojure-plus.clearRepl')
         oldText = editor.getTextInBufferRange(range).trim()
         text = @updateWithMarkers(editor, range)
+        text = "(try #{text}\n(catch Exception e
+          {:--__--errors {:cause (str e)
+                          :trace (map --check-deps--/prettify-stack (.getStackTrace e))}}))"
 
         # Highlight the area that's being executed temporarily
         marker = editor.markBufferRange(range)
@@ -280,7 +284,43 @@ module.exports =
 
         # @getCommands().promisedRepl.clear()
         @getCommands().promisedRepl.syncRun("(do (in-ns 'user) (def __watches__ (atom {})))", 'user').then =>
-          protoRepl.executeCodeInNs(text, options)
+          @getCommands().promisedRepl.syncRun(text).then (result) =>
+            if result.value && result.value.startsWith("{:--__--errors ")
+              @makeErrorInline(protoRepl.parseEdn(result.value), editor, range)
+            else
+              protoRepl.repl.inlineResultHandler(result, options)
+          # protoRepl.executeCodeInNs(text, options)
+
+  makeErrorInline: (edn, editor, range) ->
+    {cause, trace} = edn['--__--errors']
+    console.log cause, trace
+    result = new protoRepl.ink.Result(editor, [range.start.row, range.end.row])
+    causeHtml = document.createElement('strong')
+    causeHtml.classList.add('error-description')
+    causeHtml.innerText = cause
+
+    traceHtmls = trace.map (row) =>
+      div = document.createElement('div')
+      div.classList.add('trace-entry')
+
+      span = document.createElement('span')
+      span.classList.add('fade')
+      span.innerText = ' in '
+      div.appendChild span
+
+      div.appendChild new Text(row.fn)
+
+      span = document.createElement('span')
+      span.classList.add('fade')
+      span.innerText = ' at '
+      div.appendChild span
+
+      div.appendChild new Text("#{row.file}:#{row.line}")
+      div
+
+    treeHtml = protoRepl.ink.tree.treeView(causeHtml, traceHtmls, {})
+    result.setContent(treeHtml)
+    result.view.classList.add('error')
 
   executeAndCopy: (code, pprint) ->
     @getCommands().promisedRepl.syncRun(code).then (result) =>
