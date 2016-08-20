@@ -284,22 +284,26 @@ module.exports =
 
         # @getCommands().promisedRepl.clear()
         @getCommands().promisedRepl.syncRun("(do (in-ns 'user) (def __watches__ (atom {})))", 'user').then =>
-          @getCommands().promisedRepl.syncRun(text).then (result) =>
+          @getCommands().promisedRepl.syncRun(text, options).then (result) =>
             if result.value && result.value.startsWith("{:--__--errors ")
               @makeErrorInline(protoRepl.parseEdn(result.value), editor, range)
             else
               protoRepl.repl.inlineResultHandler(result, options)
+              protoRepl.repl.replView.displayExecutedCode(result.value)
           # protoRepl.executeCodeInNs(text, options)
 
   makeErrorInline: (edn, editor, range) ->
     {cause, trace} = edn['--__--errors']
-    console.log cause, trace
     result = new protoRepl.ink.Result(editor, [range.start.row, range.end.row])
     causeHtml = document.createElement('strong')
     causeHtml.classList.add('error-description')
     causeHtml.innerText = cause
 
+    strTrace = cause + "\n"
+
     traceHtmls = trace.map (row) =>
+      strTrace += "\n\tin #{row.fn}\n\tat #{row.file}:#{row.line}\n"
+
       div = document.createElement('div')
       div.classList.add('trace-entry')
 
@@ -315,12 +319,28 @@ module.exports =
       span.innerText = ' at '
       div.appendChild span
 
-      div.appendChild new Text("#{row.file}:#{row.line}")
+      a = document.createElement('a')
+      div.appendChild(a)
+      a.href = '#'
+      a.appendChild new Text("#{row.file}:#{row.line}")
+      if row.link
+        a.onclick = =>
+          if row.link.match(/\.jar!/)
+            tmp = atom.config.get('clojure-plus.tempDir').replace(/\\/g, "\\\\").replace(/"/g, "\\\"") +
+            saneLink = row.link.replace(/\\/g, "\\\\").replace(/"/g, '\\"')
+            code = "(let [[_ & jar-data] (--check-deps--/extract-jar-data \"#{saneLink}\")]
+                      (--check-deps--/decompress-all \"#{tmp}\" jar-data))"
+            @getCommands().promisedRepl.syncRun(code).then (result) =>
+              return unless result.value
+              atom.workspace.open(protoRepl.parseEdn(result.value), searchAllPanes: true, initialLine: row.line-1)
+          else
+            atom.workspace.open(row.link, searchAllPanes: true, initialLine: row.line-1)
       div
 
     treeHtml = protoRepl.ink.tree.treeView(causeHtml, traceHtmls, {})
     result.setContent(treeHtml)
     result.view.classList.add('error')
+    protoRepl.stderr(strTrace)
 
   executeAndCopy: (code, pprint) ->
     @getCommands().promisedRepl.syncRun(code).then (result) =>

@@ -121,6 +121,7 @@
 ;; Pretty stack traces
 (defn- clj-trace [stack-line]
   (let [fn-raw (.getClassName stack-line)
+        [raw-ns-name _] (s/split fn-raw #"\$")
         [ns-name fn-name] (-> fn-raw
                              (s/replace #"_" "-")
                              (s/split #"\$"))
@@ -129,7 +130,7 @@
         loader (clojure.lang.RT/baseLoader)
         file-to-open (if filename
                        (.getResource loader filename)
-                       (let [n (s/replace ns-name #"\." "/")]
+                       (let [n (s/replace raw-ns-name #"\." "/")]
                          (or (.getResource loader (str n ".clj"))
                              (.getResource loader (str n ".cljc"))
                              (.getResource loader (str n ".cljx"))
