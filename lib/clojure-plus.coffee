@@ -276,7 +276,6 @@ module.exports =
 
         options =
           displayCode: oldText
-          resultHandler: (a,b) => @scheduleWatch(a, b)
           displayInRepl: false
           inlineOptions:
             editor: editor
@@ -290,6 +289,8 @@ module.exports =
             else
               protoRepl.repl.inlineResultHandler(result, options)
               protoRepl.repl.replView.displayExecutedCode(result.value)
+
+            @handleWatches(options)
           # protoRepl.executeCodeInNs(text, options)
 
   makeErrorInline: (edn, editor, range) ->
@@ -352,21 +353,18 @@ module.exports =
       else
         atom.notifications.addError("There was an error with your code")
 
-  scheduleWatch: (result, options) ->
-    delete options.resultHandler
-    protoRepl.repl.inlineResultHandler(result, options)
-    protoRepl.executeCode '(map (fn [[k v]] (str k "#" (with-out-str (print-method v *out*)))) @user/__watches__)',
-      displayInRepl: false, resultHandler: (res) => @handleWatches(res)
-
-  handleWatches: (result, options) ->
-    return unless result.value
-    values = protoRepl.parseEdn(result.value)
-    for row in values
-      id = row.replace(/#.*/, "")
-      data = row.replace(/\d+#/, "")
-      watch = @currentWatches[id]
-      if watch
-        protoRepl.repl.displayInline(watch.editor, watch.getBufferRange(), protoRepl.ednToDisplayTree(data))
+  handleWatches: (options) ->
+    @getCommands().promisedRepl
+      .syncRun('(map (fn [[k v]] (str k "#" (with-out-str (print-method v *out*)))) @user/__watches__)')
+      .then (result) =>
+        return unless result.value
+        values = protoRepl.parseEdn(result.value)
+        for row in values
+          id = row.replace(/#.*/, "")
+          data = row.replace(/\d+#/, "")
+          watch = @currentWatches[id]
+          if watch && !watch.destroyed
+            protoRepl.repl.displayInline(watch.editor, watch.getBufferRange(), protoRepl.ednToDisplayTree(data))
 
   updateWithMarkers: (editor, blockRange) ->
     marks = for _, m of @currentWatches then m
