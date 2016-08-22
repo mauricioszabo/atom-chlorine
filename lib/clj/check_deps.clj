@@ -118,13 +118,25 @@
         alias-map (group-by first aliases)]
     (mapcat #(or (get alias-map %) [[% nil]]) namespace-names)))
 
+(defn- normalize-clj-name [fn-name]
+  (-> fn-name
+    (s/replace #"_BANG_" "!")
+    (s/replace #"_STAR_" "*")
+    (s/replace #"_PLUS_" "+")
+    (s/replace #"_GT_" ">")
+    (s/replace #"_GTE_" ">=")
+    (s/replace #"_LT_" "<")
+    (s/replace #"_LTE_" "<=")
+    (s/replace #"__\d+" "")
+    (s/replace #"_" "-")
+    (s/replace #"_" "-")
+    (s/split #"\$")))
+
 ;; Pretty stack traces
 (defn- clj-trace [stack-line]
   (let [fn-raw (.getClassName stack-line)
         [raw-ns-name _] (s/split fn-raw #"\$")
-        [ns-name fn-name] (-> fn-raw
-                             (s/replace #"_" "-")
-                             (s/split #"\$"))
+        [ns-name fn-name] (normalize-clj-name fn-raw)
         fq-symbol (ns-resolve (symbol ns-name) (symbol fn-name))
         filename (:file (meta fq-symbol))
         loader (clojure.lang.RT/baseLoader)
@@ -138,7 +150,7 @@
                              (.getResource loader (str n ".cljr")))))
         file-to-open (when file-to-open (.getPath file-to-open))]
 
-    {:fn (str ns-name "/" (if filename fn-name "[inline-eval]"))
+    {:fn (str ns-name "/" (if (re-matches #"eval\d+" fn-name) "[inline-eval]" fn-name))
      :file (or filename (some-> file-to-open (s/replace #".*!/?" "")))
      :line (.getLineNumber stack-line)
      :link file-to-open}))
