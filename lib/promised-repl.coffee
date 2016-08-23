@@ -7,14 +7,24 @@ module.exports = class PromisedRepl
   clear: ->
     @lastCmd = Promise.resolve()
 
-  syncRun: (code, ns) =>
+  syncRun: (code, ns={}, options={}) ->
     lastPromise = @lastCmd
     @lastCmd = new Promise (resolve) =>
+      console.log "Debugging promise"
+      options = ns unless typeof ns == 'string'
+      options = Object.create(options)
+      options.displayInRepl ?= false
+      options.resultHandler = (result) =>
+        console.log "HANDLER!", result
+        resolve(result)
+
+      console.log "LAST", lastPromise
       lastPromise.then =>
-        @lastCmd = if(ns)
-          @runCodeInNS(code, ns).then (v) => resolve(v)
+        if(typeof ns == 'string')
+          options.ns = ns
+          @repl.executeCode code, options
         else
-          @runCodeInCurrentNS(code).then (v) => resolve(v)
+          @repl.executeCodeInNs code, options
 
   runCodeInCurrentNS: (code) ->
     new Promise (resolve) =>

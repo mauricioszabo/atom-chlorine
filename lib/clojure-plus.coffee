@@ -118,6 +118,7 @@ module.exports =
         @commands = new CljCommands(@currentWatches, protoRepl)
 
         protoRepl.onDidConnect =>
+          atom.notifications.addSuccess("REPL connected") if atom.config.get('clojure-plus.notify')
           @getCommands().prepare()
 
           if atom.config.get('clojure-plus.refreshAfterConnect')
@@ -256,10 +257,13 @@ module.exports =
     # Copy-paste from proto-repl... sorry...
     if editor = atom.workspace.getActiveTextEditor()
       if range = protoRepl.EditorUtils.getCursorInBlockRange(editor, topLevel: true)
-        protoRepl.repl?.replTextEditor?.textEditor?.getBuffer()?.clearUndoStack()
+        # protoRepl.repl?.replTextEditor?.textEditor?.getBuffer()?.clearUndoStack()
         protoRepl.clearRepl() if atom.config.get('clojure-plus.clearRepl')
         oldText = editor.getTextInBufferRange(range).trim()
         text = @updateWithMarkers(editor, range)
+        text = "(try #{text}\n(catch Exception e
+          {:--__--errors {:cause (str e)
+                          :trace (map --check-deps--/prettify-stack (.getStackTrace e))}}))"
 
         # Highlight the area that's being executed temporarily
         marker = editor.markBufferRange(range)
@@ -272,7 +276,6 @@ module.exports =
 
         options =
           displayCode: oldText
-          resultHandler: (a,b) => @scheduleWatch(a, b)
           displayInRepl: false
           inlineOptions:
             editor: editor
@@ -280,7 +283,65 @@ module.exports =
 
         # @getCommands().promisedRepl.clear()
         @getCommands().promisedRepl.syncRun("(do (in-ns 'user) (def __watches__ (atom {})))", 'user').then =>
-          protoRepl.executeCodeInNs(text, options)
+          @getCommands().promisedRepl.syncRun(text, options).then (result) =>
+            if result.value && result.value.startsWith("{:--__--errors ")
+              @makeErrorInline(protoRepl.parseEdn(result.value), editor, range)
+            else
+              protoRepl.repl.inlineResultHandler(result, options)
+              protoRepl.repl.replView.displayExecutedCode(result.value)
+
+            @handleWatches(options)
+          # protoRepl.executeCodeInNs(text, options)
+
+  makeErrorInline: (edn, editor, range) ->
+    {cause, trace} = edn['--__--errors']
+    result = new protoRepl.ink.Result(editor, [range.start.row, range.end.row])
+    causeHtml = document.createElement('strong')
+    causeHtml.classList.add('error-description')
+    causeHtml.innerText = cause
+
+    strTrace = cause + "\n"
+
+    traceHtmls = trace.map (row) =>
+      strTrace += "\n\tin #{row.fn}\n\tat #{row.file}:#{row.line}\n"
+
+      div = document.createElement('div')
+      div.classList.add('trace-entry')
+
+      span = document.createElement('span')
+      span.classList.add('fade')
+      span.innerText = ' in '
+      div.appendChild span
+
+      div.appendChild new Text(row.fn)
+
+      span = document.createElement('span')
+      span.classList.add('fade')
+      span.innerText = ' at '
+      div.appendChild span
+
+      a = document.createElement('a')
+      div.appendChild(a)
+      a.href = '#'
+      a.appendChild new Text("#{row.file}:#{row.line}")
+      if row.link
+        a.onclick = =>
+          if row.link.match(/\.jar!/)
+            tmp = atom.config.get('clojure-plus.tempDir').replace(/\\/g, "\\\\").replace(/"/g, "\\\"") +
+            saneLink = row.link.replace(/\\/g, "\\\\").replace(/"/g, '\\"')
+            code = "(let [[_ & jar-data] (--check-deps--/extract-jar-data \"#{saneLink}\")]
+                      (--check-deps--/decompress-all \"#{tmp}\" jar-data))"
+            @getCommands().promisedRepl.syncRun(code).then (result) =>
+              return unless result.value
+              atom.workspace.open(protoRepl.parseEdn(result.value), searchAllPanes: true, initialLine: row.line-1)
+          else
+            atom.workspace.open(row.link, searchAllPanes: true, initialLine: row.line-1)
+      div
+
+    treeHtml = protoRepl.ink.tree.treeView(causeHtml, traceHtmls, {})
+    result.setContent(treeHtml)
+    result.view.classList.add('error')
+    protoRepl.stderr(strTrace)
 
   executeAndCopy: (code, pprint) ->
     @getCommands().promisedRepl.syncRun(code).then (result) =>
@@ -292,21 +353,18 @@ module.exports =
       else
         atom.notifications.addError("There was an error with your code")
 
-  scheduleWatch: (result, options) ->
-    delete options.resultHandler
-    protoRepl.repl.inlineResultHandler(result, options)
-    protoRepl.executeCode '(map (fn [[k v]] (str k "#" (with-out-str (print-method v *out*)))) @user/__watches__)',
-      displayInRepl: false, resultHandler: (res) => @handleWatches(res)
-
-  handleWatches: (result, options) ->
-    return unless result.value
-    values = protoRepl.parseEdn(result.value)
-    for row in values
-      id = row.replace(/#.*/, "")
-      data = row.replace(/\d+#/, "")
-      watch = @currentWatches[id]
-      if watch
-        protoRepl.repl.displayInline(watch.editor, watch.getBufferRange(), protoRepl.ednToDisplayTree(data))
+  handleWatches: (options) ->
+    @getCommands().promisedRepl
+      .syncRun('(map (fn [[k v]] (str k "#" (with-out-str (print-method v *out*)))) @user/__watches__)')
+      .then (result) =>
+        return unless result.value
+        values = protoRepl.parseEdn(result.value)
+        for row in values
+          id = row.replace(/#.*/, "")
+          data = row.replace(/\d+#/, "")
+          watch = @currentWatches[id]
+          if watch && !watch.destroyed
+            protoRepl.repl.displayInline(watch.editor, watch.getBufferRange(), protoRepl.ednToDisplayTree(data))
 
   updateWithMarkers: (editor, blockRange) ->
     marks = for _, m of @currentWatches then m

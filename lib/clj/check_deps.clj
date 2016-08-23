@@ -1,5 +1,5 @@
 (ns --check-deps--
-  (:require [clojure.string :refer [split join]]))
+  (:require [clojure.string :refer [split join] :as s]))
 
 (defn vars-in-form [form vars]
   (cond
@@ -19,7 +19,7 @@
                          vars-for-file
                          (map str)
                          (filter #(re-find #"/" %))
-                         (map #(first (clojure.string/split % #"/")))
+                         (map #(first (s/split % #"/")))
                          set)
         parsed-ns (refactor-nrepl.ns.ns-parser/parse-ns file)
         requires (map #(-> % :ns str) (concat (get-in parsed-ns [:clj :require]) (get-in parsed-ns [:cljs :require])))]
@@ -61,7 +61,7 @@
                       (search (try (load-string quoted) (catch Exception e)))))]
     (filter have-sym? symbols)))
 
-(defn decompress-all [temp-dir line [jar-path partial-jar-path within-file-path]]
+(defn decompress-all [temp-dir [jar-path partial-jar-path within-file-path]]
   (let [decompressed-path (str temp-dir "/" partial-jar-path)
         decompressed-file-path (str decompressed-path "/" within-file-path)
         decompressed-path-dir (clojure.java.io/file decompressed-path)]
@@ -69,7 +69,10 @@
       (println "decompressing" jar-path "to" decompressed-path)
       (.mkdirs decompressed-path-dir)
       (clojure.java.shell/sh "unzip" jar-path "-d" decompressed-path))
-    [decompressed-file-path line]))
+    decompressed-file-path))
+
+(defn extract-jar-data [file-path]
+  (re-find #"file:(.+/\.m2/repository/(.+\.jar))!/(.+)" file-path))
 
 (defn goto-var [var-sym temp-dir]
   (require 'clojure.repl)
@@ -84,9 +87,9 @@
                     var-sym)
         {:keys [file line]} (meta (eval `(var ~the-var)))
         file-path (.getPath (.getResource (clojure.lang.RT/baseLoader) file))]
-    (if-let [[_ & jar-data] (re-find #"file:(.+/\.m2/repository/(.+\.jar))!/(.+)" file-path)]
-      (decompress-all temp-dir line jar-data)
-      [(clojure.string/replace file-path #"/project/" "") line])))
+    (if-let [[_ & jar-data] (extract-jar-data file-path)]
+      [(decompress-all temp-dir jar-data) line]
+      [file-path line])))
 
 (defn symbols-from-ns [ns-ref]
   (for [sym-name (map first (ns-interns ns-ref))
@@ -114,3 +117,58 @@
                   [ns-name alias])
         alias-map (group-by first aliases)]
     (mapcat #(or (get alias-map %) [[% nil]]) namespace-names)))
+
+(defn- normalize-clj-name [fn-name]
+  (-> fn-name
+    (s/replace #"_BANG_" "!")
+    (s/replace #"_STAR_" "*")
+    (s/replace #"_PLUS_" "+")
+    (s/replace #"_GT_" ">")
+    (s/replace #"_GTE_" ">=")
+    (s/replace #"_LT_" "<")
+    (s/replace #"_LTE_" "<=")
+    (s/replace #"__\d+" "")
+    (s/replace #"_" "-")
+    (s/replace #"_" "-")
+    (s/split #"\$")))
+
+;; Pretty stack traces
+(defn- clj-trace [stack-line]
+  (let [fn-raw (.getClassName stack-line)
+        [raw-ns-name _] (s/split fn-raw #"\$")
+        [ns-name fn-name] (normalize-clj-name fn-raw)
+        fq-symbol (ns-resolve (symbol ns-name) (symbol fn-name))
+        filename (:file (meta fq-symbol))
+        loader (clojure.lang.RT/baseLoader)
+        file-to-open (if filename
+                       (.getResource loader filename)
+                       (let [n (s/replace raw-ns-name #"\." "/")]
+                         (or (.getResource loader (str n ".clj"))
+                             (.getResource loader (str n ".cljc"))
+                             (.getResource loader (str n ".cljx"))
+                             (.getResource loader (str n ".cljs"))
+                             (.getResource loader (str n ".cljr")))))
+        file-to-open (when file-to-open (.getPath file-to-open))]
+
+    {:fn (str ns-name "/" (if (re-matches #"eval\d+" fn-name) "[inline-eval]" fn-name))
+     :file (or filename (some-> file-to-open (s/replace #".*!/?" "")))
+     :line (.getLineNumber stack-line)
+     :link file-to-open}))
+
+(defn- other-trace [stack-line]
+  {:fn (str (.getClassName stack-line) "/" (.getMethodName stack-line))
+   :file (.getFileName stack-line)
+   :line (.getLineNumber stack-line)})
+
+(defn prettify-stack [stack-line]
+  "Given a stack-line, we'll try to return it in a legible way. You can use it with
+this very simple code:
+
+(try ..your-code-here..
+  (catch Exception e (map prettify-stack (.getStackTrace e))))"
+  (let [filename (.getFileName stack-line)
+        clj-file? (re-find #"\.clj[cxs]?$" filename)]
+
+    (if clj-file?
+      (clj-trace stack-line)
+      (other-trace stack-line))))
