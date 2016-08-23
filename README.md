@@ -64,6 +64,7 @@ Please notice that it'll try to decompress and open files that are outside your 
 Nothing is perfect, and this package is not an exception. There are still things that, somehow, doesn't work. A bunch of then is because the way Clojure works, and others are for other problems:
 
 * Watch expressions doesn't work with inline or static functions. This is a limitation of Clojure - inline or static functions (like `conj`) become something like `conj-1211` when compiled, and Clojure doesn't get the change.
+* We're implementing "clojure-plus:evaluate-top-block" by copy-pasting code from proto-repl. We need to find a better way.
 * Sometimes, the code execution halts. I'm not sure why (we use REPL with promises to sync code) so if this happens, just refresh your namespace and it'll un-hang it.
 * When you evaluate a code that's very slow, auto-complete, goto-var and other things will not work. This is a limitation of nREPL (it only allows us to run one code in parallel). Probably we could cheat with threads...
 
