@@ -1,3 +1,6 @@
 ## 0.1.0 - First Release
-* Every feature added
-* Every bug fixed
+* Watch expressions added
+* Eval for top block (for watch expressions to work)
+* Before / After refresh commands
+* Stacktraces on errors
+* Goto vars with configurable directory
