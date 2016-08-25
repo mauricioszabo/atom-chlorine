@@ -1,5 +1,6 @@
 (ns --check-deps--
-  (:require [clojure.string :refer [split join] :as s]))
+  (:require [clojure.string :refer [split join] :as s]
+            [clojure.test :refer :all]))
 
 (defn vars-in-form [form vars]
   (cond
@@ -133,10 +134,9 @@
     (s/split #"\$")))
 
 ;; Pretty stack traces
-(defn- clj-trace [stack-line]
-  (let [fn-raw (.getClassName stack-line)
-        [raw-ns-name _] (s/split fn-raw #"\$")
-        [ns-name fn-name] (normalize-clj-name fn-raw)
+(defn clj-trace [class-name line-number]
+  (let [[raw-ns-name _] (s/split class-name #"\$")
+        [ns-name fn-name] (normalize-clj-name class-name)
         fq-symbol (ns-resolve (symbol ns-name) (symbol fn-name))
         filename (:file (meta fq-symbol))
         loader (clojure.lang.RT/baseLoader)
@@ -152,10 +152,18 @@
 
     {:fn (str ns-name "/" (if (re-matches #"eval\d+" fn-name) "[inline-eval]" fn-name))
      :file (or filename (some-> file-to-open (s/replace #".*!/?" "")))
-     :line (.getLineNumber stack-line)
+     :line line-number
      :link file-to-open}))
 
-(defn- other-trace [stack-line]
+(deftest test-clj-trace
+  (testing "tracing a clojure command"
+    (is (= {:fn "clojure.core/conj"
+            :file "clojure/core.clj"
+            :line 20}
+           (dissoc (clj-trace "clojure.core$conj__1234" 20) :link))))
+  (testing "traces a function with strange name"
+    (is (= "clojure.core/conj" (:fn (clj-trace "clojure.core$eval1020/conj__1234" 20))))))
+(defn other-trace [stack-line]
   {:fn (str (.getClassName stack-line) "/" (.getMethodName stack-line))
    :file (.getFileName stack-line)
    :line (.getLineNumber stack-line)})
@@ -170,5 +178,5 @@ this very simple code:
         clj-file? (re-find #"\.clj[cxs]?$" filename)]
 
     (if clj-file?
-      (clj-trace stack-line)
+      (clj-trace (.getClassName stack-line) (.getLineNumber stack-line))
       (other-trace stack-line))))
