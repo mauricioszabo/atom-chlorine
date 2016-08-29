@@ -45,13 +45,7 @@ module.exports = class CljCommands
 
     notify = atom.config.get('clojure-plus.notify')
     @promisedRepl.syncRun(refreshCmd, "user").then (result) =>
-      console.log "Result", result
-      if result.error && result.error.startsWith('WARNING:')
-        @lastRefreshSucceeded = true
-        atom.notifications.addInfo("Refresh successful.", detail: result.error) if notify
-        @repl.info("Refresh successful.\n#{result.error}")
-        @assignWatches()
-      else if result.value
+      if result.value
         value = @repl.parseEdn(result.value)
         if !value.cause
           @lastRefreshSucceeded = true
