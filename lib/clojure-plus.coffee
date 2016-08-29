@@ -179,6 +179,10 @@ module.exports =
 
     @commands.unusedImports(path).then (result) =>
       namespaces = protoRepl.parseEdn(result.value)
+      if namespaces.length == 0
+        atom.notifications.addInfo("No unused namespaces on file")
+        return
+
       nsRange = @getNsRange(editor)
       nsTexts = editor.getTextInBufferRange(nsRange).split("\n")
       newNsText = nsTexts.filter (row) =>
