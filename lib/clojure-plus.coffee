@@ -288,7 +288,7 @@ module.exports =
 
     options =
       displayCode: oldText
-      displayInRepl: false
+      displayInRepl: true
       inlineOptions:
         editor: editor
         range: range
@@ -300,7 +300,6 @@ module.exports =
           @makeErrorInline(protoRepl.parseEdn(result.value), editor, range)
         else
           protoRepl.repl.inlineResultHandler(result, options)
-          protoRepl.repl.replView.displayExecutedCode(result.value)
 
         @handleWatches(options)
 
