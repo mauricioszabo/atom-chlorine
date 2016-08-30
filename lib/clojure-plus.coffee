@@ -289,6 +289,7 @@ module.exports =
     options =
       displayCode: oldText
       displayInRepl: true
+      resultHandler: (_) => null
       inlineOptions:
         editor: editor
         range: range
@@ -299,7 +300,10 @@ module.exports =
         if result.value && result.value.startsWith("{:--__--errors ")
           @makeErrorInline(protoRepl.parseEdn(result.value), editor, range)
         else
+          options.displayInRepl = true
+          options.resultHandler = protoRepl.repl.inlineResultHandler
           protoRepl.repl.inlineResultHandler(result, options)
+          # protoRepl.repl.replView.displayExecutedCode(result.value)
 
         @handleWatches(options)
 
