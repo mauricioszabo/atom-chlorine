@@ -154,14 +154,6 @@
      :line line-number
      :link file-to-open}))
 
-(deftest test-clj-trace
-  (testing "tracing a clojure command"
-    (is (= {:fn "clojure.core/conj"
-            :file "clojure/core.clj"
-            :line 20}
-           (dissoc (clj-trace "clojure.core$conj__1234" 20) :link))))
-  (testing "traces a function with strange name"
-    (is (= "clojure.core/conj" (:fn (clj-trace "clojure.core$eval1020/conj__1234" 20))))))
 (defn other-trace [stack-line]
   {:fn (str (.getClassName stack-line) "/" (.getMethodName stack-line))
    :file (.getFileName stack-line)
