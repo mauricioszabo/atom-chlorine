@@ -1,6 +1,5 @@
 (ns --check-deps--
-  (:require [clojure.string :refer [split join] :as s]
-            [clojure.test :refer :all]))
+  (:require [clojure.test :refer :all]))
 
 (defn vars-in-form [form vars]
   (cond
@@ -20,7 +19,7 @@
                          vars-for-file
                          (map str)
                          (filter #(re-find #"/" %))
-                         (map #(first (s/split % #"/")))
+                         (map #(first (clojure.string/split % #"/")))
                          set)
         parsed-ns (refactor-nrepl.ns.ns-parser/parse-ns file)
         requires (map #(-> % :ns str) (concat (get-in parsed-ns [:clj :require]) (get-in parsed-ns [:cljs :require])))]
@@ -58,7 +57,7 @@
                     (let [sym (-> s :fqname symbol)
                           source (try (clojure.repl/source-fn sym) (catch Exception _))
                           quoted (str "`" source)]
-                      (in-ns (-> s (split #"/") first symbol))
+                      (in-ns (-> s (clojure.string/split #"/") first symbol))
                       (search (try (load-string quoted) (catch Exception e)))))]
     (filter have-sym? symbols)))
 
@@ -106,7 +105,7 @@
                          ",\"symbol\":\"" (:symbol %) "\""
                          "}")
                    syms)]
-    (str "[" (join "," jsons) "]")))
+    (str "[" (clojure.string/join "," jsons) "]")))
 
 (defn resolve-missing [name]
   (let [edn-str (or (refactor-nrepl.ns.resolve-missing/resolve-missing {:symbol name}) "[]")
@@ -121,28 +120,28 @@
 
 (defn- normalize-clj-name [fn-name]
   (-> fn-name
-    (s/replace #"_BANG_" "!")
-    (s/replace #"_STAR_" "*")
-    (s/replace #"_PLUS_" "+")
-    (s/replace #"_GT_" ">")
-    (s/replace #"_GTE_" ">=")
-    (s/replace #"_LT_" "<")
-    (s/replace #"_LTE_" "<=")
-    (s/replace #"__\d+" "")
-    (s/replace #"_" "-")
-    (s/replace #"_" "-")
-    (s/split #"\$")))
+    (clojure.string/replace #"_BANG_" "!")
+    (clojure.string/replace #"_STAR_" "*")
+    (clojure.string/replace #"_PLUS_" "+")
+    (clojure.string/replace #"_GT_" ">")
+    (clojure.string/replace #"_GTE_" ">=")
+    (clojure.string/replace #"_LT_" "<")
+    (clojure.string/replace #"_LTE_" "<=")
+    (clojure.string/replace #"__\d+" "")
+    (clojure.string/replace #"_" "-")
+    (clojure.string/replace #"_" "-")
+    (clojure.string/split #"\$")))
 
 ;; Pretty stack traces
 (defn clj-trace [class-name line-number]
-  (let [[raw-ns-name _] (s/split class-name #"\$")
+  (let [[raw-ns-name _] (clojure.string/split class-name #"\$")
         [ns-name fn-name] (normalize-clj-name class-name)
         fq-symbol (ns-resolve (symbol ns-name) (symbol fn-name))
         filename (:file (meta fq-symbol))
         loader (clojure.lang.RT/baseLoader)
         file-to-open (if filename
                        (.getResource loader filename)
-                       (let [n (s/replace raw-ns-name #"\." "/")]
+                       (let [n (clojure.string/replace raw-ns-name #"\." "/")]
                          (or (.getResource loader (str n ".clj"))
                              (.getResource loader (str n ".cljc"))
                              (.getResource loader (str n ".cljx"))
@@ -151,7 +150,7 @@
         file-to-open (when file-to-open (.getPath file-to-open))]
 
     {:fn (str ns-name "/" (if (re-matches #"eval\d+" fn-name) "[inline-eval]" fn-name))
-     :file (or filename (some-> file-to-open (s/replace #".*!/?" "")))
+     :file (or filename (some-> file-to-open (clojure.string/replace #".*!/?" "")))
      :line line-number
      :link file-to-open}))
 
