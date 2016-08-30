@@ -10,15 +10,12 @@ module.exports = class PromisedRepl
   syncRun: (code, ns={}, options={}) ->
     lastPromise = @lastCmd
     @lastCmd = new Promise (resolve) =>
-      console.log "Debugging promise"
       options = ns unless typeof ns == 'string'
       options = Object.create(options)
       options.displayInRepl ?= false
       options.resultHandler = (result) =>
-        console.log "HANDLER!", result
         resolve(result)
 
-      console.log "LAST", lastPromise
       lastPromise.then =>
         if(typeof ns == 'string')
           options.ns = ns
