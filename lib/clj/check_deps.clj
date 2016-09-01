@@ -171,3 +171,14 @@ this very simple code:
     (if clj-file?
       (clj-trace (.getClassName stack-line) (.getLineNumber stack-line))
       (other-trace stack-line))))
+
+(defn to-thread [code]
+  (let [f (fn f [vars acc]
+            (if (not (seq? vars))
+              (cons vars acc)
+              (let [[fun first & rest] vars]
+                (cond
+                  (and first (empty? rest)) (f first (cons fun acc))
+                  first (f first (cons (cons fun rest) acc))
+                  :else (cons acc)))))]
+    (cons '-> (f code nil))))
