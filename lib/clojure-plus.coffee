@@ -67,6 +67,12 @@ module.exports =
       @getCommands().runRefresh(true)
     atom.commands.add 'atom-text-editor', 'clojure-plus:evaluate-top-block', =>
       @executeTopLevel()
+    atom.commands.add 'atom-text-editor', 'clojure-plus:evaluate-full-file', =>
+      editor = atom.workspace.getActiveTextEditor()
+      return unless editor?
+      ranges = protoRepl.EditorUtils.getTopLevelRanges(editor)
+      ranges.forEach (r) =>
+        @runCodeInRange(editor, r)
 
     atom.config.observe("clojure-plus.highlightSexp", highlight)
     highlight(atom.config.get('clojure-plus.highlightSexp'))
@@ -179,6 +185,10 @@ module.exports =
 
     @commands.unusedImports(path).then (result) =>
       namespaces = protoRepl.parseEdn(result.value)
+      if namespaces.length == 0
+        atom.notifications.addInfo("No unused namespaces on file")
+        return
+
       nsRange = @getNsRange(editor)
       nsTexts = editor.getTextInBufferRange(nsRange).split("\n")
       newNsText = nsTexts.filter (row) =>
@@ -254,44 +264,48 @@ module.exports =
   executeTopLevel: ->
     editor = atom.workspace.getActiveTextEditor()
 
-    # Copy-paste from proto-repl... sorry...
     if editor = atom.workspace.getActiveTextEditor()
       if range = protoRepl.EditorUtils.getCursorInBlockRange(editor, topLevel: true)
-        # protoRepl.repl?.replTextEditor?.textEditor?.getBuffer()?.clearUndoStack()
-        protoRepl.clearRepl() if atom.config.get('clojure-plus.clearRepl')
-        oldText = editor.getTextInBufferRange(range).trim()
-        text = @updateWithMarkers(editor, range)
-        text = "(try #{text}\n(catch Exception e
-          {:--__--errors {:cause (str e)
-                          :trace (map --check-deps--/prettify-stack (.getStackTrace e))}}))"
+        @runCodeInRange(editor, range)
 
-        # Highlight the area that's being executed temporarily
-        marker = editor.markBufferRange(range)
-        decoration = editor.decorateMarker(marker,
-            {type: 'highlight', class: "block-execution"})
-        # Remove the highlight after a short period of time
-        setTimeout(=>
-          marker.destroy()
-        , 350)
+  runCodeInRange: (editor, range) ->
+    # Copy-paste from proto-repl... sorry...
+    protoRepl.clearRepl() if atom.config.get('clojure-plus.clearRepl')
+    oldText = editor.getTextInBufferRange(range).trim()
+    text = @updateWithMarkers(editor, range)
+    text = "(try #{text}\n(catch Exception e
+      {:--__--errors {:cause (str e)
+                      :trace (map --check-deps--/prettify-stack (.getStackTrace e))}}))"
 
-        options =
-          displayCode: oldText
-          displayInRepl: false
-          inlineOptions:
-            editor: editor
-            range: range
+    # Highlight the area that's being executed temporarily
+    marker = editor.markBufferRange(range)
+    decoration = editor.decorateMarker(marker,
+        {type: 'highlight', class: "block-execution"})
+    # Remove the highlight after a short period of time
+    setTimeout(=>
+      marker.destroy()
+    , 350)
 
-        # @getCommands().promisedRepl.clear()
-        @getCommands().promisedRepl.syncRun("(do (in-ns 'user) (def __watches__ (atom {})))", 'user').then =>
-          @getCommands().promisedRepl.syncRun(text, options).then (result) =>
-            if result.value && result.value.startsWith("{:--__--errors ")
-              @makeErrorInline(protoRepl.parseEdn(result.value), editor, range)
-            else
-              protoRepl.repl.inlineResultHandler(result, options)
-              protoRepl.repl.replView.displayExecutedCode(result.value)
+    options =
+      displayCode: oldText
+      displayInRepl: true
+      resultHandler: (_) => null
+      inlineOptions:
+        editor: editor
+        range: range
 
-            @handleWatches(options)
-          # protoRepl.executeCodeInNs(text, options)
+    # @getCommands().promisedRepl.clear()
+    @getCommands().promisedRepl.syncRun("(do (in-ns 'user) (def __watches__ (atom {})))", 'user').then =>
+      @getCommands().promisedRepl.syncRun(text, options).then (result) =>
+        if result.value && result.value.startsWith("{:--__--errors ")
+          @makeErrorInline(protoRepl.parseEdn(result.value), editor, range)
+        else
+          options.displayInRepl = true
+          options.resultHandler = protoRepl.repl.inlineResultHandler
+          protoRepl.repl.inlineResultHandler(result, options)
+          # protoRepl.repl.replView.displayExecutedCode(result.value)
+
+        @handleWatches(options)
 
   makeErrorInline: (edn, editor, range) ->
     {cause, trace} = edn['--__--errors']
