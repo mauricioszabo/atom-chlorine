@@ -174,6 +174,7 @@ module.exports =
                 , 'core:cancel': ->
                   panel.destroy()
                   atom.views.getView(atom.workspace).focus()
+                # TODO - VER ISSO!
                 setTimeout ->
                   te.getModel().scrollToCursorPosition()
           new SelectView(items)
