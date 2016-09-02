@@ -127,7 +127,7 @@
     (clojure.string/replace #"_GTE_" ">=")
     (clojure.string/replace #"_LT_" "<")
     (clojure.string/replace #"_LTE_" "<=")
-    (clojure.string/replace #"__\d+" "")
+    (clojure.string/replace #"(eval\d+\$|__\d+)" "")
     (clojure.string/replace #"_" "-")
     (clojure.string/replace #"_" "-")
     (clojure.string/split #"\$")))
