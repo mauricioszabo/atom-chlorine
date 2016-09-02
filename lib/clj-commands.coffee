@@ -78,23 +78,21 @@ module.exports = class CljCommands
       else
         delete @watches[id]
 
-  openFileContainingVar: ->
-    if editor = atom.workspace.getActiveTextEditor()
-      selected = editor.getWordUnderCursor(wordRegex: /[a-zA-Z0-9\-.$!?:\/><\+*]+/)
-      tmpPath = '"' +
-                atom.config.get('clojure-plus.tempDir').replace(/\\/g, "\\\\").replace(/"/g, "\\\"") +
-                '"'
+  openFileContainingVar: (varName) ->
+    tmpPath = '"' +
+              atom.config.get('clojure-plus.tempDir').replace(/\\/g, "\\\\").replace(/"/g, "\\\"") +
+              '"'
 
-      if selected
-        text = "(--check-deps--/goto-var '#{selected} #{tmpPath})"
+    if varName
+      text = "(--check-deps--/goto-var '#{varName} #{tmpPath})"
 
-        @promisedRepl.runCodeInCurrentNS(text).then (result) =>
-          if result.value
-            [file, line] = @repl.parseEdn(result.value)
-            pending = atom.config.get('clojure-plus.openPending')
-            atom.workspace.open(file, initialLine: line-1, searchAllPanes: true, pending: pending)
-          else
-            @repl.stderr("Error trying to open: #{result.error}")
+      @promisedRepl.runCodeInCurrentNS(text).then (result) =>
+        if result.value
+          [file, line] = @repl.parseEdn(result.value)
+          pending = atom.config.get('clojure-plus.openPending')
+          atom.workspace.open(file, initialLine: line-1, searchAllPanes: true, pending: pending)
+        else
+          @repl.stderr("Error trying to open: #{result.error}")
 
   getFile: (file) ->
     home = process.env.HOME
