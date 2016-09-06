@@ -43,8 +43,7 @@
                 file-str (when file-path
                            (some-> rt
                                    (.getResource file-path)
-                                   (.getFile)))]
-          :when (when file-str (not (re-find #"\.jar!" file-str)))]
+                                   (.getFile)))]]
       (assoc meta-symbol :fqname (str ns-name "/" (.key symbol-map))
                          :fqpath file-str))))
 

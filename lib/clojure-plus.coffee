@@ -56,13 +56,16 @@ module.exports =
   currentWatches: {}
   lastClear: null
 
-  everythingProvider: -> new EvryProvider()
+  everythingProvider: ->
+    new EvryProvider(this)
 
   activate: (state) ->
     atom.commands.add 'atom-text-editor', 'clojure-plus:refresh-namespaces', =>
       @getCommands().runRefresh()
     atom.commands.add 'atom-text-editor', 'clojure-plus:goto-var-definition', =>
-      @getCommands().openFileContainingVar()
+      if editor = atom.workspace.getActiveTextEditor()
+        varName = editor.getWordUnderCursor(wordRegex: /[a-zA-Z0-9\-.$!?:\/><\+*]+/)
+        @getCommands().openFileContainingVar(varName)
     atom.commands.add 'atom-text-editor', 'clojure-plus:clear-and-refresh-namespaces', =>
       @getCommands().runRefresh(true)
     atom.commands.add 'atom-text-editor', 'clojure-plus:evaluate-top-block', =>
@@ -171,6 +174,7 @@ module.exports =
                 , 'core:cancel': ->
                   panel.destroy()
                   atom.views.getView(atom.workspace).focus()
+                # TODO - VER ISSO!
                 setTimeout ->
                   te.getModel().scrollToCursorPosition()
           new SelectView(items)
