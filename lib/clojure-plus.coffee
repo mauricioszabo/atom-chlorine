@@ -279,7 +279,7 @@ module.exports =
     text = @updateWithMarkers(editor, range)
     text = "(try #{text}\n(catch Exception e
       (do
-        ereset! --check-deps--/last-exception
+        (reset! --check-deps--/last-exception
           {:cause (str e)
            :trace (map --check-deps--/prettify-stack (.getStackTrace e))}))
         (throw e)))"
