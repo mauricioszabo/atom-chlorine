@@ -316,7 +316,7 @@ module.exports =
         @handleWatches(options)
 
   makeErrorInline: ({cause, trace}, editor, range) ->
-    result = new protoRepl.ink.Result(editor, [range.start.row, range.end.row])
+    result = new protoRepl.ink.Result(editor, [range.start.row, range.end.row], type: "block")
     causeHtml = document.createElement('strong')
     causeHtml.classList.add('error-description')
     causeHtml.innerText = cause
