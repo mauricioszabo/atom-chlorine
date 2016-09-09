@@ -181,3 +181,5 @@ this very simple code:
                   first (f first (cons (cons fun rest) acc))
                   :else (cons acc)))))]
     (cons '-> (f code nil))))
+
+(def last-exception (atom nil))

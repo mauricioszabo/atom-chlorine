@@ -278,8 +278,11 @@ module.exports =
     oldText = editor.getTextInBufferRange(range).trim()
     text = @updateWithMarkers(editor, range)
     text = "(try #{text}\n(catch Exception e
-      {:--__--errors {:cause (str e)
-                      :trace (map --check-deps--/prettify-stack (.getStackTrace e))}}))"
+      (do
+        ereset! --check-deps--/last-exception
+          {:cause (str e)
+           :trace (map --check-deps--/prettify-stack (.getStackTrace e))}))
+        (throw e)))"
 
     # Highlight the area that's being executed temporarily
     marker = editor.markBufferRange(range)
@@ -301,18 +304,18 @@ module.exports =
     # @getCommands().promisedRepl.clear()
     @getCommands().promisedRepl.syncRun("(do (in-ns 'user) (def __watches__ (atom {})))", 'user').then =>
       @getCommands().promisedRepl.syncRun(text, options).then (result) =>
-        if result.value && result.value.startsWith("{:--__--errors ")
-          @makeErrorInline(protoRepl.parseEdn(result.value), editor, range)
-        else
+        if result.value
           options.displayInRepl = true
           options.resultHandler = protoRepl.repl.inlineResultHandler
           protoRepl.repl.inlineResultHandler(result, options)
-          # protoRepl.repl.replView.displayExecutedCode(result.value)
+        else
+          @getCommands().promisedRepl.syncRun('@--check-deps--/last-exception', session: 'exceptions').then (result) =>
+            value = protoRepl.parseEdn(result.value) if result.value
+            @makeErrorInline(value, editor, range)
 
         @handleWatches(options)
 
-  makeErrorInline: (edn, editor, range) ->
-    {cause, trace} = edn['--__--errors']
+  makeErrorInline: ({cause, trace}, editor, range) ->
     result = new protoRepl.ink.Result(editor, [range.start.row, range.end.row])
     causeHtml = document.createElement('strong')
     causeHtml.classList.add('error-description')
