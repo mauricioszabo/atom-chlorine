@@ -16,12 +16,14 @@ module.exports = class PromisedRepl
       options.resultHandler = (result) =>
         resolve(result)
 
-      lastPromise.then =>
+      f = =>
         if(typeof ns == 'string')
           options.ns = ns
           @repl.executeCode code, options
         else
           @repl.executeCodeInNs code, options
+      lastPromise.then(f)
+      lastPromise.catch(f)
 
   runCodeInCurrentNS: (code) ->
     new Promise (resolve) =>
