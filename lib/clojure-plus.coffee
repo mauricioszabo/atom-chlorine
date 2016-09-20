@@ -175,8 +175,6 @@ module.exports =
                   panel.destroy()
                   atom.views.getView(atom.workspace).focus()
                 # TODO - VER ISSO!
-                setTimeout ->
-                  te.getModel().scrollToCursorPosition()
           new SelectView(items)
         else
           atom.notifications.addError("Import with namespace alias not found")
