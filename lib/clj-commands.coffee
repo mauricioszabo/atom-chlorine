@@ -28,6 +28,7 @@ module.exports = class CljCommands
     return if all
     notify = atom.config.get('clojure-plus.notify')
     ns = @repl.EditorUtils.findNsDeclaration(atom.workspace.getActiveTextEditor())
+    return unless ns
     refreshCmd = "(require '#{ns} :reload)"
 
     @promisedRepl.syncRun(refreshCmd).then (result) =>
