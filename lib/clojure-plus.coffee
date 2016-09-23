@@ -16,6 +16,10 @@ module.exports =
       description: "Notify when refresh was done"
       type: "boolean"
       default: true
+    simpleRefresh:
+      description: "Refresh with a very simple code (that requires the current namespace)"
+      type: "boolean"
+      default: false
     refreshAfterConnect:
       description: "Refresh after REPL is connected"
       type: "boolean"
