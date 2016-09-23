@@ -66,6 +66,8 @@ module.exports =
   activate: (state) ->
     atom.commands.add 'atom-text-editor', 'clojure-plus:refresh-namespaces', =>
       @getCommands().runRefresh()
+    atom.commands.add 'atom-text-editor', 'clojure-plus:toggle-simple-refresh', =>
+      atom.config.set('clojure-plus.simpleRefresh', !atom.config.get('clojure-plus.simpleRefresh'))
     atom.commands.add 'atom-text-editor', 'clojure-plus:goto-var-definition', =>
       if editor = atom.workspace.getActiveTextEditor()
         varName = editor.getWordUnderCursor(wordRegex: /[a-zA-Z0-9\-.$!?:\/><\+*]+/)
@@ -83,6 +85,7 @@ module.exports =
 
     atom.config.observe("clojure-plus.highlightSexp", highlight)
     highlight(atom.config.get('clojure-plus.highlightSexp'))
+    atom.config.observe "clojure-plus.simpleRefresh", (refresh) => @checkRefreshMode(refresh)
 
     editorCode = ->
       editor = atom.workspace.getActiveTextEditor()
@@ -413,3 +416,26 @@ module.exports =
 
   getCommands: ->
     @commands ?= new CljCommands(@currentWatches, protoRepl)
+
+  statusBarConsumer: (statusBar) ->
+    console.log "STATUS BAR?"
+    div = document.createElement('div')
+    div.classList.add('inline-block', 'clojure-plus')
+    @statusBarTile = statusBar.addRightTile(item: div, priority: 101)
+    @checkRefreshMode(atom.config.get("clojure-plus.simpleRefresh"))
+
+  checkRefreshMode: (simple) ->
+    return unless @statusBarTile
+    text = "Clojure, refreshing"
+    if simple
+      text += " (simple)"
+    else
+      text += " (full)"
+
+    if atom.config.get('clojure-plus.refreshAfterSave')
+      text += " after saving"
+    @statusBarTile.item.innerText = text
+
+  deactivate: ->
+    @statusBarTile?.destroy()
+    @statusBarTile = null
