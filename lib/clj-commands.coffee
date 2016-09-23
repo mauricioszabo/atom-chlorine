@@ -12,16 +12,22 @@ module.exports = class CljCommands
     @promisedRepl.syncRun(code, 'user')
 
   runRefresh: (all) ->
-    before = atom.config.get('clojure-plus.beforeRefreshCmd')
-    after = atom.config.get('clojure-plus.afterRefreshCmd')
     simple = atom.config.get('clojure-plus.simpleRefresh')
 
     @prepare()
-    @promisedRepl.syncRun(before, "user") unless simple && all
+    @runBefore()
     if simple
       @runSimpleRefresh(all)
     else
       @runFullRefresh(all)
+    @runAfter()
+
+  runBefore ->
+    before = atom.config.get('clojure-plus.beforeRefreshCmd')
+    @promisedRepl.syncRun(before, "user") unless simple && all
+
+  runAfter ->
+    after = atom.config.get('clojure-plus.afterRefreshCmd')
     @promisedRepl.syncRun(after,"user")
 
   runSimpleRefresh: (all) ->
@@ -71,6 +77,7 @@ module.exports = class CljCommands
     @getFile(atom.config.get(key))
 
   assignWatches: ->
+    @runBefore()
     for id, mark of @watches
       if mark.isValid()
         ns = @repl.EditorUtils.findNsDeclaration(mark.editor)
@@ -78,6 +85,7 @@ module.exports = class CljCommands
           @promisedRepl.syncRun(mark.topLevelExpr, ns)
       else
         delete @watches[id]
+    @runAfter()
 
   openFileContainingVar: (varName) ->
     tmpPath = '"' +
