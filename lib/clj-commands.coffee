@@ -1,10 +1,12 @@
 fs = require 'fs'
 process = require 'process'
 PromisedRepl = require './promised-repl'
+MarkerCollection = require './marker-collection'
 
 module.exports = class CljCommands
   constructor: (@watches, @repl) ->
     @promisedRepl = new PromisedRepl(@repl)
+    @markers = window.mf = new MarkerCollection(@watches)
 
   prepare: ->
     code = @getFile("~/.atom/packages/clojure-plus/lib/clj/check_deps.clj")
@@ -76,15 +78,16 @@ module.exports = class CljCommands
     key = if all then 'clojure-plus.refreshAllCmd' else 'clojure-plus.refreshCmd'
     @getFile(atom.config.get(key))
 
+  # TODO: Move me to MarkerCollection
   assignWatches: ->
     @runBefore()
-    for id, mark of @watches
-      if mark.isValid()
+    @promisedRepl.syncRun("(def __watches__ (atom {}))", 'user').then =>
+      for id, mark of @watches
+        delete @watches[id] unless mark.isValid()
         ns = @repl.EditorUtils.findNsDeclaration(mark.editor)
-        @promisedRepl.syncRun("(def __watches__ (atom {}))", 'user').then =>
-          @promisedRepl.syncRun(mark.topLevelExpr, ns)
-      else
-        delete @watches[id]
+        range = @markers.getTopLevelForMark(mark)
+        @promisedRepl.syncRun(@markers.updatedCodeInRange(mark.editor, range), ns)
+
     @runAfter()
 
   openFileContainingVar: (varName) ->
