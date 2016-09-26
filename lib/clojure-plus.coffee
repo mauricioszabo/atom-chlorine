@@ -5,6 +5,7 @@ SelectView = require './select-view'
 EvryProvider = require './evry-provider'
 CljCommands = require './clj-commands'
 highlight = require './sexp-highlight'
+MarkerCollection = require './marker-collection'
 
 module.exports =
   config:
@@ -238,25 +239,12 @@ module.exports =
     {row, column} = region.getExtent()
     return if row == 0 && column == 0 # if no word was found
 
-    mark = editor.markBufferRange(region, invalidate: "touch") unless @removeMarkIfExists(editor, region)
+    mark = editor.markBufferRange(region) unless @removeMarkIfExists(editor, region)
     if mark?
-      cljVar = editor.getTextInBufferRange(region)
-      expression = expression.replace(/\.\.FILE_NAME\.\./g, editor.getPath())
-      expression = expression.replace(/\.\.ROW\.\./g, region.start.row + 1)
-      expression = expression.replace(/\.\.COL\.\./g, region.start.column + 1)
-      expression = expression.replace(/\.\.SEL\.\./g, cljVar)
-      expression = expression.replace(/\.\.ID\.\./g, mark.id)
-
-      mark.expression = expression
       mark.editor = editor
-
+      mark.expression = expression
       editor.decorateMarker(mark, type: "highlight", class: "clojure-watch-expr " + type)
       @currentWatches[mark.id] = mark
-
-      topRanges = protoRepl.EditorUtils.getTopLevelRanges(editor)
-      topRange = topRanges.find (range) => range.containsPoint(region.start)
-      text = @updateWithMarkers(editor, topRange)
-      mark.topLevelExpr = text
 
     @getCommands().assignWatches()
 
@@ -281,7 +269,7 @@ module.exports =
     # Copy-paste from proto-repl... sorry...
     protoRepl.clearRepl() if atom.config.get('clojure-plus.clearRepl')
     oldText = editor.getTextInBufferRange(range).trim()
-    text = @updateWithMarkers(editor, range)
+    text = @getCommands().markers.updatedCodeInRange(editor, range)
     text = "(try #{text}\n(catch Exception e
       (do
         (reset! --check-deps--/last-exception
@@ -392,33 +380,10 @@ module.exports =
           if watch && !watch.destroyed
             protoRepl.repl.displayInline(watch.editor, watch.getBufferRange(), protoRepl.ednToDisplayTree(data))
 
-  updateWithMarkers: (editor, blockRange) ->
-    marks = for _, m of @currentWatches then m
-    marks = marks.filter (m) ->
-      buffer = m.getBufferRange()
-      buffer.start.row >= blockRange.start.row && buffer.end.row <= blockRange.end.row && m.editor == editor
-
-    text = ""
-    editor.transact =>
-      for mark in marks
-        mark.bufferMarker.invalidate = "never"
-        editor.setTextInBufferRange(mark.getBufferRange(), mark.expression)
-
-      # redo top range mark, 'cause we could have changed the limits
-      topRanges = protoRepl.EditorUtils.getTopLevelRanges(editor)
-      newBlockRange = topRanges.find (range) => range.containsPoint(blockRange.start)
-      text = editor.getTextInBufferRange(newBlockRange).trim()
-      editor.abortTransaction()
-
-    for mark in marks
-      mark.bufferMarker.invalidate = "touch"
-    text
-
   getCommands: ->
     @commands ?= new CljCommands(@currentWatches, protoRepl)
 
   statusBarConsumer: (statusBar) ->
-    console.log "STATUS BAR?"
     div = document.createElement('div')
     div.classList.add('inline-block', 'clojure-plus')
     @statusBarTile = statusBar.addRightTile(item: div, priority: 101)
