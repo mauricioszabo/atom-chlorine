@@ -22,11 +22,11 @@ module.exports = class CljCommands
       @runFullRefresh(all)
     @runAfter()
 
-  runBefore ->
+  runBefore: ->
     before = atom.config.get('clojure-plus.beforeRefreshCmd')
-    @promisedRepl.syncRun(before, "user") unless simple && all
+    @promisedRepl.syncRun(before, "user")
 
-  runAfter ->
+  runAfter: ->
     after = atom.config.get('clojure-plus.afterRefreshCmd')
     @promisedRepl.syncRun(after,"user")
 
