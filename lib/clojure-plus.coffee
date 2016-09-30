@@ -304,7 +304,7 @@ module.exports =
         else
           @getCommands().promisedRepl.syncRun('@--check-deps--/last-exception', session: 'exceptions').then (result) =>
             value = protoRepl.parseEdn(result.value) if result.value
-            @makeErrorInline(value, editor, range)
+            @makeErrorInline(value, editor, range) if value
 
         @handleWatches(options)
 
