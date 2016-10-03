@@ -1,10 +1,12 @@
 fs = require 'fs'
 process = require 'process'
 PromisedRepl = require './promised-repl'
+MarkerCollection = require './marker-collection'
 
 module.exports = class CljCommands
   constructor: (@watches, @repl) ->
     @promisedRepl = new PromisedRepl(@repl)
+    @markers = window.mf = new MarkerCollection(@watches)
 
   prepare: ->
     code = @getFile("~/.atom/packages/clojure-plus/lib/clj/check_deps.clj")
@@ -12,22 +14,29 @@ module.exports = class CljCommands
     @promisedRepl.syncRun(code, 'user')
 
   runRefresh: (all) ->
-    before = atom.config.get('clojure-plus.beforeRefreshCmd')
-    after = atom.config.get('clojure-plus.afterRefreshCmd')
     simple = atom.config.get('clojure-plus.simpleRefresh')
 
     @prepare()
-    @promisedRepl.syncRun(before, "user") unless simple && all
+    @runBefore()
     if simple
       @runSimpleRefresh(all)
     else
       @runFullRefresh(all)
+    @runAfter()
+
+  runBefore: ->
+    before = atom.config.get('clojure-plus.beforeRefreshCmd')
+    @promisedRepl.syncRun(before, "user")
+
+  runAfter: ->
+    after = atom.config.get('clojure-plus.afterRefreshCmd')
     @promisedRepl.syncRun(after,"user")
 
   runSimpleRefresh: (all) ->
     return if all
     notify = atom.config.get('clojure-plus.notify')
     ns = @repl.EditorUtils.findNsDeclaration(atom.workspace.getActiveTextEditor())
+    return unless ns
     refreshCmd = "(require '#{ns} :reload)"
 
     @promisedRepl.syncRun(refreshCmd).then (result) =>
@@ -69,14 +78,17 @@ module.exports = class CljCommands
     key = if all then 'clojure-plus.refreshAllCmd' else 'clojure-plus.refreshCmd'
     @getFile(atom.config.get(key))
 
+  # TODO: Move me to MarkerCollection
   assignWatches: ->
-    for id, mark of @watches
-      if mark.isValid()
+    @runBefore()
+    @promisedRepl.syncRun("(def __watches__ (atom {}))", 'user').then =>
+      for id, mark of @watches
+        delete @watches[id] unless mark.isValid()
         ns = @repl.EditorUtils.findNsDeclaration(mark.editor)
-        @promisedRepl.syncRun("(def __watches__ (atom {}))", 'user').then =>
-          @promisedRepl.syncRun(mark.topLevelExpr, ns)
-      else
-        delete @watches[id]
+        range = @markers.getTopLevelForMark(mark)
+        @promisedRepl.syncRun(@markers.updatedCodeInRange(mark.editor, range), ns)
+
+    @runAfter()
 
   openFileContainingVar: (varName) ->
     tmpPath = '"' +
