@@ -294,15 +294,16 @@ module.exports =
         editor: editor
         range: range
 
-    # @getCommands().promisedRepl.clear()
-    @getCommands().promisedRepl.syncRun("(do (in-ns 'user) (def __watches__ (atom {})))", 'user').then =>
+    @getCommands().promisedRepl.syncRun("(do (in-ns 'user)
+                                             (def __watches__ (atom {}))
+                                             (reset! --check-deps--/last-exception nil))", 'user').then =>
       @getCommands().promisedRepl.syncRun(text, options).then (result) =>
         if result.value
           options.displayInRepl = true
           options.resultHandler = protoRepl.repl.inlineResultHandler
           protoRepl.repl.inlineResultHandler(result, options)
         else
-          @getCommands().promisedRepl.syncRun('@--check-deps--/last-exception', session: 'exceptions').then (result) =>
+          @getCommands().promisedRepl.runCodeInCurrentNS('@--check-deps--/last-exception', session: 'exceptions').then (result) =>
             value = protoRepl.parseEdn(result.value) if result.value
             @makeErrorInline(value, editor, range) if value
 

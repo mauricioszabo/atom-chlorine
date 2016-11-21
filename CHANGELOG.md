@@ -1,3 +1,6 @@
+## 0.1.2 - Bugfix
+* Fixed cases when the first exception was being repeated when running code multiple times
+
 ## 0.1.2 - Fix on EVRY and Simple Refresh
 * Simple refresh option on settings
 * Fixed simple refresh causing an exception when there's no namespace in file
