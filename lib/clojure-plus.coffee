@@ -215,19 +215,15 @@ module.exports =
 
     if editor = atom.workspace.getActiveTextEditor()
       if range = protoRepl.EditorUtils.getCursorInBlockRange(editor, topLevel: true)
-        @runCodeInRange(editor, range)
+        session = 'cljs' if editor.getFileName().endsWith(".cljs")
+        @runCodeInRange(editor, range, session)
 
-  runCodeInRange: (editor, range) ->
+  runCodeInRange: (editor, range, session) ->
     # Copy-paste from proto-repl... sorry...
     protoRepl.clearRepl() if atom.config.get('clojure-plus.clearRepl')
     oldText = editor.getTextInBufferRange(range).trim()
     text = @getCommands().markers.updatedCodeInRange(editor, range)
-    text = "(try #{text}\n(catch Exception e
-      (do
-        (reset! --check-deps--/last-exception
-          {:cause (str e)
-           :trace (map --check-deps--/prettify-stack (.getStackTrace e))}))
-        (throw e)))"
+    text = @wrapText(text, session)
 
     # Highlight the area that's being executed temporarily
     marker = editor.markBufferRange(range)
@@ -245,21 +241,46 @@ module.exports =
       inlineOptions:
         editor: editor
         range: range
+    options.session = session if session?
+    @getCommands().prepareCljs() if session == 'cljs'
 
     @getCommands().promisedRepl.syncRun("(do (in-ns 'user)
                                              (def __watches__ (atom {}))
-                                             (reset! --check-deps--/last-exception nil))", 'user').then =>
+                                             (reset! --check-deps--/last-exception nil))",
+                                        'user',
+                                        session: session).then =>
       @getCommands().promisedRepl.syncRun(text, options).then (result) =>
+        console.log "DONE", text, result
         if result.value
           options.displayInRepl = true
           options.resultHandler = protoRepl.repl.inlineResultHandler
           protoRepl.repl.inlineResultHandler(result, options)
         else
-          @getCommands().promisedRepl.runCodeInCurrentNS('@--check-deps--/last-exception', session: 'exceptions').then (result) =>
+          exceptionS = if session == 'cljs' then 'cljs' else 'exceptions'
+          console.log "Session:", exceptionS
+          @getCommands().promisedRepl.runCodeInCurrentNS('@--check-deps--/last-exception',
+                                                          session: exceptionS).then (result) =>
+            console.log "EXCEPTION", result
             value = protoRepl.parseEdn(result.value) if result.value
             @makeErrorInline(value, editor, range) if value
 
         @handleWatches(options)
+
+  wrapText: (text, session) ->
+    if session == 'cljs'
+      "(try #{text}\n(catch js/Error e
+        (reset! --check-deps--/last-exception
+          {:cause (.-message e)
+           :trace (drop 1 (clojure.string/split (.-stack e) #\"\\n\"))})
+        (throw e)))"
+        #  (drop 1 (clojure.string/split (.-stack e) #\"\\n\"))
+    else
+      "(try #{text}\n(catch Exception e
+        (do
+          (reset! --check-deps--/last-exception
+            {:cause (str e)
+             :trace (map --check-deps--/prettify-stack (.getStackTrace e))}))
+          (throw e)))"
 
   makeErrorInline: ({cause, trace}, editor, range) ->
     result = new protoRepl.ink.Result(editor, [range.start.row, range.end.row], type: "block")

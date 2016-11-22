@@ -4,12 +4,26 @@ PromisedRepl = require './promised-repl'
 MarkerCollection = require './marker-collection'
 
 module.exports = class CljCommands
+  cljs: false
+
   constructor: (@watches, @repl) ->
     @promisedRepl = new PromisedRepl(@repl)
-    @markers = window.mf = new MarkerCollection(@watches)
+    @markers = new MarkerCollection(@watches)
+
+  prepareCljs: ->
+    if !@cljs
+      code = atom.config.get('clojure-plus.cljsCommand')
+      @promisedRepl.clear()
+      @promisedRepl.syncRun(code, 'user', session: 'cljs').then (e) ->
+        console.log "LOADED CLJS"
+      @cljs = true
+    code = @getFile("~/.atom/packages/clojure-plus/lib/clj/check_deps.clj")
+    code = "(in-ns '--check-deps--) (def last-exception (atom nil))"
+    @promisedRepl.syncRun(code, 'cljs.user', session: 'cljs')
 
   prepare: ->
     code = @getFile("~/.atom/packages/clojure-plus/lib/clj/check_deps.clj")
+    @cljs = false
     @promisedRepl.clear()
     @promisedRepl.syncRun(code, 'user')
 
