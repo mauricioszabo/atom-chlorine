@@ -1,4 +1,4 @@
-(ns --check-deps--
+(ns __check.deps__
   (:require [clojure.test :refer :all]))
 
 (defn vars-in-form [form vars]
