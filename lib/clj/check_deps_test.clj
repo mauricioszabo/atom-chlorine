@@ -1,6 +1,6 @@
 (ns check-deps.test
   (:require [clojure.test :refer :all]
-            [--check-deps-- :refer :all]))
+            [__check.deps__ :refer :all]))
 
 (testing "tracing a clojure command"
   (is (= {:fn "clojure.core/conj"
