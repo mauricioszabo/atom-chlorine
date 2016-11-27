@@ -343,8 +343,9 @@ module.exports =
     pr = @getCommands().promisedRepl
     pr.syncRun('(map (fn [[k v]] (str k "#" (with-out-str (print-method v *out*)))) @__check.deps__/watches)',
       "user").then (result) => @updateInAtom(result)
-    pr.syncRun('(map (fn [[k v]] (str k "#" v)) @__check.deps__/watches)',
-      "user", session: "cljs").then (result) => @updateInAtom(result)
+    if @getCommands().cljs
+      pr.syncRun('(map (fn [[k v]] (str k "#" v)) @__check.deps__/watches)',
+        "user", session: "cljs").then (result) => @updateInAtom(result)
 
   updateInAtom: (result) ->
     console.log "HANDLER", result
