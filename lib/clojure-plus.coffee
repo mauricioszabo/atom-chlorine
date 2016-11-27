@@ -62,7 +62,7 @@ module.exports =
                                      ..COL..
                                      \" => \"
                                      __sel__)
-                            (swap! user/__watches__ update-in [..ID..] (fn [x] (conj (or x []) __sel__)))
+                            (swap! __check.deps__/watches update-in [..ID..] (fn [x] (conj (or x []) __sel__)))
                             __sel__)"
 
     @addWatcher "def-local-symbols", "(do (doseq [__s__ (refactor-nrepl.find.find-locals/find-used-locals {:file ..FILE_NAME..
@@ -244,42 +244,40 @@ module.exports =
     options.session = session if session?
     @getCommands().prepareCljs() if session == 'cljs'
 
-    @getCommands().promisedRepl.syncRun("(do (in-ns 'user)
-                                             (def __watches__ (atom {}))
-                                             (reset! --check-deps--/last-exception nil))",
+    @getCommands().promisedRepl.syncRun("(reset! __check.deps__/watches {})
+                                         (reset! __check.deps__/last-exception nil)",
                                         'user',
-                                        session: session).then =>
+                                        session: session
+                                        ).then (e) =>
       @getCommands().promisedRepl.syncRun(text, options).then (result) =>
-        console.log "DONE", text, result
         if result.value
           options.displayInRepl = true
           options.resultHandler = protoRepl.repl.inlineResultHandler
           protoRepl.repl.inlineResultHandler(result, options)
         else
           exceptionS = if session == 'cljs' then 'cljs' else 'exceptions'
-          console.log "Session:", exceptionS
-          @getCommands().promisedRepl.runCodeInCurrentNS('@--check-deps--/last-exception',
-                                                          session: exceptionS).then (result) =>
-            console.log "EXCEPTION", result
-            value = protoRepl.parseEdn(result.value) if result.value
+          @getCommands().promisedRepl.runCodeInCurrentNS('@__check.deps__/last-exception',
+                                                          session: exceptionS).then (res2) =>
+            console.log "EXCEPTION", result, res2
+            value = protoRepl.parseEdn(res2.value) if res2.value
             @makeErrorInline(value, editor, range) if value
 
-        @handleWatches(options)
+        @handleWatches()
 
   wrapText: (text, session) ->
     if session == 'cljs'
       "(try #{text}\n(catch js/Error e
-        (reset! --check-deps--/last-exception
-          {:cause (.-message e)
-           :trace (drop 1 (clojure.string/split (.-stack e) #\"\\n\"))})
-        (throw e)))"
-        #  (drop 1 (clojure.string/split (.-stack e) #\"\\n\"))
+                       (.error js/console (.-stack e))
+                       (reset! __check.deps__/last-exception
+                         {:cause (.-message e)
+                          :trace [{:fn \"unknown\", :file \"Check your browser's console\", :line \"\"}]})
+                       (throw e)))"
     else
       "(try #{text}\n(catch Exception e
         (do
-          (reset! --check-deps--/last-exception
+          (reset! __check.deps__/last-exception
             {:cause (str e)
-             :trace (map --check-deps--/prettify-stack (.getStackTrace e))}))
+             :trace (map __check.deps__/prettify-stack (.getStackTrace e))}))
           (throw e)))"
 
   makeErrorInline: ({cause, trace}, editor, range) ->
@@ -317,8 +315,8 @@ module.exports =
           if row.link.match(/\.jar!/)
             tmp = atom.config.get('clojure-plus.tempDir').replace(/\\/g, "\\\\").replace(/"/g, "\\\"") +
             saneLink = row.link.replace(/\\/g, "\\\\").replace(/"/g, '\\"')
-            code = "(let [[_ & jar-data] (--check-deps--/extract-jar-data \"#{saneLink}\")]
-                      (--check-deps--/decompress-all \"#{tmp}\" jar-data))"
+            code = "(let [[_ & jar-data] (__check.deps__/extract-jar-data \"#{saneLink}\")]
+                      (__check.deps__/decompress-all \"#{tmp}\" jar-data))"
             @getCommands().promisedRepl.syncRun(code).then (result) =>
               return unless result.value
               atom.workspace.open(protoRepl.parseEdn(result.value), searchAllPanes: true, initialLine: row.line-1)
@@ -341,18 +339,23 @@ module.exports =
       else
         atom.notifications.addError("There was an error with your code")
 
-  handleWatches: (options) ->
-    @getCommands().promisedRepl
-      .syncRun('(map (fn [[k v]] (str k "#" (with-out-str (print-method v *out*)))) @user/__watches__)')
-      .then (result) =>
-        return unless result.value
-        values = protoRepl.parseEdn(result.value)
-        for row in values
-          id = row.replace(/#.*/, "")
-          data = row.replace(/\d+#/, "")
-          watch = @currentWatches[id]
-          if watch && !watch.destroyed
-            protoRepl.repl.displayInline(watch.editor, watch.getBufferRange(), protoRepl.ednToDisplayTree(data))
+  handleWatches: ->
+    pr = @getCommands().promisedRepl
+    pr.syncRun('(map (fn [[k v]] (str k "#" (with-out-str (print-method v *out*)))) @__check.deps__/watches)',
+      "user").then (result) => @updateInAtom(result)
+    pr.syncRun('(map (fn [[k v]] (str k "#" v)) @__check.deps__/watches)',
+      "user", session: "cljs").then (result) => @updateInAtom(result)
+
+  updateInAtom: (result) ->
+    console.log "HANDLER", result
+    return unless result.value
+    values = protoRepl.parseEdn(result.value)
+    for row in values
+      id = row.replace(/#.*/, "")
+      data = row.replace(/\d+#/, "")
+      watch = @currentWatches[id]
+      if watch && !watch.destroyed
+        protoRepl.repl.displayInline(watch.editor, watch.getBufferRange(), protoRepl.ednToDisplayTree(data))
 
   getCommands: ->
     @commands ?= new CljCommands(@currentWatches, protoRepl)

@@ -183,3 +183,5 @@ this very simple code:
     (cons '-> (f code nil))))
 
 (def last-exception (atom nil))
+
+(def watches (atom {}))
