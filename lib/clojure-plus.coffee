@@ -83,6 +83,15 @@ module.exports =
       if item instanceof TextEditor
         @checkRefreshMode(atom.config.get("clojure-plus.simpleRefresh"), item)
 
+    @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:toggle-clojure-and-clojurescript', =>
+      editor = atom.workspace.getActiveTextEditor()
+      mode = @evalModes.get(editor.getBuffer().id)
+      if mode == 'cljs'
+        @evalModes.set(editor.getBuffer().id, 'clojure')
+      else
+        @evalModes.set(editor.getBuffer().id, 'cljs')
+      @checkRefreshMode(atom.config.get("clojure-plus.simpleRefresh"), editor)
+
     grammarCode = (editor, {name}) =>
       if editor.getFileName()?.endsWith(".cljs")
         @evalModes.set(editor.getBuffer().id, 'cljs')
@@ -232,7 +241,7 @@ module.exports =
 
     if editor = atom.workspace.getActiveTextEditor()
       if range = protoRepl.EditorUtils.getCursorInBlockRange(editor, topLevel: true)
-        session = 'cljs' if @evalModes.get(item.getBuffer().id) == 'cljs'
+        session = 'cljs' if @evalModes.get(editor.getBuffer().id) == 'cljs'
         @runCodeInRange(editor, range, session)
 
   runCodeInRange: (editor, range, session) ->
