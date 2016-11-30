@@ -1,3 +1,14 @@
+## 0.2.0 - ClojureScript support
+* Added configuration to start a CLJS repl inside Atom
+* Added code to differentiate between Clojure and ClojureScript
+* Possibility to force Clojure or ClojureScript
+* More info on statusbar
+* New commands:
+  * evaluate-block
+  * evaluate-selection
+* Watches in ClojureScript
+* Renamed --check-deps-- ns (problems with CLJS)
+
 ## 0.1.2 - Bugfix
 * Fixed cases when the first exception was being repeated when running code multiple times
 
