@@ -17,40 +17,42 @@ module.exports =
     new EvryProvider(this)
 
   activate: (state) ->
-    atom.commands.add 'atom-text-editor', 'clojure-plus:refresh-namespaces', =>
+    @evalModes = new Map()
+    @subs = new CompositeDisposable()
+    @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:refresh-namespaces', =>
       @getCommands().runRefresh()
-    atom.commands.add 'atom-text-editor', 'clojure-plus:toggle-simple-refresh', =>
+    @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:toggle-simple-refresh', =>
       atom.config.set('clojure-plus.simpleRefresh', !atom.config.get('clojure-plus.simpleRefresh'))
-    atom.commands.add 'atom-text-editor', 'clojure-plus:goto-var-definition', =>
+    @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:goto-var-definition', =>
       if editor = atom.workspace.getActiveTextEditor()
         varName = editor.getWordUnderCursor(wordRegex: /[a-zA-Z0-9\-.$!?:\/><\+*]+/)
         @getCommands().openFileContainingVar(varName)
-    atom.commands.add 'atom-text-editor', 'clojure-plus:clear-and-refresh-namespaces', =>
+    @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:clear-and-refresh-namespaces', =>
       @getCommands().runRefresh(true)
-    atom.commands.add 'atom-text-editor', 'clojure-plus:evaluate-top-block', =>
+    @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:evaluate-top-block', =>
       @executeTopLevel()
-    atom.commands.add 'atom-text-editor', 'clojure-plus:evaluate-full-file', =>
+    @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:evaluate-full-file', =>
       editor = atom.workspace.getActiveTextEditor()
       return unless editor?
       ranges = protoRepl.EditorUtils.getTopLevelRanges(editor)
       ranges.forEach (r) =>
         @runCodeInRange(editor, r)
 
-    atom.config.observe("clojure-plus.highlightSexp", highlight)
+    @subs.add atom.config.observe("clojure-plus.highlightSexp", highlight)
     highlight(atom.config.get('clojure-plus.highlightSexp'))
-    atom.config.observe "clojure-plus.simpleRefresh", (refresh) => @checkRefreshMode(refresh)
+    @subs.add atom.config.observe "clojure-plus.simpleRefresh", (refresh) => @checkRefreshMode(refresh)
 
     editorCode = ->
       editor = atom.workspace.getActiveTextEditor()
       editor.getTextInRange(editor.getSelectedBufferRange())
-    atom.commands.add 'atom-text-editor', 'clojure-plus:execute-selection-and-copy-result', =>
+    @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:execute-selection-and-copy-result', =>
       @executeAndCopy(editorCode())
-    atom.commands.add 'atom-text-editor', 'clojure-plus:execute-selection-and-copy-pretty-printed-result', =>
+    @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:execute-selection-and-copy-pretty-printed-result', =>
       code = "(clojure.core/with-out-str (clojure.pprint/pprint #{editorCode()})))"
       @executeAndCopy(code, 'pretty-print')
-    atom.commands.add 'atom-text-editor', 'clojure-plus:import-for-missing-symbol', =>
+    @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:import-for-missing-symbol', =>
       @importForMissing()
-    atom.commands.add 'atom-text-editor', 'clojure-plus:remove-unused-imports', =>
+    @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:remove-unused-imports', =>
       @removeUnusedImport(atom.workspace.getActiveTextEditor())
 
 
@@ -71,13 +73,28 @@ module.exports =
                                             (do (println \"Adding eval to\" __s__) (eval `(def ~__s__ ~'__s__))))
                                        ..SEL..)"
 
-    atom.commands.add 'atom-text-editor', 'clojure-plus:remove-all-watches', =>
+    @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:remove-all-watches', =>
       for id, watch of @currentWatches
         watch.destroy()
         delete @currentWatches[id]
       @getCommands().assignWatches()
 
+    @subs.add atom.workspace.observeActivePaneItem (item) =>
+      if item instanceof TextEditor
+        @checkRefreshMode(atom.config.get("clojure-plus.simpleRefresh"), item)
+
+    grammarCode = (editor, {name}) =>
+      if editor.getFileName()?.endsWith(".cljs")
+        @evalModes.set(editor.getBuffer().id, 'cljs')
+      else if name.match(/clojure/i)
+        @evalModes.set(editor.getBuffer().id, 'clj')
+
     atom.workspace.observeTextEditors (editor) =>
+      grammarCode(editor, editor.getGrammar())
+      editor.onDidChangeGrammar (e) =>
+        grammarCode(editor, e)
+        @checkRefreshMode(atom.config.get("clojure-plus.simpleRefresh"), item)
+
       editor.onDidSave =>
         if atom.config.get('clojure-plus.refreshAfterSave') && editor.getGrammar().scopeName == 'source.clojure'
           @getCommands().runRefresh()
@@ -174,7 +191,7 @@ module.exports =
     cljCode = fs.readFileSync(__dirname + "/clj/check_deps.clj").toString()
 
   addWatcher: (type, expression) ->
-    atom.commands.add 'atom-text-editor', "clojure-plus:add-#{type}-in-selection", =>
+    @subs.add atom.commands.add 'atom-text-editor', "clojure-plus:add-#{type}-in-selection", =>
       @markCustomExpr
         type: type
         expression: expression
@@ -215,7 +232,7 @@ module.exports =
 
     if editor = atom.workspace.getActiveTextEditor()
       if range = protoRepl.EditorUtils.getCursorInBlockRange(editor, topLevel: true)
-        session = 'cljs' if editor.getFileName().endsWith(".cljs")
+        session = 'cljs' if editor.getFileName()?.endsWith(".cljs")
         @runCodeInRange(editor, range, session)
 
   runCodeInRange: (editor, range, session) ->
@@ -367,9 +384,18 @@ module.exports =
     @statusBarTile = statusBar.addRightTile(item: div, priority: 101)
     @checkRefreshMode(atom.config.get("clojure-plus.simpleRefresh"))
 
-  checkRefreshMode: (simple) ->
+  checkRefreshMode: (simple, item) ->
     return unless @statusBarTile
-    text = "Clojure, refreshing"
+    text = if item instanceof TextEditor
+      evalMode = @evalModes.get(item.getBuffer().id)
+      if evalMode == 'cljs'
+        "ClojureScript"
+      else
+        "Clojure"
+    else
+      "Clojure"
+
+    text += ", refreshing"
     if simple
       text += " (simple)"
     else
@@ -380,5 +406,7 @@ module.exports =
     @statusBarTile.item.innerText = text
 
   deactivate: ->
+    @evalModes.clear()
     @statusBarTile?.destroy()
     @statusBarTile = null
+    @subs.dispose()
