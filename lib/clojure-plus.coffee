@@ -31,6 +31,10 @@ module.exports =
       @getCommands().runRefresh(true)
     @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:evaluate-top-block', =>
       @executeTopLevel()
+    @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:unregister-cljs-repl', =>
+      @getCommands().cljs = false
+      @updateStatusbar()
+
     @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:evaluate-full-file', =>
       editor = atom.workspace.getActiveTextEditor()
       return unless editor?
@@ -40,7 +44,7 @@ module.exports =
 
     @subs.add atom.config.observe("clojure-plus.highlightSexp", highlight)
     highlight(atom.config.get('clojure-plus.highlightSexp'))
-    @subs.add atom.config.observe "clojure-plus.simpleRefresh", (refresh) => @checkRefreshMode(refresh)
+    @subs.add atom.config.observe "clojure-plus.simpleRefresh", (refresh) => @updateStatusbar(refresh)
 
     editorCode = ->
       editor = atom.workspace.getActiveTextEditor()
@@ -81,7 +85,7 @@ module.exports =
 
     @subs.add atom.workspace.observeActivePaneItem (item) =>
       if item instanceof TextEditor
-        @checkRefreshMode(atom.config.get("clojure-plus.simpleRefresh"), item)
+        @updateStatusbar(atom.config.get("clojure-plus.simpleRefresh"), item)
 
     @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:toggle-clojure-and-clojurescript', =>
       editor = atom.workspace.getActiveTextEditor()
@@ -90,7 +94,7 @@ module.exports =
         @evalModes.set(editor.getBuffer().id, 'clojure')
       else
         @evalModes.set(editor.getBuffer().id, 'cljs')
-      @checkRefreshMode(atom.config.get("clojure-plus.simpleRefresh"), editor)
+      @updateStatusbar(atom.config.get("clojure-plus.simpleRefresh"), editor)
 
     grammarCode = (editor, {name}) =>
       if editor.getFileName()?.endsWith(".cljs")
@@ -102,7 +106,7 @@ module.exports =
       grammarCode(editor, editor.getGrammar())
       editor.onDidChangeGrammar (e) =>
         grammarCode(editor, e)
-        @checkRefreshMode(atom.config.get("clojure-plus.simpleRefresh"), item)
+        @updateStatusbar(atom.config.get("clojure-plus.simpleRefresh"), item)
 
       editor.onDidSave =>
         if atom.config.get('clojure-plus.refreshAfterSave') && editor.getGrammar().scopeName == 'source.clojure'
@@ -238,7 +242,6 @@ module.exports =
 
   executeTopLevel: ->
     editor = atom.workspace.getActiveTextEditor()
-
     if editor = atom.workspace.getActiveTextEditor()
       if range = protoRepl.EditorUtils.getCursorInBlockRange(editor, topLevel: true)
         session = 'cljs' if @evalModes.get(editor.getBuffer().id) == 'cljs'
@@ -286,6 +289,7 @@ module.exports =
         value = {cause: result.error, trace: []}
         @makeErrorInline(value, editor, range)
       @handleWatches()
+      @updateStatusbar()
 
   wrapText: (text, session) ->
     if session == 'cljs'
@@ -382,24 +386,21 @@ module.exports =
     div = document.createElement('div')
     div.classList.add('inline-block', 'clojure-plus')
     @statusBarTile = statusBar.addRightTile(item: div, priority: 101)
-    @checkRefreshMode(atom.config.get("clojure-plus.simpleRefresh"))
+    @updateStatusbar(atom.config.get("clojure-plus.simpleRefresh"))
 
-  checkRefreshMode: (simple, item) ->
+  updateStatusbar: (simple, item) ->
     return unless @statusBarTile
     text = if item instanceof TextEditor
-      evalMode = @evalModes.get(item.getBuffer().id)
-      if evalMode == 'cljs'
+      if @evalModes.get(item.getBuffer().id) == 'cljs'
         "ClojureScript"
       else
         "Clojure"
     else
       "Clojure"
 
-    text += ", refreshing"
-    if simple
-      text += " (simple)"
-    else
-      text += " (full)"
+    text += ", CLJS REPL active" if @commands?.cljs
+    text += ", refreshing "
+    text += if simple then "(simple)" else "(full)"
 
     if atom.config.get('clojure-plus.refreshAfterSave')
       text += " after saving"
