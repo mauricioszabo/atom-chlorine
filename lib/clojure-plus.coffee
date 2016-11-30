@@ -232,7 +232,7 @@ module.exports =
 
     if editor = atom.workspace.getActiveTextEditor()
       if range = protoRepl.EditorUtils.getCursorInBlockRange(editor, topLevel: true)
-        session = 'cljs' if editor.getFileName()?.endsWith(".cljs")
+        session = 'cljs' if @evalModes.get(item.getBuffer().id) == 'cljs'
         @runCodeInRange(editor, range, session)
 
   runCodeInRange: (editor, range, session) ->
