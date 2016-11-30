@@ -31,6 +31,10 @@ module.exports =
       @getCommands().runRefresh(true)
     @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:evaluate-top-block', =>
       @executeTopLevel()
+    @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:evaluate-block', =>
+      @executeBlock()
+    @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:evaluate-selection', =>
+      @executeSelection()
     @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:unregister-cljs-repl', =>
       @getCommands().cljs = false
       @updateStatusbar()
@@ -241,17 +245,29 @@ module.exports =
     return false
 
   executeTopLevel: ->
-    editor = atom.workspace.getActiveTextEditor()
-    if editor = atom.workspace.getActiveTextEditor()
-      if range = protoRepl.EditorUtils.getCursorInBlockRange(editor, topLevel: true)
-        session = 'cljs' if @evalModes.get(editor.getBuffer().id) == 'cljs'
-        @runCodeInRange(editor, range, session)
+    @executeCodeHelper false, (e) => protoRepl.EditorUtils.getCursorInBlockRange(e, topLevel: true)
 
-  runCodeInRange: (editor, range, session) ->
+  executeBlock: ->
+    @executeCodeHelper true, (e) => protoRepl.EditorUtils.getCursorInBlockRange(e)
+
+  executeSelection: ->
+    @executeCodeHelper true, (e) => e.getSelectedBufferRange()
+
+  executeCodeHelper: (ignoreWatches, fn) ->
+    if editor = atom.workspace.getActiveTextEditor()
+      if range = fn(editor)
+        @runCodeInRange(editor, range, ignoreWatches)
+
+  runCodeInRange: (editor, range, ignoreWatches) ->
+    session = 'cljs' if @evalModes.get(editor.getBuffer().id) == 'cljs'
+
     # Copy-paste from proto-repl... sorry...
     protoRepl.clearRepl() if atom.config.get('clojure-plus.clearRepl')
     oldText = editor.getTextInBufferRange(range).trim()
-    text = @getCommands().markers.updatedCodeInRange(editor, range)
+    text = if ignoreWatches
+      oldText
+    else
+      @getCommands().markers.updatedCodeInRange(editor, range)
     text = @wrapText(text, session)
 
     # Highlight the area that's being executed temporarily
