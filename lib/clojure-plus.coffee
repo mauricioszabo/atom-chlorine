@@ -270,34 +270,26 @@ module.exports =
     options.session = session if session?
     @getCommands().prepareCljs() if session == 'cljs'
 
-    @getCommands().promisedRepl.syncRun("(reset! __check.deps__/watches {})
-                                         (reset! __check.deps__/last-exception nil)",
-                                        'user',
-                                        session: session
-                                        ).then (e) =>
-      @getCommands().promisedRepl.syncRun(text, options).then (result) =>
-        if result.value
-          options.displayInRepl = true
-          options.resultHandler = protoRepl.repl.inlineResultHandler
-          protoRepl.repl.inlineResultHandler(result, options)
-        else
-          exceptionS = if session == 'cljs' then 'cljs' else 'exceptions'
-          @getCommands().promisedRepl.runCodeInCurrentNS('@__check.deps__/last-exception',
-                                                          session: exceptionS).then (res2) =>
-            console.log "EXCEPTION", result, res2
-            value = protoRepl.parseEdn(res2.value) if res2.value
-            @makeErrorInline(value, editor, range) if value
-
-        @handleWatches()
+    @getCommands().promisedRepl.syncRun("(reset! __check.deps__/watches {})", 'user', session: session)
+    @getCommands().promisedRepl.syncRun("(reset! __check.deps__/last-exception nil)", 'user')
+    @getCommands().promisedRepl.syncRun(text, options).then (result) =>
+      if result.value
+        options.displayInRepl = true
+        options.resultHandler = protoRepl.repl.inlineResultHandler
+        protoRepl.repl.inlineResultHandler(result, options)
+      else if session != 'cljs'
+        @getCommands().promisedRepl.runCodeInCurrentNS('@__check.deps__/last-exception').then (res2) =>
+          value = protoRepl.parseEdn(res2.value) if res2.value
+          value = {cause: result.error, trace: []} if !value
+          @makeErrorInline(value, editor, range)
+      else
+        value = {cause: result.error, trace: []}
+        @makeErrorInline(value, editor, range)
+      @handleWatches()
 
   wrapText: (text, session) ->
     if session == 'cljs'
-      "(try #{text}\n(catch js/Error e
-                       (.error js/console (.-stack e))
-                       (reset! __check.deps__/last-exception
-                         {:cause (.-message e)
-                          :trace [{:fn \"unknown\", :file \"Check your browser's console\", :line \"\"}]})
-                       (throw e)))"
+      text
     else
       "(try #{text}\n(catch Exception e
         (do
@@ -374,7 +366,6 @@ module.exports =
         "user", session: "cljs").then (result) => @updateInAtom(result)
 
   updateInAtom: (result) ->
-    console.log "HANDLER", result
     return unless result.value
     values = protoRepl.parseEdn(result.value)
     for row in values
