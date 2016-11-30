@@ -25,12 +25,15 @@ module.exports = class PromisedRepl
       lastPromise.then(f)
       lastPromise.catch(f)
 
-  runCodeInCurrentNS: (code) ->
+  runCodeInCurrentNS: (code, opts={}) ->
     new Promise (resolve) =>
-      @repl.executeCodeInNs code, displayInRepl: false, resultHandler: (result) =>
-        resolve(result)
+      opts.displayInRepl = false
+      opts.resultHandler = (result) => resolve(result)
+      @repl.executeCodeInNs code, opts
 
-  runCodeInNS: (code, ns) ->
+  runCodeInNS: (code, ns, opts={}) ->
     new Promise (resolve) =>
-      @repl.executeCode code, displayInRepl: false, ns: ns, resultHandler: (result) =>
-        resolve(result)
+      opts.displayInRepl = false
+      opts.resultHandler = (result) => resolve(result)
+      opts.ns = ns
+      @repl.executeCode code, opts

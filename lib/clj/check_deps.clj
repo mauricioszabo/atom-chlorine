@@ -1,4 +1,4 @@
-(ns --check-deps--
+(ns __check.deps__
   (:require [clojure.test :refer :all]))
 
 (defn vars-in-form [form vars]
@@ -183,3 +183,5 @@ this very simple code:
     (cons '-> (f code nil))))
 
 (def last-exception (atom nil))
+
+(def watches (atom {}))

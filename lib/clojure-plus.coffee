@@ -8,55 +8,7 @@ highlight = require './sexp-highlight'
 MarkerCollection = require './marker-collection'
 
 module.exports =
-  config:
-    highlightSexp:
-      description: "Highlight current SEXP under cursor"
-      type: "boolean"
-      default: false
-    notify:
-      description: "Notify when refresh was done"
-      type: "boolean"
-      default: true
-    simpleRefresh:
-      description: "Refresh with a very simple code (that requires the current namespace)"
-      type: "boolean"
-      default: false
-    refreshAfterConnect:
-      description: "Refresh after REPL is connected"
-      type: "boolean"
-      default: true
-    refreshAfterSave:
-      description: "Refresh after saving a file"
-      type: "boolean"
-      default: true
-    afterRefreshCmd:
-      description: "Command to run after each refresh (success or failure)"
-      type: 'string'
-      default: "(alter-var-root #'clojure.test/*load-tests* (constantly true))"
-    beforeRefreshCmd:
-      description: "Command to run before each refresh (success or failure)"
-      type: 'string'
-      default: "(alter-var-root #'clojure.test/*load-tests* (constantly false))"
-    refreshAllCmd:
-      description: "Path to a file with the refresh all namespaces' command"
-      type: 'string'
-      default: "~/.atom/packages/clojure-plus/lib/clj/refresh_all.clj"
-    refreshCmd:
-      description: "Path to a file with the refresh namespaces' command"
-      type: 'string'
-      default: "~/.atom/packages/clojure-plus/lib/clj/refresh.clj"
-    clearRepl:
-      description: "Clear REPL before running a command"
-      type: 'boolean'
-      default: false
-    openPending:
-      description: "When opening a file with Goto Var Definition, keep tab as pending"
-      type: 'boolean'
-      default: true
-    tempDir:
-      description: "Temporary directory to unpack JAR files (used by goto-var)"
-      type: "string"
-      default: "/tmp/jar-path"
+  config: require('./configs')
 
   currentWatches: {}
   lastClear: null
@@ -65,40 +17,50 @@ module.exports =
     new EvryProvider(this)
 
   activate: (state) ->
-    atom.commands.add 'atom-text-editor', 'clojure-plus:refresh-namespaces', =>
+    @evalModes = new Map()
+    @subs = new CompositeDisposable()
+    @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:refresh-namespaces', =>
       @getCommands().runRefresh()
-    atom.commands.add 'atom-text-editor', 'clojure-plus:toggle-simple-refresh', =>
+    @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:toggle-simple-refresh', =>
       atom.config.set('clojure-plus.simpleRefresh', !atom.config.get('clojure-plus.simpleRefresh'))
-    atom.commands.add 'atom-text-editor', 'clojure-plus:goto-var-definition', =>
+    @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:goto-var-definition', =>
       if editor = atom.workspace.getActiveTextEditor()
         varName = editor.getWordUnderCursor(wordRegex: /[a-zA-Z0-9\-.$!?:\/><\+*]+/)
         @getCommands().openFileContainingVar(varName)
-    atom.commands.add 'atom-text-editor', 'clojure-plus:clear-and-refresh-namespaces', =>
+    @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:clear-and-refresh-namespaces', =>
       @getCommands().runRefresh(true)
-    atom.commands.add 'atom-text-editor', 'clojure-plus:evaluate-top-block', =>
+    @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:evaluate-top-block', =>
       @executeTopLevel()
-    atom.commands.add 'atom-text-editor', 'clojure-plus:evaluate-full-file', =>
+    @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:evaluate-block', =>
+      @executeBlock()
+    @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:evaluate-selection', =>
+      @executeSelection()
+    @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:unregister-cljs-repl', =>
+      @getCommands().cljs = false
+      @updateStatusbar()
+
+    @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:evaluate-full-file', =>
       editor = atom.workspace.getActiveTextEditor()
       return unless editor?
       ranges = protoRepl.EditorUtils.getTopLevelRanges(editor)
       ranges.forEach (r) =>
         @runCodeInRange(editor, r)
 
-    atom.config.observe("clojure-plus.highlightSexp", highlight)
+    @subs.add atom.config.observe("clojure-plus.highlightSexp", highlight)
     highlight(atom.config.get('clojure-plus.highlightSexp'))
-    atom.config.observe "clojure-plus.simpleRefresh", (refresh) => @checkRefreshMode(refresh)
+    @subs.add atom.config.observe "clojure-plus.simpleRefresh", (refresh) => @updateStatusbar(refresh)
 
     editorCode = ->
       editor = atom.workspace.getActiveTextEditor()
       editor.getTextInRange(editor.getSelectedBufferRange())
-    atom.commands.add 'atom-text-editor', 'clojure-plus:execute-selection-and-copy-result', =>
+    @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:execute-selection-and-copy-result', =>
       @executeAndCopy(editorCode())
-    atom.commands.add 'atom-text-editor', 'clojure-plus:execute-selection-and-copy-pretty-printed-result', =>
+    @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:execute-selection-and-copy-pretty-printed-result', =>
       code = "(clojure.core/with-out-str (clojure.pprint/pprint #{editorCode()})))"
       @executeAndCopy(code, 'pretty-print')
-    atom.commands.add 'atom-text-editor', 'clojure-plus:import-for-missing-symbol', =>
+    @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:import-for-missing-symbol', =>
       @importForMissing()
-    atom.commands.add 'atom-text-editor', 'clojure-plus:remove-unused-imports', =>
+    @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:remove-unused-imports', =>
       @removeUnusedImport(atom.workspace.getActiveTextEditor())
 
 
@@ -110,7 +72,7 @@ module.exports =
                                      ..COL..
                                      \" => \"
                                      __sel__)
-                            (swap! user/__watches__ update-in [..ID..] (fn [x] (conj (or x []) __sel__)))
+                            (swap! __check.deps__/watches update-in [..ID..] (fn [x] (conj (or x []) __sel__)))
                             __sel__)"
 
     @addWatcher "def-local-symbols", "(do (doseq [__s__ (refactor-nrepl.find.find-locals/find-used-locals {:file ..FILE_NAME..
@@ -119,13 +81,37 @@ module.exports =
                                             (do (println \"Adding eval to\" __s__) (eval `(def ~__s__ ~'__s__))))
                                        ..SEL..)"
 
-    atom.commands.add 'atom-text-editor', 'clojure-plus:remove-all-watches', =>
+    @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:remove-all-watches', =>
       for id, watch of @currentWatches
         watch.destroy()
         delete @currentWatches[id]
       @getCommands().assignWatches()
 
+    @subs.add atom.workspace.observeActivePaneItem (item) =>
+      if item instanceof TextEditor
+        @updateStatusbar(atom.config.get("clojure-plus.simpleRefresh"), item)
+
+    @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:toggle-clojure-and-clojurescript', =>
+      editor = atom.workspace.getActiveTextEditor()
+      mode = @evalModes.get(editor.getBuffer().id)
+      if mode == 'cljs'
+        @evalModes.set(editor.getBuffer().id, 'clojure')
+      else
+        @evalModes.set(editor.getBuffer().id, 'cljs')
+      @updateStatusbar(atom.config.get("clojure-plus.simpleRefresh"), editor)
+
+    grammarCode = (editor, {name}) =>
+      if editor.getFileName()?.endsWith(".cljs")
+        @evalModes.set(editor.getBuffer().id, 'cljs')
+      else if name.match(/clojure/i)
+        @evalModes.set(editor.getBuffer().id, 'clj')
+
     atom.workspace.observeTextEditors (editor) =>
+      grammarCode(editor, editor.getGrammar())
+      editor.onDidChangeGrammar (e) =>
+        grammarCode(editor, e)
+        @updateStatusbar(atom.config.get("clojure-plus.simpleRefresh"), item)
+
       editor.onDidSave =>
         if atom.config.get('clojure-plus.refreshAfterSave') && editor.getGrammar().scopeName == 'source.clojure'
           @getCommands().runRefresh()
@@ -222,7 +208,7 @@ module.exports =
     cljCode = fs.readFileSync(__dirname + "/clj/check_deps.clj").toString()
 
   addWatcher: (type, expression) ->
-    atom.commands.add 'atom-text-editor', "clojure-plus:add-#{type}-in-selection", =>
+    @subs.add atom.commands.add 'atom-text-editor', "clojure-plus:add-#{type}-in-selection", =>
       @markCustomExpr
         type: type
         expression: expression
@@ -259,23 +245,30 @@ module.exports =
     return false
 
   executeTopLevel: ->
-    editor = atom.workspace.getActiveTextEditor()
+    @executeCodeHelper false, (e) => protoRepl.EditorUtils.getCursorInBlockRange(e, topLevel: true)
 
+  executeBlock: ->
+    @executeCodeHelper true, (e) => protoRepl.EditorUtils.getCursorInBlockRange(e)
+
+  executeSelection: ->
+    @executeCodeHelper true, (e) => e.getSelectedBufferRange()
+
+  executeCodeHelper: (ignoreWatches, fn) ->
     if editor = atom.workspace.getActiveTextEditor()
-      if range = protoRepl.EditorUtils.getCursorInBlockRange(editor, topLevel: true)
-        @runCodeInRange(editor, range)
+      if range = fn(editor)
+        @runCodeInRange(editor, range, ignoreWatches)
 
-  runCodeInRange: (editor, range) ->
+  runCodeInRange: (editor, range, ignoreWatches) ->
+    session = 'cljs' if @evalModes.get(editor.getBuffer().id) == 'cljs'
+
     # Copy-paste from proto-repl... sorry...
     protoRepl.clearRepl() if atom.config.get('clojure-plus.clearRepl')
     oldText = editor.getTextInBufferRange(range).trim()
-    text = @getCommands().markers.updatedCodeInRange(editor, range)
-    text = "(try #{text}\n(catch Exception e
-      (do
-        (reset! --check-deps--/last-exception
-          {:cause (str e)
-           :trace (map --check-deps--/prettify-stack (.getStackTrace e))}))
-        (throw e)))"
+    text = if ignoreWatches
+      oldText
+    else
+      @getCommands().markers.updatedCodeInRange(editor, range)
+    text = @wrapText(text, session)
 
     # Highlight the area that's being executed temporarily
     marker = editor.markBufferRange(range)
@@ -293,20 +286,37 @@ module.exports =
       inlineOptions:
         editor: editor
         range: range
+    options.session = session if session?
+    @getCommands().prepareCljs() if session == 'cljs'
 
-    # @getCommands().promisedRepl.clear()
-    @getCommands().promisedRepl.syncRun("(do (in-ns 'user) (def __watches__ (atom {})))", 'user').then =>
-      @getCommands().promisedRepl.syncRun(text, options).then (result) =>
-        if result.value
-          options.displayInRepl = true
-          options.resultHandler = protoRepl.repl.inlineResultHandler
-          protoRepl.repl.inlineResultHandler(result, options)
-        else
-          @getCommands().promisedRepl.syncRun('@--check-deps--/last-exception', session: 'exceptions').then (result) =>
-            value = protoRepl.parseEdn(result.value) if result.value
-            @makeErrorInline(value, editor, range) if value
+    @getCommands().promisedRepl.syncRun("(reset! __check.deps__/watches {})", 'user', session: session)
+    @getCommands().promisedRepl.syncRun("(reset! __check.deps__/last-exception nil)", 'user')
+    @getCommands().promisedRepl.syncRun(text, options).then (result) =>
+      if result.value
+        options.displayInRepl = true
+        options.resultHandler = protoRepl.repl.inlineResultHandler
+        protoRepl.repl.inlineResultHandler(result, options)
+      else if session != 'cljs'
+        @getCommands().promisedRepl.runCodeInCurrentNS('@__check.deps__/last-exception').then (res2) =>
+          value = protoRepl.parseEdn(res2.value) if res2.value
+          value = {cause: result.error, trace: []} if !value
+          @makeErrorInline(value, editor, range)
+      else
+        value = {cause: result.error, trace: []}
+        @makeErrorInline(value, editor, range)
+      @handleWatches()
+      @updateStatusbar()
 
-        @handleWatches(options)
+  wrapText: (text, session) ->
+    if session == 'cljs'
+      text
+    else
+      "(try #{text}\n(catch Exception e
+        (do
+          (reset! __check.deps__/last-exception
+            {:cause (str e)
+             :trace (map __check.deps__/prettify-stack (.getStackTrace e))}))
+          (throw e)))"
 
   makeErrorInline: ({cause, trace}, editor, range) ->
     result = new protoRepl.ink.Result(editor, [range.start.row, range.end.row], type: "block")
@@ -343,8 +353,8 @@ module.exports =
           if row.link.match(/\.jar!/)
             tmp = atom.config.get('clojure-plus.tempDir').replace(/\\/g, "\\\\").replace(/"/g, "\\\"") +
             saneLink = row.link.replace(/\\/g, "\\\\").replace(/"/g, '\\"')
-            code = "(let [[_ & jar-data] (--check-deps--/extract-jar-data \"#{saneLink}\")]
-                      (--check-deps--/decompress-all \"#{tmp}\" jar-data))"
+            code = "(let [[_ & jar-data] (__check.deps__/extract-jar-data \"#{saneLink}\")]
+                      (__check.deps__/decompress-all \"#{tmp}\" jar-data))"
             @getCommands().promisedRepl.syncRun(code).then (result) =>
               return unless result.value
               atom.workspace.open(protoRepl.parseEdn(result.value), searchAllPanes: true, initialLine: row.line-1)
@@ -367,18 +377,23 @@ module.exports =
       else
         atom.notifications.addError("There was an error with your code")
 
-  handleWatches: (options) ->
-    @getCommands().promisedRepl
-      .syncRun('(map (fn [[k v]] (str k "#" (with-out-str (print-method v *out*)))) @user/__watches__)')
-      .then (result) =>
-        return unless result.value
-        values = protoRepl.parseEdn(result.value)
-        for row in values
-          id = row.replace(/#.*/, "")
-          data = row.replace(/\d+#/, "")
-          watch = @currentWatches[id]
-          if watch && !watch.destroyed
-            protoRepl.repl.displayInline(watch.editor, watch.getBufferRange(), protoRepl.ednToDisplayTree(data))
+  handleWatches: ->
+    pr = @getCommands().promisedRepl
+    pr.syncRun('(map (fn [[k v]] (str k "#" (with-out-str (print-method v *out*)))) @__check.deps__/watches)',
+      "user").then (result) => @updateInAtom(result)
+    if @getCommands().cljs
+      pr.syncRun('(map (fn [[k v]] (str k "#" v)) @__check.deps__/watches)',
+        "user", session: "cljs").then (result) => @updateInAtom(result)
+
+  updateInAtom: (result) ->
+    return unless result.value
+    values = protoRepl.parseEdn(result.value)
+    for row in values
+      id = row.replace(/#.*/, "")
+      data = row.replace(/\d+#/, "")
+      watch = @currentWatches[id]
+      if watch && !watch.destroyed
+        protoRepl.repl.displayInline(watch.editor, watch.getBufferRange(), protoRepl.ednToDisplayTree(data))
 
   getCommands: ->
     @commands ?= new CljCommands(@currentWatches, protoRepl)
@@ -387,20 +402,28 @@ module.exports =
     div = document.createElement('div')
     div.classList.add('inline-block', 'clojure-plus')
     @statusBarTile = statusBar.addRightTile(item: div, priority: 101)
-    @checkRefreshMode(atom.config.get("clojure-plus.simpleRefresh"))
+    @updateStatusbar(atom.config.get("clojure-plus.simpleRefresh"))
 
-  checkRefreshMode: (simple) ->
+  updateStatusbar: (simple, item) ->
     return unless @statusBarTile
-    text = "Clojure, refreshing"
-    if simple
-      text += " (simple)"
+    text = if item instanceof TextEditor
+      if @evalModes.get(item.getBuffer().id) == 'cljs'
+        "ClojureScript"
+      else
+        "Clojure"
     else
-      text += " (full)"
+      "Clojure"
+
+    text += ", CLJS REPL active" if @commands?.cljs
+    text += ", refreshing "
+    text += if simple then "(simple)" else "(full)"
 
     if atom.config.get('clojure-plus.refreshAfterSave')
       text += " after saving"
     @statusBarTile.item.innerText = text
 
   deactivate: ->
+    @evalModes.clear()
     @statusBarTile?.destroy()
     @statusBarTile = null
+    @subs.dispose()
