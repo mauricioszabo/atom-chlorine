@@ -110,7 +110,7 @@ module.exports =
       grammarCode(editor, editor.getGrammar())
       editor.onDidChangeGrammar (e) =>
         grammarCode(editor, e)
-        @updateStatusbar(atom.config.get("clojure-plus.simpleRefresh"), item)
+        @updateStatusbar(atom.config.get("clojure-plus.simpleRefresh"), editor)
 
       editor.onDidSave =>
         if atom.config.get('clojure-plus.refreshAfterSave') && editor.getGrammar().scopeName == 'source.clojure'
