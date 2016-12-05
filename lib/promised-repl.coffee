@@ -17,8 +17,8 @@ module.exports = class PromisedRepl
         resolve(result)
 
       f = =>
-        if(typeof ns == 'string')
-          options.ns = ns
+        if(typeof ns == 'string' || options.ns?)
+          options.ns ?= ns
           @repl.executeCode code, options
         else
           @repl.executeCodeInNs code, options

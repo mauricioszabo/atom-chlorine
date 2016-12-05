@@ -35,6 +35,8 @@ module.exports =
       @executeBlock()
     @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:evaluate-selection', =>
       @executeSelection()
+    @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:evaluate-last-code', =>
+      @runCode(@oldCode...) if @oldCode
     @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:unregister-cljs-repl', =>
       @getCommands().cljs = false
       @updateStatusbar()
@@ -282,6 +284,7 @@ module.exports =
     options =
       displayCode: oldText
       displayInRepl: true
+      ns: protoRepl.EditorUtils.findNsDeclaration(editor)
       resultHandler: (_) => null
       inlineOptions:
         editor: editor
@@ -291,6 +294,12 @@ module.exports =
 
     @getCommands().promisedRepl.syncRun("(reset! __check.deps__/watches {})", 'user', session: session)
     @getCommands().promisedRepl.syncRun("(reset! __check.deps__/last-exception nil)", 'user')
+    @runCode(text, options, session)
+
+  runCode: (text, options, session) ->
+    editor = options.inlineOptions.editor
+    range = options.inlineOptions.range
+    @oldCode = [text, options, session] if editor
     @getCommands().promisedRepl.syncRun(text, options).then (result) =>
       if result.value
         options.displayInRepl = true
