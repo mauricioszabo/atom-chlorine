@@ -338,11 +338,19 @@ module.exports =
     causeHtml = document.createElement('strong')
     causeHtml.classList.add('error-description')
     causeHtml.innerText = cause
+    invert = atom.config.get("clojure-plus.invertStack")
 
-    strTrace = cause + "\n"
+    strTrace = cause
+    if invert
+      strTrace = "\n" + strTrace
+    else
+      strTrace += "\n"
 
     traceHtmls = trace.map (row) =>
-      strTrace += "\n\tin #{row.fn}\n\tat #{row.file}:#{row.line}\n"
+      if invert
+        strTrace = "\n\tin #{row.fn}\n\tat #{row.file}:#{row.line}\n" + strTrace
+      else
+        strTrace += "\n\tin #{row.fn}\n\tat #{row.file}:#{row.line}\n"
 
       div = document.createElement('div')
       div.classList.add('trace-entry')
