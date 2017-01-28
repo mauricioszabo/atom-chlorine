@@ -5,7 +5,7 @@ code = "(map (fn [e]
                 :column (:column e)
                 :fqpath (:fqpath e)
                 :queryString (str (:fqname e) (:file e))})
-             (__check.deps__/symbols-in-project))"
+             (clj.--check-deps--/symbols-in-project))"
 
 module.exports = class EvryProvider
   name: "clj-symbols"
