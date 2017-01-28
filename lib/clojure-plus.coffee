@@ -21,7 +21,7 @@ module.exports =
     @subs = new CompositeDisposable()
     @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:refresh-namespaces', =>
       @getCommands().runRefresh()
-    @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:refresh-namespaces', =>
+    @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:interrupt', =>
       @interrupt()
     @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:toggle-simple-refresh', =>
       atom.config.set('clojure-plus.simpleRefresh', !atom.config.get('clojure-plus.simpleRefresh'))
