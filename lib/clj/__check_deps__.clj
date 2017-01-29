@@ -73,6 +73,10 @@
 (defn extract-jar-data [file-path]
   (re-find #"file:(.+/\.m2/repository/(.+\.jar))!/(.+)" file-path))
 
+(def runtime (delay (clojure.lang.RT/baseLoader)))
+(defn get-full-path [file]
+  (some-> @runtime (.getResource file) .getPath))
+
 (defn goto-var [var-sym temp-dir]
   (require 'clojure.repl)
   (require 'clojure.java.shell)
@@ -85,7 +89,7 @@
                              symbol)
                     var-sym)
         {:keys [file line]} (meta (eval `(var ~the-var)))
-        file-path (.getPath (.getResource (clojure.lang.RT/baseLoader) file))]
+        file-path (get-full-path file)]
     (if-let [[_ & jar-data] (extract-jar-data file-path)]
       [(decompress-all temp-dir jar-data) line]
       [file-path line])))
@@ -120,6 +124,8 @@
 (defn- normalize-clj-name [fn-name]
   (-> fn-name
     (clojure.string/replace #"_BANG_" "!")
+    (clojure.string/replace #"_SLASH_" "/")
+    (clojure.string/replace #"_AMPERSAND_" "&")
     (clojure.string/replace #"_STAR_" "*")
     (clojure.string/replace #"_PLUS_" "+")
     (clojure.string/replace #"_GT_" ">")
