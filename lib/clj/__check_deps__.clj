@@ -75,7 +75,7 @@
 
 (def runtime (delay (clojure.lang.RT/baseLoader)))
 (defn get-full-path [file]
-  (some-> @runtime (.getResource file) .getPath))
+  (some->> file (.getResource @runtime) .getPath))
 
 (defn goto-var [var-sym temp-dir]
   (require 'clojure.repl)
@@ -138,24 +138,30 @@
     (clojure.string/split #"\$")))
 
 ;; Pretty stack traces
-(defn clj-trace [class-name line-number]
+(defn- correct-file-name [stack-file-name file-from-meta raw-ns-name fn-name]
+  (let [n (clojure.string/replace raw-ns-name #"\." "/")
+        from-ns-name #(or (get-full-path (str n ".clj"))
+                          (get-full-path (str n ".cljc"))
+                          (get-full-path (str n ".cljx"))
+                          (get-full-path (str n ".cljs"))
+                          (get-full-path (str n ".cljr")))]
+    (if (= fn-name "[anon-function]")
+      (from-ns-name)
+      (or (get-full-path file-from-meta) (from-ns-name)))))
+
+(defn clj-trace [class-name stack-file-name line-number]
   (let [[raw-ns-name _] (clojure.string/split class-name #"\$")
         [ns-name fn-name] (normalize-clj-name class-name)
         fq-symbol (ns-resolve (symbol ns-name) (symbol fn-name))
-        filename (:file (meta fq-symbol))
-        loader (clojure.lang.RT/baseLoader)
-        file-to-open (if filename
-                       (.getResource loader filename)
-                       (let [n (clojure.string/replace raw-ns-name #"\." "/")]
-                         (or (.getResource loader (str n ".clj"))
-                             (.getResource loader (str n ".cljc"))
-                             (.getResource loader (str n ".cljx"))
-                             (.getResource loader (str n ".cljs"))
-                             (.getResource loader (str n ".cljr")))))
-        file-to-open (when file-to-open (.getPath file-to-open))]
+        fn-name (cond
+                  (re-matches #"eval\d+" fn-name) "[inline-eval]"
+                  (re-matches #"^fn$" fn-name) "[anon-function]"
+                  :else fn-name)
+        file-from-meta (when-not (= fn-name "[anon-function]") (:file (meta fq-symbol)))
+        file-to-open (correct-file-name stack-file-name file-from-meta raw-ns-name fn-name)]
 
-    {:fn (str ns-name "/" (if (re-matches #"eval\d+" fn-name) "[inline-eval]" fn-name))
-     :file (or filename (some-> file-to-open (clojure.string/replace #".*!/?" "")))
+    {:fn (str ns-name "/" fn-name)
+     :file (or file-from-meta (some-> file-to-open (clojure.string/replace #".*!/?" "")))
      :line line-number
      :link file-to-open}))
 
@@ -174,7 +180,7 @@ this very simple code:
         clj-file? (re-find #"\.clj[cxs]?$" filename)]
 
     (if clj-file?
-      (clj-trace (.getClassName stack-line) (.getLineNumber stack-line))
+      (clj-trace (.getClassName stack-line) (.getFileName stack-line) (.getLineNumber stack-line))
       (other-trace stack-line))))
 
 (defn to-thread [code]
