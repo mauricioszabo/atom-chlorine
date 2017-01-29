@@ -2,6 +2,7 @@
 * Added "interrupt" command. It'll delegate to proto but will not lock anymore our execution context
 * Refresh will now clear dependency cache. This means that refresh will recover from fatal error in more cases
 * Added option "invert stacktrace" - better debugging or errors
+* Corrected some errors with stacktrace parsing
 
 ## 0.2.0 - ClojureScript support
 * Added configuration to start a CLJS repl inside Atom
