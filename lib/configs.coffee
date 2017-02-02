@@ -51,3 +51,7 @@ module.exports =
     description: "Temporary directory to unpack JAR files (used by goto-var)"
     type: "string"
     default: "/tmp/jar-path"
+  invertStack:
+    description: "Inverts stacktrace showing on console"
+    type: 'boolean'
+    default: true

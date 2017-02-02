@@ -21,6 +21,8 @@ module.exports =
     @subs = new CompositeDisposable()
     @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:refresh-namespaces', =>
       @getCommands().runRefresh()
+    @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:interrupt', =>
+      @interrupt()
     @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:toggle-simple-refresh', =>
       atom.config.set('clojure-plus.simpleRefresh', !atom.config.get('clojure-plus.simpleRefresh'))
     @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:goto-var-definition', =>
@@ -74,7 +76,7 @@ module.exports =
                                      ..COL..
                                      \" => \"
                                      __sel__)
-                            (swap! __check.deps__/watches update-in [..ID..] (fn [x] (conj (or x []) __sel__)))
+                            (swap! clj.--check-deps--/watches update-in [..ID..] (fn [x] (conj (or x []) __sel__)))
                             __sel__)"
 
     @addWatcher "def-local-symbols", "(do (doseq [__s__ (refactor-nrepl.find.find-locals/find-used-locals {:file ..FILE_NAME..
@@ -133,6 +135,10 @@ module.exports =
       editor = atom.workspace.getActiveTextEditor()
       [range, symbol] = @getRangeAndVar(editor)
       protoRepl.executeCodeInNs("`" + symbol, inlineOptions: {editor: editor, range: range})
+
+  interrupt: ->
+    protoRepl.interrupt()
+    @getCommands().promisedRepl.clear()
 
   importForMissing: ->
       editor = atom.workspace.getActiveTextEditor()
@@ -292,8 +298,8 @@ module.exports =
     options.session = session if session?
     @getCommands().prepareCljs() if session == 'cljs'
 
-    @getCommands().promisedRepl.syncRun("(reset! __check.deps__/watches {})", 'user', session: session)
-    @getCommands().promisedRepl.syncRun("(reset! __check.deps__/last-exception nil)", 'user')
+    @getCommands().promisedRepl.syncRun("(reset! clj.--check-deps--/watches {})", 'user', session: session)
+    @getCommands().promisedRepl.syncRun("(reset! clj.--check-deps--/last-exception nil)", 'user')
     @runCode(text, options, session)
 
   runCode: (text, options, session) ->
@@ -306,7 +312,7 @@ module.exports =
         options.resultHandler = protoRepl.repl.inlineResultHandler
         protoRepl.repl.inlineResultHandler(result, options)
       else if session != 'cljs'
-        @getCommands().promisedRepl.runCodeInCurrentNS('@__check.deps__/last-exception').then (res2) =>
+        @getCommands().promisedRepl.runCodeInCurrentNS('@clj.--check-deps--/last-exception').then (res2) =>
           value = protoRepl.parseEdn(res2.value) if res2.value
           value = {cause: result.error, trace: []} if !value
           @makeErrorInline(value, editor, range)
@@ -322,9 +328,9 @@ module.exports =
     else
       "(try #{text}\n(catch Exception e
         (do
-          (reset! __check.deps__/last-exception
+          (reset! clj.--check-deps--/last-exception
             {:cause (str e)
-             :trace (map __check.deps__/prettify-stack (.getStackTrace e))}))
+             :trace (map clj.--check-deps--/prettify-stack (.getStackTrace e))}))
           (throw e)))"
 
   makeErrorInline: ({cause, trace}, editor, range) ->
@@ -332,11 +338,19 @@ module.exports =
     causeHtml = document.createElement('strong')
     causeHtml.classList.add('error-description')
     causeHtml.innerText = cause
+    invert = atom.config.get("clojure-plus.invertStack")
 
-    strTrace = cause + "\n"
+    strTrace = cause
+    if invert
+      strTrace = "\n" + strTrace
+    else
+      strTrace += "\n"
 
     traceHtmls = trace.map (row) =>
-      strTrace += "\n\tin #{row.fn}\n\tat #{row.file}:#{row.line}\n"
+      if invert
+        strTrace = "\n\tin #{row.fn}\n\tat #{row.file}:#{row.line}\n" + strTrace
+      else
+        strTrace += "\n\tin #{row.fn}\n\tat #{row.file}:#{row.line}\n"
 
       div = document.createElement('div')
       div.classList.add('trace-entry')
@@ -362,8 +376,8 @@ module.exports =
           if row.link.match(/\.jar!/)
             tmp = atom.config.get('clojure-plus.tempDir').replace(/\\/g, "\\\\").replace(/"/g, "\\\"") +
             saneLink = row.link.replace(/\\/g, "\\\\").replace(/"/g, '\\"')
-            code = "(let [[_ & jar-data] (__check.deps__/extract-jar-data \"#{saneLink}\")]
-                      (__check.deps__/decompress-all \"#{tmp}\" jar-data))"
+            code = "(let [[_ & jar-data] (clj.--check-deps--/extract-jar-data \"#{saneLink}\")]
+                      (clj.--check-deps--/decompress-all \"#{tmp}\" jar-data))"
             @getCommands().promisedRepl.syncRun(code).then (result) =>
               return unless result.value
               atom.workspace.open(protoRepl.parseEdn(result.value), searchAllPanes: true, initialLine: row.line-1)
@@ -388,10 +402,10 @@ module.exports =
 
   handleWatches: ->
     pr = @getCommands().promisedRepl
-    pr.syncRun('(map (fn [[k v]] (str k "#" (with-out-str (print-method v *out*)))) @__check.deps__/watches)',
+    pr.syncRun('(map (fn [[k v]] (str k "#" (with-out-str (print-method v *out*)))) @clj.--check-deps--/watches)',
       "user").then (result) => @updateInAtom(result)
     if @getCommands().cljs
-      pr.syncRun('(map (fn [[k v]] (str k "#" v)) @__check.deps__/watches)',
+      pr.syncRun('(map (fn [[k v]] (str k "#" v)) @clj.--check-deps--/watches)',
         "user", session: "cljs").then (result) => @updateInAtom(result)
 
   updateInAtom: (result) ->

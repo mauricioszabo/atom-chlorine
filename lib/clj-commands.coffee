@@ -15,9 +15,9 @@ module.exports = class CljCommands
       code = atom.config.get('clojure-plus.cljsCommand')
       @promisedRepl.clear()
       @promisedRepl.syncRun(code, 'user', session: 'cljs').then (e) =>
-        @promisedRepl.syncRun("(ns __check.deps__)", '__check.deps__', session: 'cljs')
-        @promisedRepl.syncRun("(def last-exception (atom nil))", '__check.deps__', session: 'cljs')
-        @promisedRepl.syncRun("(def watches (atom {}))", '__check.deps__', session: 'cljs')
+        @promisedRepl.syncRun("(ns clj.--check-deps--)", 'clj.--check-deps--', session: 'cljs')
+        @promisedRepl.syncRun("(def last-exception (atom nil))", 'clj.--check-deps--', session: 'cljs')
+        @promisedRepl.syncRun("(def watches (atom {}))", 'clj.--check-deps--', session: 'cljs')
         if e.value
           if atom.config.get('clojure-plus.notify')
             atom.notifications.addSuccess("Loaded ClojureScript REPL")
@@ -26,7 +26,7 @@ module.exports = class CljCommands
         @cljs = true
 
   prepare: ->
-    code = @getFile("~/.atom/packages/clojure-plus/lib/clj/check_deps.clj")
+    code = @getFile("~/.atom/packages/clojure-plus/lib/clj/__check_deps__.clj")
     @cljs = false
     @promisedRepl.clear()
     @promisedRepl.syncRun(code, 'user')
@@ -99,7 +99,7 @@ module.exports = class CljCommands
   # TODO: Move me to MarkerCollection
   assignWatches: ->
     @runBefore()
-    @promisedRepl.syncRun("(reset! __check.deps__/watches {})", 'user').then =>
+    @promisedRepl.syncRun("(reset! clj.--check-deps--/watches {})", 'user').then =>
       for id, mark of @watches
         delete @watches[id] unless mark.isValid()
         ns = @repl.EditorUtils.findNsDeclaration(mark.editor)
@@ -114,7 +114,7 @@ module.exports = class CljCommands
               '"'
 
     if varName
-      text = "(__check.deps__/goto-var '#{varName} #{tmpPath})"
+      text = "(clj.--check-deps--/goto-var '#{varName} #{tmpPath})"
 
       @promisedRepl.runCodeInCurrentNS(text).then (result) =>
         if result.value
@@ -130,13 +130,13 @@ module.exports = class CljCommands
     fs.readFileSync(fileName).toString()
 
   nsForMissing: (symbolName) ->
-    @promisedRepl.runCodeInCurrentNS("(__check.deps__/resolve-missing \"#{symbolName}\")")
+    @promisedRepl.runCodeInCurrentNS("(clj.--check-deps--/resolve-missing \"#{symbolName}\")")
 
   unusedImports: (filePath) ->
     filePath = filePath.replace(/"/g, '\\\\').replace(/\\/g, '\\\\')
-    @promisedRepl.runCodeInCurrentNS("(__check.deps__/unused-namespaces \"#{filePath}\")")
+    @promisedRepl.runCodeInCurrentNS("(clj.--check-deps--/unused-namespaces \"#{filePath}\")")
 
   getSymbolsInEditor: (editor) ->
-    @promisedRepl.runCodeInCurrentNS("(__check.deps__/symbols-from-ns-in-json *ns*)").then (result) =>
+    @promisedRepl.runCodeInCurrentNS("(clj.--check-deps--/symbols-from-ns-in-json *ns*)").then (result) =>
       return unless result.value
       JSON.parse(result.value)
