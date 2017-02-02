@@ -79,4 +79,3 @@ Ideas for the project's future
 * Parsing stacktraces when they're being shown on stdout and stderr. This would solve lots of problems with tests (when exceptions are captured by midje).
 * Better code overall - the approach of this plugin is to try to bind Atom and Clojure code. Some problems happened because of this - there are times when the Clojure code we use to goto var and other things just stop working (Null pointer, again). We solve this with refresh, again, but it could be better (probably).
 * Support for linters and other tools.
-* Support for ClojureScript (making two connections to the same REPL and using piggieback to swap, maybe).
