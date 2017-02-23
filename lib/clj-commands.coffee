@@ -26,7 +26,7 @@ module.exports = class CljCommands
         @cljs = true
 
   prepare: ->
-    code = @getFile("~/.atom/packages/clojure-plus/lib/clj/__check_deps__.clj")
+    code = @getFile("~/lib/clj/__check_deps__.clj")
     @cljs = false
     @promisedRepl.clear()
     @promisedRepl.syncRun(code, 'user')
@@ -72,6 +72,7 @@ module.exports = class CljCommands
 
     notify = atom.config.get('clojure-plus.notify')
     @promisedRepl.syncRun(refreshCmd, "user").then (result) =>
+      console.log result
       if result.value
         value = @repl.parseEdn(result.value)
         if !value.cause
@@ -94,7 +95,7 @@ module.exports = class CljCommands
 
   getRefreshCmd: (all) ->
     key = if all then 'clojure-plus.refreshAllCmd' else 'clojure-plus.refreshCmd'
-    @getFile(atom.config.get(key))
+    atom.config.get(key)
 
   # TODO: Move me to MarkerCollection
   assignWatches: ->
@@ -125,8 +126,7 @@ module.exports = class CljCommands
           @repl.stderr("Error trying to open: #{result.error}")
 
   getFile: (file) ->
-    home = process.env.HOME
-    fileName = file.replace("~", home)
+    fileName = file.replace("~", atom.packages.getActivePackage('clojure-plus').path)
     fs.readFileSync(fileName).toString()
 
   nsForMissing: (symbolName) ->

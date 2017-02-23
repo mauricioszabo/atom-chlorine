@@ -28,13 +28,13 @@ module.exports =
     type: 'string'
     default: "(alter-var-root #'clojure.test/*load-tests* (constantly false))"
   refreshAllCmd:
-    description: "Path to a file with the refresh all namespaces' command"
+    description: "Clear and refresh all namespaces command"
     type: 'string'
-    default: "~/.atom/packages/clojure-plus/lib/clj/refresh_all.clj"
+    default: "(do (require '[clojure.tools.namespace.repl :as repl]) (repl/clear) (repl/refresh-all))"
   refreshCmd:
-    description: "Path to a file with the refresh namespaces' command"
+    description: "Refresh namespaces command"
     type: 'string'
-    default: "~/.atom/packages/clojure-plus/lib/clj/refresh.clj"
+    default: "(do (require '[clojure.tools.namespace.repl :as repl]) (repl/refresh))"
   clearRepl:
     description: "Clear REPL before running a command"
     type: 'boolean'
