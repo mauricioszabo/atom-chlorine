@@ -72,7 +72,6 @@ module.exports = class CljCommands
 
     notify = atom.config.get('clojure-plus.notify')
     @promisedRepl.syncRun(refreshCmd, "user").then (result) =>
-      console.log result
       if result.value
         value = @repl.parseEdn(result.value)
         if !value.cause
