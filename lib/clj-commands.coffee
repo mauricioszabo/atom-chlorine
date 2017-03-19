@@ -13,8 +13,10 @@ module.exports = class CljCommands
   prepareCljs: ->
     if !@cljs
       code = atom.config.get('clojure-plus.cljsCommand')
+      protoRepl.info("Preparing ClojureScript REPL...")
       @promisedRepl.clear()
       @promisedRepl.syncRun(code, 'user', session: 'cljs').then (e) =>
+        protoRepl.info("REPL code evaluated. Waiting for results...")
         @promisedRepl.syncRun("(ns clj.--check-deps--)", 'clj.--check-deps--', session: 'cljs')
         @promisedRepl.syncRun("(def last-exception (atom nil))", 'clj.--check-deps--', session: 'cljs')
         @promisedRepl.syncRun("(def watches (atom {}))", 'clj.--check-deps--', session: 'cljs')
