@@ -1,3 +1,7 @@
+## 0.2.4 - Shadow Element
+* Removed pseudo ::shadow element on CSS (thanks @barbagrigia)
+* Some debugging information when loading CLJS REPL (but still locking somewhere)
+
 ## 0.2.3 - Bugfix on Windows
 * Removed dependency from HOME env variable (fixes
 [#19](https://github.com/mauricioszabo/clojure-plus/issues/19))
