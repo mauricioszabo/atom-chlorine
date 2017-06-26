@@ -130,9 +130,6 @@ module.exports = class CljCommands
     fileName = file.replace("~", atom.packages.getActivePackage('clojure-plus').path)
     fs.readFileSync(fileName).toString()
 
-  nsForMissing: (symbolName) ->
-    @promisedRepl.runCodeInCurrentNS("(clj.--check-deps--/resolve-missing \"#{symbolName}\")")
-
   unusedImports: (filePath) ->
     filePath = filePath.replace(/"/g, '\\\\').replace(/\\/g, '\\\\')
     @promisedRepl.runCodeInCurrentNS("(clj.--check-deps--/unused-namespaces \"#{filePath}\")")

@@ -4,3 +4,6 @@ node_modules
 .lein*
 .nrepl*
 target
+.figwheel*
+figwheel*
+lib/js

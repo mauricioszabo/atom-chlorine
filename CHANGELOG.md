@@ -1,3 +1,9 @@
+# 0.3.0 - Architectural Change
+* To ease development, we're migrating to ClojureScript as first class on Atom
+* Removed `import-for-missing` command (it was not working most of the time)
+* Added `add-import-for-var` (it's better designed, and it is tested)
+* Added `organize-namespace` command (rewrites NS, removes unused imports, etc)
+
 ## 0.2.4 - Shadow Element
 * Removed pseudo ::shadow element on CSS (thanks @barbagrigia)
 * Some debugging information when loading CLJS REPL (but still locking somewhere)

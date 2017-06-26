@@ -7,6 +7,12 @@ CljCommands = require './clj-commands'
 highlight = require './sexp-highlight'
 MarkerCollection = require './marker-collection'
 
+disposable = new CompositeDisposable()
+setTimeout ->
+  window["clojure plus extensions"] = {disposable: disposable}
+  require './js/main.js'
+  delete window["clojure plus extensions"]
+
 module.exports =
   config: require('./configs')
 
@@ -18,7 +24,7 @@ module.exports =
 
   activate: (state) ->
     @evalModes = new Map()
-    @subs = new CompositeDisposable()
+    @subs = disposable
     @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:refresh-namespaces', =>
       @getCommands().runRefresh()
     @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:interrupt', =>
@@ -62,8 +68,6 @@ module.exports =
     @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:execute-selection-and-copy-pretty-printed-result', =>
       code = "(clojure.core/with-out-str (clojure.pprint/pprint #{editorCode()})))"
       @executeAndCopy(code, 'pretty-print')
-    @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:import-for-missing-symbol', =>
-      @importForMissing()
     @subs.add atom.commands.add 'atom-text-editor', 'clojure-plus:remove-unused-imports', =>
       @removeUnusedImport(atom.workspace.getActiveTextEditor())
 
@@ -123,6 +127,7 @@ module.exports =
     atom.packages.onDidActivatePackage (pack) =>
       if pack.name == 'proto-repl'
         @commands = new CljCommands(@currentWatches, protoRepl)
+        # require './js/main.js'
 
         protoRepl.onDidConnect =>
           atom.notifications.addSuccess("REPL connected") if atom.config.get('clojure-plus.notify')
@@ -139,47 +144,6 @@ module.exports =
   interrupt: ->
     protoRepl.interrupt()
     @getCommands().promisedRepl.clear()
-
-  importForMissing: ->
-      editor = atom.workspace.getActiveTextEditor()
-      [varRange, varNameRaw] = @getRangeAndVar(editor)
-      varName = varNameRaw?.replace(/"/g, '\\"')
-      if !varName
-        atom.notifications.addError("Position your cursor in a clojure var name")
-        return
-
-      @getCommands().nsForMissing(varName).then (results) =>
-        command = (namespace, alias) ->
-          atom.clipboard.write("[#{namespace} :as #{alias}]")
-          editor.setTextInBufferRange(varRange, "#{alias}/#{varNameRaw}")
-          atom.notifications.addSuccess("Import copied to clipboard!")
-
-        if !results.value
-          atom.notifications.addError("Error processing import request", detail: results.error)
-          return
-
-        result = protoRepl.parseEdn(results.value)
-        if result && result.length > 0
-          items = result.map (res) ->
-            alias = if res[1] then res[1] else "[no alias]"
-            text = "[#{res[0]} :as #{alias}]"
-            label: text, run: =>
-              if res[1]
-                command(res[0], res[1])
-              else
-                te = new TextEditor(mini: true, placeholderText: "type your namespace alias")
-                panel = atom.workspace.addModalPanel(item: te)
-                atom.commands.add te.element, 'core:confirm': ->
-                  command(res[0], te.getText())
-                  panel.destroy()
-                  atom.views.getView(atom.workspace).focus()
-                , 'core:cancel': ->
-                  panel.destroy()
-                  atom.views.getView(atom.workspace).focus()
-                # TODO - VER ISSO!
-          new SelectView(items)
-        else
-          atom.notifications.addError("Import with namespace alias not found")
 
   removeUnusedImport: (editor) ->
     project = atom.project.getPaths()
@@ -386,7 +350,7 @@ module.exports =
       div
 
     treeHtml = protoRepl.ink.tree.treeView(causeHtml, traceHtmls, {})
-    result.setContent(treeHtml)
+    result.setContent(treeHtml, error: true)
     result.view.classList.add('error')
     protoRepl.stderr(strTrace)
 
@@ -444,6 +408,9 @@ module.exports =
     if atom.config.get('clojure-plus.refreshAfterSave')
       text += " after saving"
     @statusBarTile.item.innerText = text
+
+  consumeInk: (ink) ->
+    window.ink = ink
 
   deactivate: ->
     @evalModes.clear()

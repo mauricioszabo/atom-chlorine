@@ -25,6 +25,11 @@
       "versions": {
         "^1.0.0": "statusBarConsumer"
       }
+    },
+    "ink": {
+      "versions": {
+        "^0.1.0": "consumeInk"
+      }
     }
   }
 }
