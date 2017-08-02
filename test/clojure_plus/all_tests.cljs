@@ -4,7 +4,8 @@
             [clojure-plus.helpers-test]
             [clojure-plus.modifications-test]
             [clojure-plus.repl-test]
-            [clojure-plus.refactor-nrepl-test]))
+            [clojure-plus.refactor-nrepl-test]
+            [clojure-plus.ui.inline-results-test :as in]))
 
 (def vm (js/require "vm"))
 
