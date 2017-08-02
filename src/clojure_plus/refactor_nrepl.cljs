@@ -115,13 +115,3 @@
 (defn find-missing-symbol! [editor]
   (let [[range var] (range-and-var editor)]
     (missing-view editor range var)))
-
-(def e (js/ce))
-
-(def InkResult (-> js/ink .-Result))
-; (def AtomRange (-> (js/require "atom") .-Range))
-; (def r (AtomRange. #js [123 0] #js [124 0]))
-
-(def r (InkResult. e #js [122 122] #js {:type "inline"}))
-(.setContent r (doto (.createElement js/document "div") (aset "innerHTML" "FOO"))
-             #js {:error false})
