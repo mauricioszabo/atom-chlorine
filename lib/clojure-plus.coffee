@@ -290,7 +290,7 @@ module.exports =
     if session == 'cljs'
       text
     else
-      "(try #{text}\n(catch Exception e
+      "(try #{text}\n(catch Throwable e
         (do
           (reset! clj.--check-deps--/last-exception
             {:cause (str e)
