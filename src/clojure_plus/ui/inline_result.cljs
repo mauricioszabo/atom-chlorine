@@ -41,12 +41,55 @@
   (let [edn (reader/read-string edn-string)]
     (to-tree edn)))
 
-; (let [edn (reader/read-string "{:a 20}")]
-;   (walk/postwalk to-tree edn))
-;
-; (parse "{:a 20}")
+(defn- leaf [text]
+  (let [inner (.createElement js/document "div")
+        inner-class (.-classList inner)]
+
+    ; (.add inner-class "header" "gutted" "closed")
+    (aset inner "innerText" text)
+    inner))
+
+(defn- to-html [[kind header children]]
+  (cond
+    (empty? children) (leaf header)
+    (= :inline kind) (ink-tree header (mapv to-html children) false)
+    :block (ink-tree header (mapv to-html children) true)))
+
+(defn set-content! [result result-tree]
+  (let [;contents (ink-tree header elements true)
+        contents result-tree]
+    (.setContent result contents #js {:error false})))
 
 (comment
+ (set-content! (new-result (js/ce) 60)
+   (to-html (parse "{:a {:b [10 20 30]}}")))
+
+ (set-content! (new-result (js/ce) 60)
+   (ink-tree "[1 2 3]"
+             [(ink-tree "1" ["1"] false)
+              (ink-tree "2" ["V"] false)
+              (ink-tree "3" ["D"] false)]
+             false))
+
+ (set-content! (new-result (js/ce) 60)
+   (leaf "FOO"))
+
+ (set-content! (new-result (js/ce) 40)
+   (-> js/ink .-tree (.treeView "FOO")))
+
+ (set-content! (new-result (js/ce) 40)
+   (ink-tree "[1 2 3]"
+             []
+             false))
+
+ (set-content! (new-result (js/ce) 40)
+   (ink-tree "[1 2 3]"
+             [(ink-tree "1" ["1"] false)
+              (ink-tree "2" ["V"] false)
+              (ink-tree "3" ["D"] false)]
+             false))
+
+              ; [(ink-tree "bar" ["B" "A" "BA"] false) (ink-tree "baz" ["B"] false)]))
  (identity ["bar" "baz" "B" "B"])
  (-> (js/ce) .getBuffer .getLines (nth 2) count)
  (def r (new-result (js/ce) 4))
