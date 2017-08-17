@@ -5,20 +5,18 @@
 
 (deftest parse-edns
   (testing "will parse strings and flat structures"
-    (is (= [:block "\"foo\""] (inline/parse "\"foo\"")))
-    (is (= [:block ":bar"] (inline/parse ":bar"))))
+    (is (= ["\"foo\""] (inline/parse "\"foo\"")))
+    (is (= [":bar"] (inline/parse ":bar"))))
 
   (testing "will parse maps into columns"
-    (is (= [:block "{:a 20}"
-            [[:inline "{:a" [[:block ":a"]]]
-             [:inline "20}" [[:block "20"]]]]]
+    (is (= ["{:a 20}" [[:row [["[:a" [[":a"]]]
+                              ["20]" [["20"]]]]]]]
            (inline/parse "{:a 20}"))))
 
   (testing "will parse colls"
-    (is (= [:block "[1 2 3]"
-            [[:block "1"]
-             [:block "2"]
-             [:block "3"]]]
+    (is (= ["[1 2 3]" [["1"]
+                       ["2"]
+                       ["3"]]]
            (inline/parse "[1 2 3]")))))
 
 (deftest inline-result

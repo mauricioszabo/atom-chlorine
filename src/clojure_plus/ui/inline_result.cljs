@@ -24,100 +24,40 @@
 
 (declare to-tree)
 (defn- as-map [[key val]]
-  (let [k-str (str "{" (to-str key))
-        v-str (str (to-str val) "}")]
-    [[:inline k-str [(to-tree key)]]
-     [:inline v-str [(to-tree val)]]]))
+  (let [k-str (str "[" (to-str key))
+        v-str (str (to-str val) "]")]
+    [:row [[k-str [(to-tree key)]]
+           [v-str [(to-tree val)]]]]))
 
-(defn- to-tree
-  ([edn] (to-tree edn (to-str edn)))
-  ([edn txt]
-   (cond
-     (map? edn) [:block txt (mapcat as-map edn)]
-     (coll? edn) [:block txt (mapv to-tree edn)]
-     :else [:block txt])))
+(defn- to-tree [edn]
+  (let [txt (to-str edn)]
+    (cond
+      (map? edn) [txt (mapv as-map edn)]
+      (coll? edn) [txt (mapv to-tree edn)]
+      :else [txt])))
 
 (defn parse [edn-string]
   (let [edn (reader/read-string edn-string)]
     (to-tree edn)))
 
 (defn- leaf [text]
-  (let [inner (.createElement js/document "div")
-        inner-class (.-classList inner)]
+  (doto (.createElement js/document "div")
+    (aset "innerText" text)))
 
-    ; (.add inner-class "header" "gutted" "closed")
-    (aset inner "innerText" text)
-    inner))
+(declare to-html)
+(defn- html-row [children]
+  (let [div (.createElement js/document "div")]
+    (doseq [child children]
+      (.appendChild div (to-html child)))
+    div))
 
-(defn- to-html [[kind header children]]
+(defn- to-html [[header children]]
+  (println "C:" children)
   (cond
     (empty? children) (leaf header)
-    (= :inline kind) (ink-tree header (mapv to-html children) false)
-    :block (ink-tree header (mapv to-html children) true)))
+    (= :row header) (html-row children)
+    :else (ink-tree header (mapv to-html children) false)))
 
 (defn set-content! [result result-tree]
-  (let [;contents (ink-tree header elements true)
-        contents result-tree]
+  (let [contents (to-html result-tree)]
     (.setContent result contents #js {:error false})))
-
-(comment
- (set-content! (new-result (js/ce) 60)
-   (to-html (parse "{:a {:b [10 20 30]}}")))
-
- (set-content! (new-result (js/ce) 60)
-   (ink-tree "[1 2 3]"
-             [(ink-tree "1" ["1"] false)
-              (ink-tree "2" ["V"] false)
-              (ink-tree "3" ["D"] false)]
-             false))
-
- (set-content! (new-result (js/ce) 60)
-   (leaf "FOO"))
-
- (set-content! (new-result (js/ce) 40)
-   (-> js/ink .-tree (.treeView "FOO")))
-
- (set-content! (new-result (js/ce) 40)
-   (ink-tree "[1 2 3]"
-             []
-             false))
-
- (set-content! (new-result (js/ce) 40)
-   (ink-tree "[1 2 3]"
-             [(ink-tree "1" ["1"] false)
-              (ink-tree "2" ["V"] false)
-              (ink-tree "3" ["D"] false)]
-             false))
-
-              ; [(ink-tree "bar" ["B" "A" "BA"] false) (ink-tree "baz" ["B"] false)]))
- (identity ["bar" "baz" "B" "B"])
- (-> (js/ce) .getBuffer .getLines (nth 2) count)
- (def r (new-result (js/ce) 4))
- (aset js/window "r" (ink-tree "foo" ["bar" "baz"] true))
- (.log js/console (ink-tree "foo" ["bar" "baz"] true))
- (set-content r "foo" [(ink-tree "barasdasdasdasdasdasdasd" ["B"]) (ink-tree "bazasdasdasdasdadsasd" ["B"])])
- (set-content r (doto (.createElement js/document "div") (aset "innerHTML" "FOO")))
- (set-content (new-result (js/ce) 40)
-              "BAR"
-              [])
-              ; [(ink-tree "bar" ["B" "A" "BA"] false) (ink-tree "baz" ["B"] false)])
- (set-content (new-result (js/ce) 40)
-              "[\"bar\" \"baz\"]"
-              [(ink-tree "bar" ["B" "A" "BA"] false) (ink-tree "baz" ["B"] false)])
-
- (reader/read-string "
-#object[clojure.lang.Atom 0x17bcda63 {:status :ready, :val [:foo {:bar \"BAZ\"}]}]
-")
-
- (defrecord UnknownObject [tag child])
- (->UnknownObject "#foo" [10 20])
- (print-method 10 *out*)
-
- (reader/register-default-tag-parser!
-  (fn [tag data]
-    (.log js/console data)
-    data)))
-
-; (reader/read-string "{:a 10 \"foo\" #object [cljs.core.Atom {:val \"Bar\"}]}")
-; (println (str {:a "FOO"
-;                :b (atom "Bar")}))
