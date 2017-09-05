@@ -4,10 +4,19 @@
 
 (deftest running-code
   (async done
-   (testing "runs code on NREPL connection"
-     (repl/execute-cmd '(+ 2 1)
-                       "user"
-                       (fn [res]
-                         (is (= {:value 3} res))
-                         (done))))))
-(run-tests)
+    (repl/execute-cmd '(+ 2 1)
+                      "user"
+                      (fn [res]
+                        (is (= {:value 3} res))
+                        (done)))))
+
+(deftest exceptions
+  (async done
+    (repl/evaluate "(/ 10 0)"
+                   "user"
+                   {}
+                   (fn [res]
+                     (def res res)
+                     (is (contains? (:error res) :cause))
+                     (is (contains? (:error res) :stack))
+                     (done)))))
