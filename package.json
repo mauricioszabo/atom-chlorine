@@ -1,7 +1,7 @@
 {
   "name": "clojure-plus",
   "main": "./lib/clojure-plus",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "description": "Extensions to proto-repl, to be more configurable",
   "keywords": [],
   "repository": "https://github.com/mauricioszabo/clojure-plus",
