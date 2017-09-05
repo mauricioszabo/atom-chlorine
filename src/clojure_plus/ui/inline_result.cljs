@@ -17,10 +17,12 @@
     (.setContent result contents #js {:error false})))
 
 (defn- to-str [edn]
-  (-> edn
-      prn
-      with-out-str
-      (str/replace #"\n$" "")))
+  (let [tag (some-> edn meta :tag (str " "))]
+    (-> edn
+        prn
+        with-out-str
+        (str/replace #"\n$" "")
+        (->> (str tag)))))
 
 (declare to-tree)
 (defn- as-map [[key val]]
@@ -52,7 +54,6 @@
     div))
 
 (defn- to-html [[header children]]
-  (println "C:" children)
   (cond
     (empty? children) (leaf header)
     (= :row header) (html-row children)
@@ -61,3 +62,7 @@
 (defn set-content! [result result-tree]
   (let [contents (to-html result-tree)]
     (.setContent result contents #js {:error false})))
+
+(reader/register-default-tag-parser!
+ (fn [tag data]
+   (with-meta data {:tag (str "#" tag)})))

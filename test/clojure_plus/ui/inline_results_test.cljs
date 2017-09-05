@@ -17,6 +17,10 @@
     (is (= ["[1 2 3]" [["1"]
                        ["2"]
                        ["3"]]]
-           (inline/parse "[1 2 3]")))))
+           (inline/parse "[1 2 3]"))))
+
+  (testing "will parse reader tags"
+    (is (= ["#array [1 2 3]" [["1"] ["2"] ["3"]]]
+           (inline/parse "#array [1 2 3]")))))
 
 (run-tests)
