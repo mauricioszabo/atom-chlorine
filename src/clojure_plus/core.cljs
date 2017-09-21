@@ -27,4 +27,6 @@
                          (command-for 'organize-namespace
                                       #(refactor/organize-ns (current-editor)))
                          (command-for 'add-import-for-var
-                                      #(refactor/find-missing-symbol! (current-editor))))))))
+                                      #(refactor/find-missing-symbol! (current-editor)))
+                         (command-for 'hotload-dependency
+                                      #(refactor/hotload! (current-editor))))))))
