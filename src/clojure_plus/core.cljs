@@ -20,6 +20,20 @@
 (.onDidConnect
  js/protoRepl
  (fn []
+   (repl/execute-cmd '(require '[clojure.tools.nrepl])
+                     "user"
+                     (fn [res]
+                       (println res)
+                       (when (contains? res :value)
+                         (command-for 'new-evaluate-block
+                                      #(repl/run-code-on-editor {:scope :top-level}))
+
+                         (command-for 'new-evaluate-top-block
+                                      #(repl/run-code-on-editor {:scope :top-level}))
+
+                         (command-for 'new-evaluate-selection
+                                      #(repl/run-code-on-editor {:scope :selection})))))
+
    (repl/execute-cmd '(require '[refactor-nrepl.core])
                      "user"
                      (fn [res]
