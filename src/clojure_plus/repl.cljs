@@ -51,7 +51,6 @@
   (inline/set-content! result (inline/parse value)))
 
 (defn run-code-on-editor [opts]
-  (println "RUNNING")
   (let [[editor range] (editor-and-range opts)
         line (-> range .-end .-row)
         command (. editor getTextInBufferRange range)
