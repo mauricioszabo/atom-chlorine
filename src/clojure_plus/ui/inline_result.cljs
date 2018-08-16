@@ -39,8 +39,11 @@
       :else [txt])))
 
 (defn parse [edn-string]
-  (let [edn (reader/read-string edn-string)]
-    (to-tree edn)))
+  (try
+    (let [edn (reader/read-string edn-string)]
+      (to-tree edn))
+    (catch :default _
+      (to-tree (symbol edn-string)))))
 
 (defn- leaf [text]
   (doto (.createElement js/document "div")
