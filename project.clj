@@ -34,5 +34,6 @@
                                   ;  :output-dir "lib/js"
                                    :target :nodejs
                                    :optimizations :simple
-                                   :output-wrapper true}}]}
+                                   :output-wrapper true
+                                   :warnings {:single-segment-namespace false}}}]}
   :figwheel {})
