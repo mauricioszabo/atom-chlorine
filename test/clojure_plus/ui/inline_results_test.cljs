@@ -1,26 +1,29 @@
 (ns clojure-plus.ui.inline-results-test
-  (:require [clojure.test :refer-macros [deftest is testing run-tests]]
-            [clojure-plus.ui.inline-results :as inline]
-            [clojure.walk :as walk]))
+  (:require [clojure.test :refer-macros [deftest testing run-tests]]
+            [check.core :refer-macros [check]]
+            [clojure-plus.ui.inline-results :as inline]))
 
 (deftest parse-edns
   (testing "will parse strings and flat structures"
-    (is (= ["\"foo\""] (inline/parse "\"foo\"")))
-    (is (= [":bar"] (inline/parse ":bar"))))
+    (check (inline/parse "\"foo\"") => ["\"foo\""])
+    (check (inline/parse ":bar") => [":bar"]))
 
   (testing "will parse maps into columns"
-    (is (= ["{:a 20}" [[:row [["[:a" [[":a"]]]
-                              ["20]" [["20"]]]]]]]
-           (inline/parse "{:a 20}"))))
+    (check (inline/parse "{:a 20}")
+           =>
+           ["{:a 20}" [[:row [["[:a" [[":a"]]]
+                              ["20]" [["20"]]]]]]]))
 
   (testing "will parse colls"
-    (is (= ["[1 2 3]" [["1"]
+    (check (inline/parse "[1 2 3]")
+           =>
+           ["[1 2 3]" [["1"]
                        ["2"]
-                       ["3"]]]
-           (inline/parse "[1 2 3]"))))
+                       ["3"]]]))
 
   (testing "will parse reader tags"
-    (is (= ["#array [1 2 3]" [["1"] ["2"] ["3"]]]
-           (inline/parse "#array [1 2 3]")))))
+    (check (inline/parse "#array [1 2 3]")
+           =>
+           ["#array [1 2 3]" [["1"] ["2"] ["3"]]])))
 
 (run-tests)
