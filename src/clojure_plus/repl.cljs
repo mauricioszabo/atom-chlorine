@@ -2,7 +2,7 @@
   (:require [cljs.reader :as edn]
             [clojure-plus.ui.inline-results :as inline]))
 
-(defonce repl (-> (js/require "../../../clojure-plus")
+(defonce repl (-> (js/require "../../clojure-plus")
                   .getCommands .-promisedRepl))
 
 (defn execute-cmd
