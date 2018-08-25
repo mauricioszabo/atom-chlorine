@@ -1,0 +1,34 @@
+;; shadow-cljs configuration
+{:source-paths
+ ["src"
+  "test"]
+
+ :dependencies
+ [[org.clojure/core.async "0.4.474"]
+  [repl-tooling "0.0.1-SNAPSHOT"]
+  [cider/cider-nrepl "0.17.0"]
+  [check "0.0.2-SNAPSHOT"]
+  [org.clojure/tools.nrepl "0.2.12"]
+  [debugger "0.2.1"]
+  [cider/cider-nrepl "0.13.0"]
+  [proto-repl "0.3.1"]
+  [cloverage "1.0.9"]
+  [com.billpiel/sayid "0.0.10"]
+  [org.clojure/tools.namespace "0.2.11"]]
+
+
+ ; :lein true
+ :builds
+ ; {:dev {:target :node-script
+ ;        :main clojure-plus.all-tests/main
+ ;        :output-dir "lib/js"
+ ;        :output-to "lib/js/main.js"}}}
+
+ {:dev {:target :node-library
+        :main clojure-plus.all-tests/main
+        :exports {:main clojure-plus.all-tests/run-all
+                  :activate clojure-plus.all-tests/activate}
+        :output-dir "lib/js"
+        :output-to "lib/js/main.js"
+        :devtools {:before-load-async clojure-plus.all-tests/before
+                   :after-load clojure-plus.all-tests/after}}}}
