@@ -1,8 +1,10 @@
 (ns clojure-plus.repl
   (:require [cljs.reader :as edn]
-            [clojure-plus.ui.inline-results :as inline]))
+            [repl-tooling.eval :as eval]
+            [clojure-plus.ui.inline-results :as inline]
+            [repl-tooling.repl-client.clojure :as clj-repl]))
 
-(defonce repl (-> (js/require "../../clojure-plus")
+(defonce repl (-> (js/require "../clojure-plus")
                   .getCommands .-promisedRepl))
 
 (defn execute-cmd
@@ -50,12 +52,53 @@
 (defn- create-inline-result [value result]
   (inline/set-content! result (inline/parse value)))
 
-(defn run-code-on-editor [opts]
+; @(delay clojure-plus.repl-test/e)
+; (defn run-code-on-editor [opts]
+;   (let [[editor range] (editor-and-range opts)
+;         line (-> range .-end .-row)
+;         command (. editor getTextInBufferRange range)
+;         result (inline/new-result editor line)]
+;     (evaluate command (-> js/protoRepl .-EditorUtils (.findNsDeclaration editor)) opts
+;               (fn [{:keys [value error]}]
+;                 (if value
+;                   (create-inline-result value result))))))
+
+(def active-repls (atom nil))
+
+(defn- command-and-result [opts]
   (let [[editor range] (editor-and-range opts)
         line (-> range .-end .-row)
         command (. editor getTextInBufferRange range)
         result (inline/new-result editor line)]
-    (evaluate command (-> js/protoRepl .-EditorUtils (.findNsDeclaration editor)) opts
-              (fn [{:keys [value error]}]
-                (if value
-                  (create-inline-result value result))))))
+    [command result (-> js/protoRepl .-EditorUtils (.findNsDeclaration editor))]))
+
+(defn- eval-in-socket [ns-name command result opts]
+  (let [repl (:repl @active-repls)]
+    (eval/evaluate repl command opts
+                   (fn [res]
+                     (if (:result res)
+                       (create-inline-result (:result res) result))))))
+
+(defn run-code-on-editor [opts]
+  (let [[command result ns-name] (command-and-result opts)]
+    (if (:repl @active-repls)
+      (eval-in-socket ns-name command result opts)
+      (evaluate command ns-name opts
+                (fn [{:keys [value error]}]
+                  (prn value error)
+                  (if value
+                    (create-inline-result value result)))))))
+;
+; (js/setTimeout
+;  #(run-code-on-editor {:scope :top-level})
+;  2000)
+;
+; (eval-in-socket "user" "(/ 1 0)" nil {})
+; (evaluate "(+ 1 2)" "user" {}
+;                  (fn [{:keys [value error]}]
+;                    (prn value error)))
+;                    ; (if value
+;                    ;   (create-inline-result value result))))
+;
+; (+ 2 3)
+; ; (eval-in-socket 'user "(+ 1 2)" nil {})
