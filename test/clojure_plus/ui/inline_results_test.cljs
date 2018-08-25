@@ -24,6 +24,19 @@
   (testing "will parse reader tags"
     (check (inline/parse "#array [1 2 3]")
            =>
-           ["#array [1 2 3]" [["1"] ["2"] ["3"]]])))
+           ["#array [1 2 3]" [["1"] ["2"] ["3"]]])
+
+    (check (inline/parse "#map {:a 10}")
+           =>
+           ["#map {:a 10}" [[:row [["[:a" [[":a"]]]
+                                   ["10]" [["10"]]]]]]])
+
+    (check (inline/parse "(#foo :a)")
+           =>
+           ["(#foo :a)" [["#foo :a"]]]))
+
+  (testing "will understand repl-tooling's more"
+    (check (first (inline/parse "(0 1 2 {:repl-tooling/... (unrepl$blahblah)})"))
+           => #"\(0 1 2 \.\.\.\)")))
 
 (run-tests)
