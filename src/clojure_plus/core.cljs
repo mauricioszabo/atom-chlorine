@@ -1,46 +1,71 @@
 (ns clojure-plus.core
-  (:require [cljs.nodejs :as nodejs]
-            [clojure-plus.repl :as repl]
-            [clojure-plus.refactor-nrepl :as refactor]))
+  (:require [clojure-plus.aux :as aux]
+            [clojure-plus.ui.connection :as conn]))
+  ; (:require [cljs.nodejs :as nodejs]
+  ;           [clojure-plus.repl :as repl]
+  ;           [clojure-plus.refactor-nrepl :as refactor]))
 
-(defonce disposable
-  (-> js/window (aget "clojure plus extensions") .-disposable))
+; (defonce disposable
+;   (-> js/window (aget "clojure plus extensions") .-disposable))
+;
+; (nodejs/enable-util-print!)
+;
+; (defn command-for [name f]
+;   (let [disp (-> js/atom .-commands (.add "atom-text-editor"
+;                                           (str "clojure-plus:" name)
+;                                           f))]
+;     (.add disposable disp)))
+;
+; (defn- current-editor []
+;   (-> js/atom .-workspace .getActiveTextEditor))
+;
+; (.onDidConnect
+;  js/protoRepl
+;  (fn []
+;    (repl/execute-cmd '(require '[clojure.tools.nrepl])
+;                      "user"
+;                      (fn [res]
+;                        (println res)
+;                        (when (contains? res :value)
+;                          (command-for 'new-evaluate-block
+;                                       #(repl/run-code-on-editor {:scope :top-level}))
+;
+;                          (command-for 'new-evaluate-top-block
+;                                       #(repl/run-code-on-editor {:scope :top-level}))
+;
+;                          (command-for 'new-evaluate-selection
+;                                       #(repl/run-code-on-editor {:scope :selection})))))
+;
+;    (repl/execute-cmd '(require '[refactor-nrepl.core])
+;                      "user"
+;                      (fn [res]
+;                        (when (contains? res :value)
+;                          (command-for 'organize-namespace
+;                                       #(refactor/organize-ns (current-editor)))
+;                          (command-for 'add-import-for-var
+;                                       #(refactor/find-missing-symbol! (current-editor)))
+;                          (command-for 'hotload-dependency
+;                                       #(refactor/hotload! (current-editor))))))))
 
-(nodejs/enable-util-print!)
+(def config #js {})
 
-(defn command-for [name f]
-  (let [disp (-> js/atom .-commands (.add "atom-text-editor"
-                                          (str "clojure-plus:" name)
-                                          f))]
-    (.add disposable disp)))
+(defn toggle []
+  (println "baka"))
 
-(defn- current-editor []
-  (-> js/atom .-workspace .getActiveTextEditor))
+(defn connect-socket []
+  (println "Connect Socket REPL"))
 
-(.onDidConnect
- js/protoRepl
- (fn []
-   (repl/execute-cmd '(require '[clojure.tools.nrepl])
-                     "user"
-                     (fn [res]
-                       (println res)
-                       (when (contains? res :value)
-                         (command-for 'new-evaluate-block
-                                      #(repl/run-code-on-editor {:scope :top-level}))
+(defn activate [s]
+  (aux/reload-subscriptions!)
 
-                         (command-for 'new-evaluate-top-block
-                                      #(repl/run-code-on-editor {:scope :top-level}))
+  (aux/command-for "toggle" toggle)
+  (aux/command-for "connect-socket-repl" connect-socket))
 
-                         (command-for 'new-evaluate-selection
-                                      #(repl/run-code-on-editor {:scope :selection})))))
+(defn deactivate [s]
+  (.dispose @aux/subscriptions))
 
-   (repl/execute-cmd '(require '[refactor-nrepl.core])
-                     "user"
-                     (fn [res]
-                       (when (contains? res :value)
-                         (command-for 'organize-namespace
-                                      #(refactor/organize-ns (current-editor)))
-                         (command-for 'add-import-for-var
-                                      #(refactor/find-missing-symbol! (current-editor)))
-                         (command-for 'hotload-dependency
-                                      #(refactor/hotload! (current-editor))))))))
+(defn before [done]
+  (deactivate nil)
+  (done)
+  (activate nil)
+  (println "Reloaded"))
