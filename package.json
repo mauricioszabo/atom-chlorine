@@ -1,35 +1,49 @@
 {
-  "name": "clojure-plus",
-  "main": "./lib/clojure-plus",
+  "name": "clojure-plus-reloaded",
+  "main": "./lib/main",
   "version": "0.3.0",
   "description": "Extensions to proto-repl, to be more configurable",
   "keywords": [],
-  "repository": "https://github.com/mauricioszabo/clojure-plus",
+  "repository": "https://github.com/mauricioszabo/clojure-plus-reloaded",
   "license": "MIT",
   "engines": {
     "atom": ">=1.0.0 <2.0.0"
   },
   "dependencies": {
     "atom-space-pen-views": "^2.2.0",
-    "parinfer": "^1.8.1"
+    "create-react-class": "^15.6.3",
+    "react": "^16.4.2",
+    "react-dom": "^16.4.2"
+  },
+  "activationCommands": {
+    "atom-workspace": "clojure-plus-reloaded:toggle"
   },
   "providedServices": {
     "everything.search": {
       "versions": {
-        "0.1.0": "everythingProvider"
+        "0.1.0": "everything-provider"
+      }
+    },
+    "autocomplete.provider": {
+      "versions": {
+        "3.0.0": "autocomplete-provider"
       }
     }
   },
   "consumedServices": {
     "status-bar": {
       "versions": {
-        "^1.0.0": "statusBarConsumer"
+        "^1.0.0": "status-bar-consumer"
       }
     },
     "ink": {
       "versions": {
-        "^0.1.0": "consumeInk"
+        "^0.1.0": "ink-consumer"
       }
     }
+  },
+  "devDependencies": {
+    "source-map-support": "^0.5.9",
+    "ws": "^6.0.0"
   }
 }
