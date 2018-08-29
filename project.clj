@@ -14,7 +14,7 @@
                                   [check "0.0.2-SNAPSHOT"]
                                   ; [com.cemerick/piggieback "0.2.1"]
                                   ; [figwheel-sidecar "0.5.4-6"]
-                                  [thheller/shadow-cljs "2.6.3"]]}}
+                                  [thheller/shadow-cljs "2.6.4"]]}}
                    ; :plugins [[lein-midje "3.2.1"]]}}
 
   :source-paths ["lib" "src"]
