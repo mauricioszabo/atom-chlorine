@@ -19,13 +19,14 @@
   (obj [_] obj)
   (tag [_] (str "#" tag " ")))
 
-(def InkResult (-> js/ink .-Result))
+(defonce ink (atom nil))
 
 (defn new-result [editor row]
-  (InkResult. editor #js [0 row] #js {:type "inline"}))
+  (let [InkResult (.-Result @ink)]
+    (InkResult. editor #js [0 row] #js {:type "block"})))
 
 (defn- ink-tree [header elements block?]
-  (cond-> (-> js/ink .-tree (.treeView header (clj->js elements)))
+  (cond-> (-> @ink .-tree (.treeView header (clj->js elements)))
           block? (doto (-> .-classList (.add "line")))))
 
 (defn set-content [result header elements]
