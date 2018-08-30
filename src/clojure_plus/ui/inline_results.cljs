@@ -23,7 +23,7 @@
 
 (defn new-result [editor row]
   (let [InkResult (.-Result @ink)]
-    (InkResult. editor #js [0 row] #js {:type "block"})))
+    (InkResult. editor #js [row row] #js {:type "block"})))
 
 (defn- ink-tree [header elements block?]
   (cond-> (-> @ink .-tree (.treeView header (clj->js elements)))
@@ -87,3 +87,6 @@
 (defn set-content! [result result-tree]
   (let [contents (to-html result-tree)]
     (.setContent result contents #js {:error false})))
+
+(defn render-error [result error])
+  
