@@ -5,3 +5,9 @@
                                 :cljs-eval nil
                                 :clj-aux nil
                                 :cljs-aux nil}}))
+
+#_
+(reset! state {:repls {:clj-eval nil
+                       :cljs-eval nil
+                       :clj-aux nil
+                       :cljs-aux nil}})

@@ -12,13 +12,16 @@
                       (assoc-in [:repls :clj-eval] r1)
                       (assoc-in [:repls :clj-aux] r2)))))
 
-(defn evaluate [editor ns-name row col code callback]
+(defn evaluate [editor ns-name filename row col code callback]
   (some-> @state :repls :clj-eval
           (eval/evaluate code
                          {:ns ns-name :row row :col col}
                          callback)))
 
 (defn set-inline-result [inline-result eval-result]
+  (def eval-result eval-result)
+  (def inline-result inline-result)
+  ; (prn [:RES eval-result])
   (let [tree (inline/parse (:result eval-result))]
     (inline/set-content! inline-result tree)))
 
