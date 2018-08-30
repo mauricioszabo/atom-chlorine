@@ -12,6 +12,3 @@
                                           (str "clojure-plus-reloaded:" name)
                                           f))]
     (.add @subscriptions disp)))
-
-(defn aux [param]
-  (println "Some" param))

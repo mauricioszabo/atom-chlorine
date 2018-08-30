@@ -1,6 +1,7 @@
 (ns clojure-plus.core
   (:require [clojure-plus.aux :as aux]
-            [clojure-plus.ui.connection :as conn]))
+            [clojure-plus.ui.connection :as conn]
+            [clojure-plus.providers-consumers.status-bar :as sbar]))
   ; (:require [cljs.nodejs :as nodejs]
   ;           [clojure-plus.repl :as repl]
   ;           [clojure-plus.refactor-nrepl :as refactor]))
@@ -63,6 +64,7 @@
 
 (defn deactivate [s]
   (.dispose @aux/subscriptions))
+  ; (some-> @sbar/status-bar-tile .destroy))
 
 (defn before [done]
   (deactivate nil)
