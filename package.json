@@ -21,24 +21,24 @@
   "providedServices": {
     "everything.search": {
       "versions": {
-        "0.1.0": "everything-provider"
+        "0.1.0": "everything_provider"
       }
     },
     "autocomplete.provider": {
       "versions": {
-        "3.0.0": "autocomplete-provider"
+        "3.0.0": "autocomplete_provider"
       }
     }
   },
   "consumedServices": {
     "status-bar": {
       "versions": {
-        "^1.0.0": "status-bar-consumer"
+        "^1.0.0": "status_bar_consumer"
       }
     },
     "ink": {
       "versions": {
-        "^0.1.0": "ink-consumer"
+        "^0.1.0": "ink_consumer"
       }
     }
   },
