@@ -19,11 +19,9 @@
                          callback)))
 
 (defn set-inline-result [inline-result eval-result]
-  (def eval-result eval-result)
-  (def inline-result inline-result)
-  ; (prn [:RES eval-result])
-  (let [tree (inline/parse (:result eval-result))]
-    (inline/set-content! inline-result tree)))
+  (if-let [res (:result eval-result)]
+    (inline/render-result! inline-result res)
+    (inline/render-error! inline-result (:error eval-result))))
 
 (defn eval-and-present [editor ns-name filename row col code]
   (let [result (inline/new-result editor row)]
@@ -31,6 +29,8 @@
             (eval/evaluate code
                            {:ns ns-name :row row :col col :filename filename}
                            #(set-inline-result result %)))))
+
+(eval-and-present (js/ce) "repl" "src/clojure_plus/repl.cljs" 100 0 "(/ 10 0)")
 
 ; (defonce repl (-> (js/require "../clojure-plus")
 ;                   .getCommands .-promisedRepl))

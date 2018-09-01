@@ -13,9 +13,14 @@ atom-text-editor {
   }
 }
 
-div.ink.error {
-  a { color: #cc0000; }
-  .fade { color: #999999; }
+.ink div.clojure-plus.error {
+  strong.error-description {
+    font-weight: 900;
+  }
+
+  div.stacktrace {
+    margin-left: 1em;
+  }
 }
 
 .ink.tree.line {

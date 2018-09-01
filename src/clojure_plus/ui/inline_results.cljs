@@ -1,7 +1,10 @@
 (ns clojure-plus.ui.inline-results
-    (:require [cljs.reader :as reader]
-              [clojure.string :as str]
-              [clojure.walk :as walk]))
+  (:require [cljs.reader :as reader]
+            [clojure.string :as str]
+            [reagent.core :as r]
+            [clojure.walk :as walk]
+            [repl-tooling.eval :as eval]
+            [clojure-plus.state :refer [state]]))
 
 (defprotocol Taggable
   (obj [this])
@@ -22,12 +25,13 @@
 (defonce ink (atom nil))
 
 (defn new-result [editor row]
-  (let [InkResult (.-Result @ink)]
+  (when-let [InkResult (some-> @ink .-Result)]
     (InkResult. editor #js [row row] #js {:type "block"})))
 
 (defn- ink-tree [header elements block?]
-  (cond-> (-> @ink .-tree (.treeView header (clj->js elements)))
-          block? (doto (-> .-classList (.add "line")))))
+  (when @ink
+    (cond-> (-> @ink .-tree (.treeView header (clj->js elements)))
+            block? (doto (-> .-classList (.add "line"))))))
 
 (defn set-content [result header elements]
   (let [contents (ink-tree header elements true)]
@@ -88,5 +92,58 @@
   (let [contents (to-html result-tree)]
     (.setContent result contents #js {:error false})))
 
-(defn render-error [result error])
-  
+(defn- read-result [res]
+  (try
+    (reader/read-string {:default default-tag} res)
+    (catch :default _
+      nil)))
+
+(defn- get-more [path command]
+  (let [with-res (fn [{:keys [result]}]
+                   (let [res (read-result result)]
+                     (cond
+                       (map? @path) (swap! path merge res)
+                       (vector? @path) (swap! path #(-> % butlast (concat res) vec))
+                       :else (swap! path #(-> % butlast (concat res))))))]
+    (some-> @state :repls :clj-eval (eval/evaluate command {} with-res))))
+
+(defn- parse-stack [path stack]
+  (if (and (map? stack) (:repl-tooling/... stack))
+    {:contents "..." :fn #(get-more path (:repl-tooling/... stack))}
+    (let [[class method file num] stack]
+      (when-not (re-find #"unrepl\.repl\$" (str class))
+        {:contents (str "in " (demunge class) " (" method ") at " file ":" num)}))))
+
+(defn- stack-line [idx piece]
+  [:div {:key idx}
+   (if-let [fun (:fn piece)]
+     [:a {:on-click fun} (:contents piece)]
+     (:contents piece))])
+
+(defn- error-view [error]
+  (let [ex (:ex @error)
+        [cause & vias] (:via ex)
+        path (r/cursor error [:ex :trace])
+        stacks (->> @path
+                    (map (partial parse-stack path))
+                    (filter identity))]
+    [:div
+     [:strong {:class "error-description"} (str (:type cause)
+                                                ": "
+                                                (:message cause))]
+     [:div {:class "stacktrace"}
+      (map stack-line (range) stacks)]]))
+
+(defn render-error! [result error]
+  (let [div (. js/document (createElement "div"))
+        res (r/atom (read-result error))]
+    (r/render [error-view res] div)
+    (.. div -classList (add "error" "clojure-plus"))
+    (.setContent result div #js {:error true})))
+
+(defn render-result! [result eval-result]
+  (let [div (. js/document (createElement "div"))
+        res (r/atom (read-result eval-result))]
+    (r/render [error-view res] div)
+    (.. div -classList (add "result" "clojure-plus"))
+    (.setContent result div #js {:error false})))
