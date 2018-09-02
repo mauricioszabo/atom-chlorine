@@ -98,9 +98,10 @@
     (catch :default _
       nil)))
 
-(defn- get-more [path command]
+(defn- get-more [path command wrap?]
   (let [with-res (fn [{:keys [result]}]
-                   (let [res (read-result result)]
+                   (let [res (cond->> (read-result result)
+                                      wrap? (map #(hash-map :contents %)))]
                      (cond
                        (map? @path) (swap! path merge res)
                        (vector? @path) (swap! path #(-> % butlast (concat res) vec))
@@ -109,7 +110,7 @@
 
 (defn- parse-stack [path stack]
   (if (and (map? stack) (:repl-tooling/... stack))
-    {:contents "..." :fn #(get-more path (:repl-tooling/... stack))}
+    {:contents "..." :fn #(get-more path (:repl-tooling/... stack) false)}
     (let [[class method file num] stack]
       (when-not (re-find #"unrepl\.repl\$" (str class))
         {:contents (str "in " (demunge class) " (" method ") at " file ":" num)}))))
@@ -141,9 +142,49 @@
     (.. div -classList (add "error" "clojure-plus"))
     (.setContent result div #js {:error true})))
 
+(defn- expand [parent]
+  (if (contains? @parent :children)
+    (swap! parent dissoc :children)
+    (let [children (mapv (fn [c] {:contents c}) (:contents @parent))]
+      (swap! parent assoc :children children))))
+
+(defn- as-tree-element [edn result]
+  (let [tag (when (instance? WithTag edn) (tag edn))
+        edn (cond-> edn (instance? WithTag edn) obj)]
+    (-> edn
+        pr-str
+        (str/replace #"\{:repl-tooling/\.\.\. .+?\}" "...")
+        (->> (str tag)))))
+
+(defn- result-view [parent key]
+  (let [result (r/cursor parent key)
+        r @result
+        _ (prn @result)
+        contents (:contents r)
+        is-more? (and (map? contents) (-> contents keys (= [:repl-tooling/...])))
+        keys-of #(if (-> r :children map?)
+                   (-> r :children keys)
+                   (-> r :children keys count range))]
+    [:div {:key (str key)}
+     (when (-> (not is-more?) (and (coll? contents)))
+       [:span
+        [:a {:on-click #(expand result)} [:span {:class ["icon" (if (contains? r :children)
+                                                                  "icon-chevron-down"
+                                                                  "icon-chevron-right")]}]]
+        " "])
+     (if is-more?
+       [:a {:on-click #(get-more (r/cursor parent [:children])
+                                 (:repl-tooling/... contents)
+                                 true)}
+           (to-str contents)]
+       (to-str contents))
+     (when (contains? r :children)
+       [:div {:class "children"}
+        (doall (map #(result-view result [:children %]) (keys-of)))])]))
+
 (defn render-result! [result eval-result]
   (let [div (. js/document (createElement "div"))
-        res (r/atom (read-result eval-result))]
-    (r/render [error-view res] div)
+        res (r/atom [{:contents (read-result eval-result)}])]
+    (r/render [result-view res [0]] div)
     (.. div -classList (add "result" "clojure-plus"))
     (.setContent result div #js {:error false})))

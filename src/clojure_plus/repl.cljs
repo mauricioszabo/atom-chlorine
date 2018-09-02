@@ -30,7 +30,11 @@
                            {:ns ns-name :row row :col col :filename filename}
                            #(set-inline-result result %)))))
 
-(eval-and-present (js/ce) "repl" "src/clojure_plus/repl.cljs" 100 0 "(/ 10 0)")
+; (eval-and-present (js/ce) "repl" "src/clojure_plus/repl.cljs" 141 0 "[1 2 3 4 5]")
+(eval-and-present (js/ce) "repl" "src/clojure_plus/repl.cljs" 141 0 "(range)")
+; (eval-and-present (js/ce) "repl" "src/clojure_plus/repl.cljs" 141 0 "{:a 10 :b 20 :c 30 :d [30 10 20 30]}")
+; (eval-and-present (js/ce) "repl" "src/clojure_plus/repl.cljs" 141 0 "{:a 10 :b 20 :c 30 :d 900}")
+; (eval-and-present (js/ce) "repl" nil 148 0 "[1 2 3 [4 5 6 [7 8]]]")
 
 ; (defonce repl (-> (js/require "../clojure-plus")
 ;                   .getCommands .-promisedRepl))
