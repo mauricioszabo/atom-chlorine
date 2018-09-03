@@ -12,12 +12,12 @@
                       (assoc-in [:repls :clj-eval] r1)
                       (assoc-in [:repls :clj-aux] r2)))))
 
-(defn evaluate [editor ns-name filename row col code callback]
-  (some-> @state :repls :clj-eval
-          (eval/evaluate code
-                         {:ns ns-name :row row :col col}
-                         callback)))
-
+; (defn evaluate [editor ns-name filename row col code callback]
+;   (some-> @state :repls :clj-eval
+;           (eval/evaluate code
+;                          {:ns ns-name :row row :col col}
+;                          callback)))
+;
 (defn set-inline-result [inline-result eval-result]
   (if-let [res (:result eval-result)]
     (inline/render-result! inline-result res)
@@ -29,6 +29,48 @@
             (eval/evaluate code
                            {:namespace ns-name :row row :col col :filename filename}
                            #(set-inline-result result %)))))
+
+(defn- ns-for [editor]
+  (.. js/protoRepl -EditorUtils (findNsDeclaration editor)))
+
+(defn- current-editor []
+  (.. js/atom -workspace getActiveTextEditor))
+
+(defn evaluate-top-block!
+  ([] (evaluate-top-block! (current-editor)))
+  ([editor]
+   (let [range (.. js/protoRepl -EditorUtils
+                   (getCursorInBlockRange editor #js {:topLevel true}))
+         code (.getTextInBufferRange editor range)]
+     (eval-and-present editor
+                       (ns-for editor)
+                       (.getFileName editor)
+                       (.. range -end -row) (.. range -end -column) code))))
+
+(defn evaluate-block!
+  ([] (evaluate-block! (current-editor)))
+  ([editor]
+   (let [range (.. js/protoRepl -EditorUtils
+                   (getCursorInBlockRange editor))
+         code (.getTextInBufferRange editor range)]
+     (eval-and-present editor
+                       (ns-for editor)
+                       (.getFileName editor)
+                       (.. range -end -row) (.. range -end -column) code))))
+
+(defn evaluate-selection!
+  ([] (evaluate-selection! (current-editor)))
+  ([editor]
+   (let [end (.. editor getSelectedBufferRange -end)
+         row (.-row end)
+         col (.-column end)
+         code (.getSelectedText editor)]
+     (eval-and-present editor
+                       (ns-for editor)
+                       (.getFileName editor)
+                       row col code))))
+
+
 
 ; (eval-and-present (js/ce) "repl" "src/clojure_plus/repl.cljs" 141 0 "[1 2 3 4 5]")
 

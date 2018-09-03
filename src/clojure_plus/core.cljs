@@ -1,7 +1,8 @@
 (ns clojure-plus.core
   (:require [clojure-plus.aux :as aux]
             [clojure-plus.ui.connection :as conn]
-            [clojure-plus.providers-consumers.status-bar :as sbar]))
+            [clojure-plus.providers-consumers.status-bar :as sbar]
+            [clojure-plus.repl :as repl]))
   ; (:require [cljs.nodejs :as nodejs]
   ;           [clojure-plus.repl :as repl]
   ;           [clojure-plus.refactor-nrepl :as refactor]))
@@ -57,7 +58,11 @@
   (aux/reload-subscriptions!)
 
   (aux/command-for "connect-socket-repl" conn/connect!)
-  (aux/command-for "disconnect" conn/disconnect!))
+  (aux/command-for "disconnect" conn/disconnect!)
+
+  (aux/command-for "evaluate-block" #(repl/evaluate-block!))
+  (aux/command-for "evaluate-top-block" #(repl/evaluate-top-block!))
+  (aux/command-for "evaluate-selection" #(repl/evaluate-selection!)))
 
 (defn deactivate [s]
   (.dispose @aux/subscriptions))
