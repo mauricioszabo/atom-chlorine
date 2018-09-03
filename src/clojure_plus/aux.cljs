@@ -1,4 +1,5 @@
-(ns clojure-plus.aux)
+(ns clojure-plus.aux
+  (:require [clojure-plus.state :refer [state]]))
 
 (def ^:private atom-ed (js/require "atom"))
 (def ^:private CompositeDisposable (.-CompositeDisposable atom-ed))
@@ -12,3 +13,13 @@
                                           (str "clojure-plus-reloaded:" name)
                                           f))]
     (.add @subscriptions disp)))
+
+(defn save-focus! [elem]
+  (when (-> @state :last-focus nil?)
+    (swap! state assoc :last-focus (.-activeElement js/document)))
+  (js/setTimeout #(.focus (.querySelector elem "input")) 100))
+
+(defn refocus! []
+  (when-let [elem (:last-focus @state)]
+    (.focus elem)
+    (swap! state dissoc :last-focus)))

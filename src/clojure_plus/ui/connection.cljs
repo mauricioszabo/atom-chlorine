@@ -2,7 +2,8 @@
   (:require [reagent.core :as r]
             [cljsjs.react :as react]
             [clojure-plus.repl :as repl]
-            [clojure-plus.state :refer [state]]))
+            [clojure-plus.state :refer [state]]
+            [clojure-plus.aux :as aux]))
 
 (defonce local-state
   (r/atom {:hostname "localhost"
@@ -25,14 +26,18 @@
    ; [:div
     ; [:button.btn.btn-primary "Connect"]]])
 
+(defn destroy! [panel]
+  (.destroy panel)
+  (aux/refocus!))
+
 (defn- repl-connect! [panel]
   (repl/connect! (:hostname @local-state) (:port @local-state))
-  (.destroy panel))
+  (destroy! panel))
 
 (defn- treat-tab [panel event]
   (println "key press" (.-key event))
   (case (.-key event)
-    "Escape" (.destroy panel)
+    "Escape" (destroy! panel)
     "Enter" (repl-connect! panel)
     :no-op))
 
@@ -43,6 +48,7 @@
   (let [div (. js/document (createElement "div"))
         panel (.. js/atom -workspace (addModalPanel #js {:item div}))]
     (r/render [view] div)
+    (aux/save-focus! div)
     (doseq [elem (-> div (.querySelectorAll "input") as-clj)]
       (aset elem "onkeydown" (partial treat-tab panel)))))
 
@@ -53,5 +59,11 @@
 
 Please, disconnect the current REPL if you want to connect to another REPL"}))
     (conn-view)))
+
+
+(reset! state {:repls {:clj-eval nil
+                       :cljs-eval nil
+                       :clj-aux nil
+                       :cljs-aux nil}})
 
 (connect!)
