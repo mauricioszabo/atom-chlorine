@@ -61,8 +61,20 @@
       (coll? edn) [txt (mapv to-tree edn)]
       :else [txt])))
 
+(defn- as-obj [unrepl-obj]
+  (let [tag? (and (vector? unrepl-obj) (->> unrepl-obj first (instance? WithTag)))]
+    (if (and tag? (-> unrepl-obj first tag (= "#class ")))
+      (-> unrepl-obj (nth 2) symbol
+          (vector (nth unrepl-obj 3))
+          (WithTag. "java.instance"))
+      unrepl-obj)))
+
 (defn- default-tag [tag data]
-  (WithTag. data tag))
+  (case (str tag)
+    "clojure/var" (->> data (str "#'") symbol)
+    "unrepl/object" (as-obj data)
+    "unrepl.java/class" (WithTag. data "class")
+    (WithTag. data tag)))
 
 (defn parse [edn-string]
   (try
@@ -96,7 +108,7 @@
   (try
     (reader/read-string {:default default-tag} res)
     (catch :default _
-      nil)))
+      (symbol res))))
 
 (defn- get-more [path command wrap?]
   (let [with-res (fn [{:keys [result]}]
