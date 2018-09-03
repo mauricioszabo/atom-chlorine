@@ -53,14 +53,11 @@
 (defn toggle []
   (println "baka"))
 
-(defn connect-socket []
-  (println "Connect Socket REPL"))
-
 (defn activate [s]
   (aux/reload-subscriptions!)
 
-  (aux/command-for "toggle" toggle)
-  (aux/command-for "connect-socket-repl" connect-socket))
+  (aux/command-for "connect-socket-repl" conn/connect!)
+  (aux/command-for "disconnect" conn/disconnect!))
 
 (defn deactivate [s]
   (.dispose @aux/subscriptions))

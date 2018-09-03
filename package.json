@@ -16,7 +16,7 @@
     "react-dom": "^16.4.2"
   },
   "activationCommands": {
-    "atom-workspace": "clojure-plus-reloaded:toggle"
+    "atom-workspace": "clojure-plus-reloaded:connect-socket-repl"
   },
   "providedServices": {
     "everything.search": {
@@ -43,8 +43,8 @@
     }
   },
   "devDependencies": {
+    "shadow-cljs": "^2.6.6",
     "source-map-support": "^0.5.9",
-    "ws": "^6.0.0",
-    "shadow-cljs": "^2.6.4"
+    "ws": "^6.0.0"
   }
 }

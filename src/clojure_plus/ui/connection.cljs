@@ -3,6 +3,7 @@
             [cljsjs.react :as react]
             [clojure-plus.repl :as repl]
             [clojure-plus.state :refer [state]]
+            [repl-tooling.repl-client :as repl-client]
             [clojure-plus.aux :as aux]))
 
 (defonce local-state
@@ -23,8 +24,6 @@
                         :placeholder "port"
                         :value (:port @local-state)
                         :on-change #(swap! local-state assoc :port (-> % .-target .-value int))}]]])
-   ; [:div
-    ; [:button.btn.btn-primary "Connect"]]])
 
 (defn destroy! [panel]
   (.destroy panel)
@@ -59,10 +58,12 @@
 Please, disconnect the current REPL if you want to connect to another REPL"}))
     (conn-view)))
 
-
-(reset! state {:repls {:clj-eval nil
-                       :cljs-eval nil
-                       :clj-aux nil
-                       :cljs-aux nil}})
-
-(connect!)
+(defn disconnect! []
+  (repl-client/disconnect! :clj-eval)
+  (repl-client/disconnect! :clj-aux)
+  (repl-client/disconnect! :cljs-eval)
+  (repl-client/disconnect! :cljs-aux)
+  (swap! state assoc :repls {:clj-eval nil
+                             :cljs-eval nil
+                             :clj-aux nil
+                             :cljs-aux nil}))
