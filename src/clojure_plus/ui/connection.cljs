@@ -34,8 +34,7 @@
   (repl/connect! (:hostname @local-state) (:port @local-state))
   (destroy! panel))
 
-(defn- treat-tab [panel event]
-  (println "key press" (.-key event))
+(defn- treat-key [panel event]
   (case (.-key event)
     "Escape" (destroy! panel)
     "Enter" (repl-connect! panel)
@@ -50,7 +49,7 @@
     (r/render [view] div)
     (aux/save-focus! div)
     (doseq [elem (-> div (.querySelectorAll "input") as-clj)]
-      (aset elem "onkeydown" (partial treat-tab panel)))))
+      (aset elem "onkeydown" (partial treat-key panel)))))
 
 (defn connect! []
   (if (-> @state :repls :clj-eval)
