@@ -101,11 +101,16 @@
 (defn- get-more [path command wrap?]
   (let [with-res (fn [{:keys [result]}]
                    (let [res (cond->> (read-result result)
-                                      wrap? (map #(hash-map :contents %)))]
-                     (cond
-                       (map? @path) (swap! path merge res)
-                       (vector? @path) (swap! path #(-> % butlast (concat res) vec))
-                       :else (swap! path #(-> % butlast (concat res))))))]
+                                      wrap? (map #(hash-map :contents %)))
+                         tagged? (instance? WithTag @path)
+                         obj (cond-> @path tagged? obj)
+                         merged (cond
+                                  (map? obj) (merge obj res)
+                                  (vector? obj) (-> obj butlast (concat res) vec)
+                                  :else (-> obj butlast (concat res)))]
+                     (if tagged?
+                       (reset! path (WithTag. merged (tag @path)))
+                       (reset! path merged))))]
     (some-> @state :repls :clj-eval (eval/evaluate command {} with-res))))
 
 (defn- parse-stack [path stack]
@@ -122,6 +127,8 @@
      (:contents piece))])
 
 (defn- error-view [error]
+  (when (instance? WithTag (:ex @error))
+    (swap! error update :ex obj))
   (let [ex (:ex @error)
         [cause & vias] (:via ex)
         path (r/cursor error [:ex :trace])
@@ -145,7 +152,9 @@
 (defn- expand [parent]
   (if (contains? @parent :children)
     (swap! parent dissoc :children)
-    (let [children (mapv (fn [c] {:contents c}) (:contents @parent))]
+    (let [contents (:contents @parent)
+          to-get (cond-> contents (instance? WithTag contents) obj)
+          children (mapv (fn [c] {:contents c}) to-get)]
       (swap! parent assoc :children children))))
 
 (defn- as-tree-element [edn result]
@@ -159,14 +168,14 @@
 (defn- result-view [parent key]
   (let [result (r/cursor parent key)
         r @result
-        _ (prn @result)
         contents (:contents r)
         is-more? (and (map? contents) (-> contents keys (= [:repl-tooling/...])))
         keys-of #(if (-> r :children map?)
                    (-> r :children keys)
                    (-> r :children keys count range))]
     [:div {:key (str key)}
-     (when (-> (not is-more?) (and (coll? contents)))
+     (when (-> (not is-more?) (and (or (instance? WithTag contents)
+                                       (coll? contents))))
        [:span
         [:a {:on-click #(expand result)} [:span {:class ["icon" (if (contains? r :children)
                                                                   "icon-chevron-down"
