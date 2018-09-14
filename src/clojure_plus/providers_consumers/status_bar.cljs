@@ -7,10 +7,17 @@
 
 (defn- view []
   [:div {:style {:padding-left "2px" :padding-right "2px"}}
-   [:img {:src (str "file://" js/__dirname "/clj.png") :width 18}]
-   (if (-> @state :repls :clj-eval)
-     [:span " CLJ connected"]
-     [:span " -_-zZ"])])
+   (when (-> @state :repls :clj-eval)
+     [:span
+      " "
+      [:img {:src (str "file://" js/__dirname "/clj.png") :width 18}]
+      " CLJ connected"])
+
+   (when (-> @state :repls :cljs-eval)
+     [:span
+      " "
+      [:img {:src (str "file://" js/__dirname "/cljs.png") :width 18}]
+      " CLJS connected"])])
 
 (defn activate [s]
   (println "ACTIVATE STATUS")
