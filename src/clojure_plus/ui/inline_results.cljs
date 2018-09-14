@@ -39,10 +39,13 @@
 
 (defn- to-str [edn]
   (let [tag (when (instance? WithTag edn) (tag edn))
-        edn (cond-> edn (instance? WithTag edn) obj)]
+        edn (cond-> edn (instance? WithTag edn) obj)
+        start (if-let [more (get edn {:repl-tooling/... nil})]
+                (-> edn (dissoc {:repl-tooling/... nil})
+                    pr-str (str/replace-first #"\}$" " ...}"))
+                (pr-str edn))]
 
-    (-> edn
-        pr-str
+    (-> start
         (str/replace #"\{:repl-tooling/\.\.\. .+?\}" "...")
         (->> (str tag)))))
 
@@ -62,26 +65,20 @@
       :else [txt])))
 
 (defn- as-obj [unrepl-obj]
-  (let [tag? (and (vector? unrepl-obj) (->> unrepl-obj first (instance? WithTag)))]
+  (let [tag? (and unrepl-obj (vector? unrepl-obj) (->> unrepl-obj first (instance? WithTag)))]
+    (prn ["TAG?" tag?])
     (if (and tag? (-> unrepl-obj first tag (= "#class ")))
-      (-> unrepl-obj (nth 2) symbol
-          (vector (nth unrepl-obj 3))
-          (WithTag. "java.instance"))
+      (let [[f s] unrepl-obj]
+        (prn [:OBJ (symbol (str (obj f) "@" s))])
+        (symbol (str (obj f) "@" s)))
       unrepl-obj)))
 
 (defn- default-tag [tag data]
   (case (str tag)
     "clojure/var" (->> data (str "#'") symbol)
-    "unrepl/object" (as-obj data)
+    ; "unrepl/object" (as-obj data)
     "unrepl.java/class" (WithTag. data "class")
     (WithTag. data tag)))
-
-(defn parse [edn-string]
-  (try
-    (let [edn (reader/read-string {:default default-tag} edn-string)]
-      (to-tree edn))
-    (catch :default _
-      (to-tree (symbol edn-string)))))
 
 (defn- leaf [text]
   (doto (.createElement js/document "div")
@@ -104,22 +101,28 @@
   (let [contents (to-html result-tree)]
     (.setContent result contents #js {:error false})))
 
-(defn- read-result [res]
+(defn read-result [res]
   (try
     (reader/read-string {:default default-tag} res)
     (catch :default _
       (symbol res))))
 
+(defn put-more-to-end [contents]
+  (if-let [get-more (get contents {:repl-tooling/... nil})]
+    (-> contents (dissoc {:repl-tooling/... nil}) vec (conj get-more))
+    contents))
+
 (defn- get-more [path command wrap?]
   (let [with-res (fn [{:keys [result]}]
-                   (let [res (cond->> (read-result result)
+                   (let [res (cond->> (put-more-to-end (read-result result))
                                       wrap? (map #(hash-map :contents %)))
                          tagged? (instance? WithTag @path)
                          obj (cond-> @path tagged? obj)
+                         ; FIXME: this cond is unnecessary, but it will stay here because
+                         ; I want to be sure
                          merged (cond
-                                  (map? obj) (merge obj res)
                                   (vector? obj) (-> obj butlast (concat res) vec)
-                                  :else (-> obj butlast (concat res)))]
+                                  :else (throw (ex-info "NOT FOUND!!! FIX IT" {})))]
                      (if tagged?
                        (reset! path (WithTag. merged (tag @path)))
                        (reset! path merged))))]
@@ -165,8 +168,10 @@
   (if (contains? @parent :children)
     (swap! parent dissoc :children)
     (let [contents (:contents @parent)
+          tag? (instance? WithTag contents)
+          tag-or-map? (or (map? contents) (and tag? (-> contents obj map?)))
           to-get (cond-> contents (instance? WithTag contents) obj)
-          children (mapv (fn [c] {:contents c}) to-get)]
+          children (mapv (fn [c] {:contents c}) (put-more-to-end to-get))]
       (swap! parent assoc :children children))))
 
 (defn- as-tree-element [edn result]
@@ -177,6 +182,13 @@
         (str/replace #"\{:repl-tooling/\.\.\. .+?\}" "...")
         (->> (str tag)))))
 
+(defn- coll-views [result]
+  [:span
+   [:a {:on-click #(expand result)}
+    [:span {:class ["icon" (if (contains? @result :children)
+                               "icon-chevron-down"
+                               "icon-chevron-right")]}]]])
+
 (defn- result-view [parent key]
   (let [result (r/cursor parent key)
         r @result
@@ -185,20 +197,19 @@
         keys-of #(if (-> r :children map?)
                    (-> r :children keys)
                    (-> r :children keys count range))]
+
     [:div {:key (str key)}
-     (when (-> (not is-more?) (and (or (instance? WithTag contents)
-                                       (coll? contents))))
-       [:span
-        [:a {:on-click #(expand result)} [:span {:class ["icon" (if (contains? r :children)
-                                                                  "icon-chevron-down"
-                                                                  "icon-chevron-right")]}]]
-        " "])
-     (if is-more?
-       [:a {:on-click #(get-more (r/cursor parent [:children])
-                                 (:repl-tooling/... contents)
-                                 true)}
-           (to-str contents)]
-       (to-str contents))
+     [:div {:style {:display "flex"}}
+      (when (and (not is-more?)
+                 (or (instance? WithTag contents) (coll? contents)))
+        [coll-views result])
+      [:span {:style {:white-space "nowrap"}}
+       (if is-more?
+         [:a {:on-click #(get-more (r/cursor parent [:children])
+                                   (:repl-tooling/... contents)
+                                   true)}
+          (to-str contents)]
+         (to-str contents))]]
      (when (contains? r :children)
        [:div {:class "children"}
         (doall (map #(result-view result [:children %]) (keys-of)))])]))

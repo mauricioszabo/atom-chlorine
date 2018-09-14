@@ -6,11 +6,25 @@
             [clojure-plus.ui.inline-results :as inline]))
 
 (defn connect! [host port]
-  (let [r1 (clj-repl/repl :clj-eval host port println)
-        r2 (clj-repl/repl :clj-aux host port println)]
-    (swap! state #(-> %
-                      (assoc-in [:repls :clj-eval] r1)
-                      (assoc-in [:repls :clj-aux] r2)))))
+  ; FIXME: Fix this `println`
+  (let [aux (clj-repl/repl :clj-aux host port println)
+        connect-primary (fn [_]
+                          (let [repl (clj-repl/repl :clj-eval host port #(do
+                                                                           (prn [:STDOUT %])
+                                                                           (when-let [out (:out %)]
+                                                                             (.stdout js/protoRepl out))))]
+                            (swap! state #(-> %
+                                              (assoc-in [:repls :clj-eval] repl)
+                                              (assoc-in [:repls :clj-aux] aux)))))]
+
+    (eval/evaluate aux ":done" {} connect-primary)))
+
+                      ; (assoc-in [:repls :clj-aux] r2)))))
+  ; (let [r1 (clj-repl/repl :clj-eval host port println)]
+  ;       ; r2 (clj-repl/repl :clj-aux host port println)]
+  ;   (swap! state #(-> %
+  ;                     (assoc-in [:repls :clj-eval] r1)))))
+  ;                     ; (assoc-in [:repls :clj-aux] r2)))))
 
 ; (defn evaluate [editor ns-name filename row col code callback]
 ;   (some-> @state :repls :clj-eval
@@ -30,7 +44,12 @@
                            {:namespace ns-name :row row :col col :filename filename}
                            #(set-inline-result result %)))))
 
-(defn- ns-for [editor]
+(defn top-level-code [editor range]
+  (let [range (.. js/protoRepl -EditorUtils
+                  (getCursorInBlockRange editor #js {:topLevel true}))]
+    [range (some->> range (.getTextInBufferRange editor))]))
+
+(defn ns-for [editor]
   (.. js/protoRepl -EditorUtils (findNsDeclaration editor)))
 
 (defn- current-editor []
