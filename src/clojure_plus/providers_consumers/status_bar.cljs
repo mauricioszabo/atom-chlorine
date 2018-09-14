@@ -6,7 +6,7 @@
 (defonce status-bar-tile (atom nil))
 
 (defn- view []
-  [:div {:style {:padding-left "2px" :padding-right "2px"}}
+  [:div
    (when (-> @state :repls :clj-eval)
      [:span
       " "
@@ -14,8 +14,7 @@
       " CLJ connected"])
 
    (when (-> @state :repls :cljs-eval)
-     [:span
-      " "
+     [:span {:style {:margin-left "13px"}}
       [:img {:src (str "file://" js/__dirname "/cljs.png") :width 18}]
       " CLJS connected"])])
 
