@@ -16,7 +16,10 @@
     "react-dom": "^16.4.2"
   },
   "activationCommands": {
-    "atom-workspace": "clojure-plus-reloaded:connect-socket-repl"
+    "atom-workspace": [
+      "clojure-plus-reloaded:connect-clojure-socket-repl",
+      "clojure-plus-reloaded:connect-clojurescript-socket-repl"
+    ]
   },
   "providedServices": {
     "everything.search": {
@@ -26,7 +29,7 @@
     },
     "autocomplete.provider": {
       "versions": {
-        "3.0.0": "autocomplete_provider"
+        "4.0.0": "autocomplete_provider"
       }
     }
   },
