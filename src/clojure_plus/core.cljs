@@ -57,7 +57,9 @@
 (defn activate [s]
   (aux/reload-subscriptions!)
 
-  (aux/command-for "connect-socket-repl" conn/connect!)
+  (aux/command-for "connect-clojure-socket-repl" conn/connect!)
+  (aux/command-for "connect-clojurescript-socket-repl" identity)
+  (aux/command-for "connect-self-hosted-clojurescript-repl" conn/connect-self-hosted!)
   (aux/command-for "disconnect" conn/disconnect!)
 
   (aux/command-for "evaluate-block" #(repl/evaluate-block!))

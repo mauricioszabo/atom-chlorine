@@ -19,7 +19,6 @@
       " CLJS connected"])])
 
 (defn activate [s]
-  (println "ACTIVATE STATUS")
   (swap! status-bar #(or % s))
   (let [div (. js/document (createElement "div"))]
     ; FIXME: Remove, debug info!

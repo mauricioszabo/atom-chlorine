@@ -3,7 +3,9 @@
             [cljsjs.react :as react]
             [clojure-plus.repl :as repl]
             [clojure-plus.state :refer [state]]
+            [clojure-plus.ui.atom :as atom]
             [repl-tooling.repl-client :as repl-client]
+            [repl-tooling.repl-client.clojure :as clj-repl]
             [clojure-plus.aux :as aux]))
 
 (defonce local-state
@@ -33,37 +35,51 @@
   (repl/connect! (:hostname @local-state) (:port @local-state))
   (destroy! panel))
 
-(defn- treat-key [panel event]
+(defn- treat-key [cmd panel event]
   (case (.-key event)
     "Escape" (destroy! panel)
-    "Enter" (repl-connect! panel)
+    "Enter" (cmd panel)
     :no-op))
 
 (defn- as-clj [nodelist]
   (js->clj (.. js/Array -prototype -slice (call nodelist))))
 
-(defn conn-view []
+(defn conn-view [cmd]
   (let [div (. js/document (createElement "div"))
         panel (.. js/atom -workspace (addModalPanel #js {:item div}))]
     (r/render [view] div)
     (aux/save-focus! div)
     (doseq [elem (-> div (.querySelectorAll "input") as-clj)]
-      (aset elem "onkeydown" (partial treat-key panel)))))
+      (aset elem "onkeydown" (partial treat-key cmd panel)))))
+
+(defn- already-connected []
+  (atom/warn "REPL already connected"
+             (str "REPL is already connected.\n\n"
+                  "Please, disconnect the current REPL "
+                  "if you want to connect to another REPL")))
 
 (defn connect! []
-  (if (-> @state :repls :clj-eval)
-    (.. js/atom -notifications (addWarning "REPL already connected"
-                                           #js {:detail "REPL is already connected.
+  (if (-> @state :repls :clj-eval nil?)
+    (conn-view repl-connect!)
+    (already-connected)))
 
-Please, disconnect the current REPL if you want to connect to another REPL"}))
-    (conn-view)))
+(defn connect-self-hosted! []
+  (cond
+    (-> @state :repls :clj-eval nil?) (atom/warn "REPL not connected"
+                                                 (str "To connect a self-hosted REPL, "
+                                                      "you first need to connect a "
+                                                      "Clojure REPL"))
+    (-> @state :repls :cljs-eval nil?) (repl/connect-self-hosted)
+    :else (already-connected)))
 
 (defn disconnect! []
   (repl-client/disconnect! :clj-eval)
   (repl-client/disconnect! :clj-aux)
   (repl-client/disconnect! :cljs-eval)
   (repl-client/disconnect! :cljs-aux)
-  (swap! state assoc :repls {:clj-eval nil
-                             :cljs-eval nil
-                             :clj-aux nil
-                             :cljs-aux nil}))
+  (swap! state assoc
+         :repls {:clj-eval nil
+                 :cljs-eval nil
+                 :clj-aux nil
+                 :cljs-aux nil}
+         :connection nil))
