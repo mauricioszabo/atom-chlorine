@@ -18,5 +18,5 @@
                                   [thheller/shadow-cljs "2.6.6"]]}}
                    ; :plugins [[lein-midje "3.2.1"]]}}
 
-  :source-paths ["lib" "src"]
+  :source-paths ["lib" "src" "repl-tooling/src" "repl-tooling/test"]
   :clean-targets ^{:protect false} ["lib/js"])
