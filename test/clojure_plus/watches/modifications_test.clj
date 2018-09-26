@@ -1,6 +1,6 @@
-(ns clojure-plus.watches.modifications-test
+(ns clojure-plus.watches.modifications-test)
   (:require [midje.sweet :refer :all]
-            [clojure-plus.watches.modifications :as mods]))
+            [clojure-plus.watches.modifications :as mods])
 
 (def clj-text "
 (let [a (+ b c)]

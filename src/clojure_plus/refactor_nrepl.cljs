@@ -14,8 +14,11 @@
         range (-> editor .getLastCursor (.getCurrentWordBufferRange #js {:wordRegex regex}))]
     [range (.getTextInBufferRange editor range)]))
 
+(defn- info-msg [title msg]
+  (-> js/atom .-notifications (.addInfo title #js {:detail msg})))
+
 (defn- error-msg [title msg]
-  (-> js/atom .-notifications (.addError title #js {:details msg})))
+  (-> js/atom .-notifications (.addError title #js {:detail msg})))
 
 (defn- ns-range [editor]
   (let [top-levels (-> js/protoRepl .-EditorUtils (.getTopLevelRanges editor))]
@@ -115,3 +118,14 @@
 (defn find-missing-symbol! [editor]
   (let [[range var] (range-and-var editor)]
     (missing-view editor range var)))
+
+(defn- run-hotload! [text]
+  (repl/execute-cmd `(refactor-nrepl.artifacts/hotload-dependency
+                      {:coordinates ~text})
+                    (fn [res]
+                      (if-let [result (:value res)]
+                        (info-msg "Loaded dependency" result)
+                        (error-msg "Unable to hotload" res)))))
+
+(defn hotload! [editor]
+  (-> editor .getSelectedText run-hotload!))

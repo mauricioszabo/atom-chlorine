@@ -1,0 +1,39 @@
+;; shadow-cljs configuration
+{:source-paths
+ ["src"
+  "test"]
+
+ :dependencies
+ [;[repl-tooling "0.0.1-SNAPSHOT"]
+  [cider/cider-nrepl "0.17.0"]
+  [check "0.0.2-SNAPSHOT"]
+  [org.clojure/tools.nrepl "0.2.12"]
+  [proto-repl "0.3.1"]
+  [org.clojure/tools.namespace "0.2.11"]
+  [reagent "0.8.1"]
+  [org.clojure/core.async "0.4.474"]
+  [cljsjs/react "16.4.1-0"]]
+
+ :lein true
+
+ :builds
+ {:dev {:target :node-library
+        :exports {:config clojure-plus.core/config
+                  :activate clojure-plus.core/activate
+                  :deactivate clojure-plus.core/deactivate
+
+                  :everything-provider
+                  clojure-plus.providers-consumers.everything/activate
+
+                  :autocomplete-provider
+                  clojure-plus.providers-consumers.autocomplete/provider
+
+                  :status-bar-consumer
+                  clojure-plus.providers-consumers.status-bar/activate
+
+                  :ink-consumer
+                  clojure-plus.providers-consumers.ink/activate}
+
+        :output-dir "lib/js"
+        :output-to "lib/main.js"
+        :devtools {:before-load-async clojure-plus.core/before}}}}
