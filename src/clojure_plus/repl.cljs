@@ -6,39 +6,27 @@
             [clojure-plus.ui.inline-results :as inline]
             [clojure-plus.ui.atom :as atom]))
 
-(defn- get-two-repls [host port callback]
-  ; FIXME: Fix this `println`
-  (let [aux (clj-repl/repl :clj-aux host port println)
-        connect-primary (fn [_]
-                          (let [repl (clj-repl/repl :clj-eval host port #(do
-                                                                           (prn [:STDOUT %])
-                                                                           (when-let [out (:out %)]
-                                                                             (.stdout js/protoRepl out))))]
-                            (callback repl aux)))]
-
-    (eval/evaluate aux ":done" {} connect-primary)))
-
 (defn connect! [host port]
   ; FIXME: Fix this `println`
   (let [aux (clj-repl/repl :clj-aux host port println)
-        connect-primary (fn [_]
-                          (let [repl (clj-repl/repl :clj-eval host port #(do
-                                                                           (prn [:STDOUT %])
-                                                                           (when-let [out (:out %)]
-                                                                             (.stdout js/protoRepl out))))]
-                            (swap! state #(-> %
-                                              (assoc-in [:repls :clj-eval] repl)
-                                              (assoc-in [:repls :clj-aux] aux)
-                                              (assoc :connection {:host host :port port})))
-                            (eval/evaluate repl ":done" {}
-                                           #(atom/info "Clojure REPL connected" ""))))]
+        primary (clj-repl/repl :clj-eval host port #(do
+                                                      (prn [:STDOUT %])
+                                                      (when-let [out (:out %)]
+                                                        (.stdout js/protoRepl out))))]
 
-    (eval/evaluate aux ":done" {} connect-primary)))
+    (eval/evaluate aux ":done" {} #(swap! state assoc-in [:repls :clj-aux] aux))
+    (eval/evaluate primary ":ok2" {} (fn []
+                                       (atom/info "Clojure REPL connected" "")
+                                       (swap! state
+                                              #(-> %
+                                                   (assoc-in [:repls :clj-eval] primary)
+                                                   (assoc :connection {:host host
+                                                                       :port port})))))))
 
 #_#_#_
 (ns clojure-plus.repl)
 (swap! state assoc-in [:repls :cljs-eval] nil)
-(/ 10 0)
+(throw (ex-info "WOW" {:a "B"}))
 
 (defn connect-self-hosted []
   (let [code `(do (clojure.core/require '[shadow.cljs.devtools.api])
