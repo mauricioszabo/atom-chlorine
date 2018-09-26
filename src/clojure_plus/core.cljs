@@ -51,9 +51,6 @@
 
 (def config #js {})
 
-(defn toggle []
-  (println "baka"))
-
 (defn activate [s]
   (aux/reload-subscriptions!)
 
