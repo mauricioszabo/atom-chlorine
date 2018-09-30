@@ -15,18 +15,26 @@
         [row col] (if range
                     [(- (.-row bufferPosition) (.. range -start -row))
                      (.-column bufferPosition)]
-                    [0 0])]
+                    [0 0])
+        ns-name (repl/ns-for editor)
+        clj-completions (delay
+                         (some-> @state :repls :clj-aux
+                                 (compl/complete ns-name (str text) prefix row col)
+                                 (.then #(->> %
+                                              (map (fn [{:keys [candidate type]}]
+                                                     {:text candidate
+                                                      :type type
+                                                      :replacementPrefix prefix}))))))]
 
-    (some-> @state :repls :clj-aux (compl/complete (repl/ns-for editor)
-                                                   (str text)
-                                                   prefix
-                                                   row col)
-            (.then #(->> %
-                         (mapv (fn [{:keys [candidate type]}]
-                                {:text candidate
-                                 :type type
-                                 :replacementPrefix prefix}))))
-            (.then clj->js))))
+    (if (repl/need-cljs? editor)
+      (some-> @state :repls :cljs-eval
+              (compl/complete ns-name (str text) prefix row col)
+              (.then #(->> %
+                        (map (fn [res] {:text res
+                                        :type "function"
+                                        :replacementPrefix prefix}))
+                        clj->js)))
+      (.then @clj-completions clj->js))))
 
 
 (def sug (atom suggestions))
