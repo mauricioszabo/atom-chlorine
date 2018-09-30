@@ -23,17 +23,11 @@
                                                    (assoc :connection {:host host
                                                                        :port port})))))))
 
-#_#_#_
-(ns clojure-plus.repl)
-(swap! state assoc-in [:repls :cljs-eval] nil)
-(throw (ex-info "WOW" {:a "B"}))
-
 (defn connect-self-hosted []
   (let [code `(do (clojure.core/require '[shadow.cljs.devtools.api])
                 (shadow.cljs.devtools.api/repl :dev))
         {:keys [host port]} (:connection @state)
         repl (clj-repl/repl :clj-aux host port #(prn [:CLJS-REL %]))]
-    ; (eval/evaluate repl code {} println)
 
     (. (clj-repl/self-host repl code)
       (then #(do
@@ -45,7 +39,7 @@
     (inline/render-result! inline-result res)
     (inline/render-error! inline-result (:error eval-result))))
 
-(defn- need-cljs? [editor]
+(defn need-cljs? [editor]
   (or
    (= (:eval-mode @state) :cljs)
    (and (= (:eval-mode @state) :discover)
