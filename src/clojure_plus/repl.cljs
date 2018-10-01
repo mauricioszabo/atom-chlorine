@@ -3,6 +3,7 @@
             [repl-tooling.eval :as eval]
             [repl-tooling.repl-client.clojure :as clj-repl]
             [clojure-plus.state :refer [state]]
+            [repl-tooling.editor-helpers :as helpers]
             [clojure-plus.ui.inline-results :as inline]
             [clojure-plus.ui.atom :as atom]))
 
@@ -45,23 +46,32 @@
    (and (= (:eval-mode @state) :discover)
         (str/ends-with? (.getFileName editor) ".cljs"))))
 
-(defn- eval-cljs [editor ns-name filename row col code result]
+(defn- eval-cljs [editor ns-name filename row col code result callback]
   (if-let [repl (-> @state :repls :cljs-eval)]
     (eval/evaluate repl code
                    {:namespace ns-name :row row :col col :filename filename}
                    #(set-inline-result result %))
     (do
-      (.destroy result)
+      (some-> result .destroy)
       (atom/error "REPL not connected"
                   (str "REPL not connected for ClojureScript.\n\n"
                        "You can connect a repl using "
                        "'Connect ClojureScript Socket REPL' command,"
                        "or 'Connect a self-hosted ClojureScript' command")))))
 
+(defn evaluate-aux [editor ns-name filename row col code callback]
+  (if (need-cljs? editor)
+    (eval-cljs editor ns-name filename row col code nil #(-> % helpers/parse-result callback))
+    (some-> @state :repls :clj-aux
+            (eval/evaluate code
+                           {:namespace ns-name :row row :col col :filename filename}
+                           #(-> % helpers/parse-result callback)))))
+
+
 (defn eval-and-present [editor ns-name filename row col code]
   (let [result (inline/new-result editor row)]
     (if (need-cljs? editor)
-      (eval-cljs editor ns-name filename row col code result)
+      (eval-cljs editor ns-name filename row col code result #(set-inline-result result %))
       (some-> @state :repls :clj-eval
               (eval/evaluate code
                              {:namespace ns-name :row row :col col :filename filename}

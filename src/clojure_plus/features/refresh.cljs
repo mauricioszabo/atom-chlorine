@@ -6,7 +6,12 @@
 (defn full-command []
   '(do
      (require '[clojure.tools.namespace.repl])
-     (clojure.tools.namespace.repl/refresh-all)))
+     (alter-var-root #'clojure.test/*load-tests* (constantly false))
+     (try
+       (clojure.tools.namespace.repl/refresh-all)
+       (finally
+        (alter-var-root #'clojure.test/*test-out* (constantly *out*))
+        (alter-var-root #'clojure.test/*load-tests* (constantly true))))))
 
 (defn- refresh-editor [editor mode]
   (when-not (repl/need-cljs? editor)
@@ -15,7 +20,7 @@
                  (str "(require '[" ns-name " :reload :all])")
                  (full-command))]
       (repl/evaluate-aux editor ns-name nil nil nil code
-                         #(if-let [res (:result %)]
+                         #(if (-> % :result (= :ok))
                             (atom/info "Refresh Successful" "")
                             (atom/warn "Failed to refresh" (:error %)))))))
 
