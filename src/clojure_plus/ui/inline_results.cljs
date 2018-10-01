@@ -23,7 +23,6 @@
     (.setContent result contents #js {:error false})))
 
 (defn- to-str [edn]
-  (prn [:EDN-TO_STR (type edn)])
   (let [tag (when (instance? editor-helpers/WithTag edn) (editor-helpers/tag edn))
         edn (cond-> edn (instance? editor-helpers/WithTag edn) editor-helpers/obj)
         start (if-let [more (get edn {:repl-tooling/... nil})]
@@ -52,10 +51,8 @@
 
 (defn- as-obj [unrepl-obj]
   (let [tag? (and unrepl-obj (vector? unrepl-obj) (->> unrepl-obj first (instance? editor-helpers/WithTag)))]
-    (prn ["TAG?" tag?])
     (if (and tag? (-> unrepl-obj first editor-helpers/tag (= "#class ")))
       (let [[f s] unrepl-obj]
-        (prn [:OBJ (symbol (str (editor-helpers/obj f) "@" s))])
         (symbol (str (editor-helpers/obj f) "@" s)))
       unrepl-obj)))
 
@@ -165,18 +162,13 @@
 (defn- result-row [is-more? parent result]
   (let [contents (:contents @result)
         with-res (fn [res]
-                   (def res res)
-                   (prn [:RES res])
                    (let [res (editor-helpers/parse-result res)]
-                    (prn [:RES2 res "---" (:result res)]
                      (when-let [string (:result res)]
-                       (prn [:result string (type string)])
-                       (swap! result update :contents editor-helpers/concat-with string)))))
+                       (swap! result update :contents editor-helpers/concat-with string))))
         more-str (fn [command]
                    (some-> @state :repls :clj-eval
                            (eval/evaluate command {} with-res)))]
-    (prn [:CONT contents])
-    [:span {:style {:white-space "nowrap"}}
+    [:span
      (cond
        is-more?
        [:a {:on-click #(get-more (r/cursor parent [:children])
@@ -202,7 +194,6 @@
                    (-> r :children keys)
                    (-> r :children keys count range))]
 
-    (prn [:RENDERING @result])
     [:div {:key (str key)}
      [:div {:style {:display "flex"}}
       (when (and (not is-more?)
