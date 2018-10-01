@@ -4,23 +4,8 @@
             [reagent.core :as r]
             [clojure.walk :as walk]
             [repl-tooling.eval :as eval]
+            [repl-tooling.editor-helpers :as editor-helpers]
             [clojure-plus.state :refer [state]]))
-
-(defprotocol Taggable
-  (obj [this])
-  (tag [this]))
-
-(deftype WithTag [obj tag]
-  IPrintWithWriter
-  (-pr-writer [_ writer opts]
-    (-write writer "#")
-    (-write writer tag)
-    (-write writer " ")
-    (-write writer obj))
-
-  Taggable
-  (obj [_] obj)
-  (tag [_] (str "#" tag " ")))
 
 (defonce ink (atom nil))
 
@@ -38,8 +23,9 @@
     (.setContent result contents #js {:error false})))
 
 (defn- to-str [edn]
-  (let [tag (when (instance? WithTag edn) (tag edn))
-        edn (cond-> edn (instance? WithTag edn) obj)
+  (prn [:EDN-TO_STR (type edn)])
+  (let [tag (when (instance? editor-helpers/WithTag edn) (editor-helpers/tag edn))
+        edn (cond-> edn (instance? editor-helpers/WithTag edn) editor-helpers/obj)
         start (if-let [more (get edn {:repl-tooling/... nil})]
                 (-> edn (dissoc {:repl-tooling/... nil})
                     pr-str (str/replace-first #"\}$" " ...}"))
@@ -58,27 +44,20 @@
 
 (defn- to-tree [edn]
   (let [txt (to-str edn)
-        edn (cond-> edn (instance? WithTag edn) obj)]
+        edn (cond-> edn (instance? editor-helpers/WithTag edn) editor-helpers/obj)]
     (cond
       (map? edn) [txt (mapv as-map edn)]
       (coll? edn) [txt (mapv to-tree edn)]
       :else [txt])))
 
 (defn- as-obj [unrepl-obj]
-  (let [tag? (and unrepl-obj (vector? unrepl-obj) (->> unrepl-obj first (instance? WithTag)))]
+  (let [tag? (and unrepl-obj (vector? unrepl-obj) (->> unrepl-obj first (instance? editor-helpers/WithTag)))]
     (prn ["TAG?" tag?])
-    (if (and tag? (-> unrepl-obj first tag (= "#class ")))
+    (if (and tag? (-> unrepl-obj first editor-helpers/tag (= "#class ")))
       (let [[f s] unrepl-obj]
-        (prn [:OBJ (symbol (str (obj f) "@" s))])
-        (symbol (str (obj f) "@" s)))
+        (prn [:OBJ (symbol (str (editor-helpers/obj f) "@" s))])
+        (symbol (str (editor-helpers/obj f) "@" s)))
       unrepl-obj)))
-
-(defn- default-tag [tag data]
-  (case (str tag)
-    "clojure/var" (->> data (str "#'") symbol)
-    ; "unrepl/object" (as-obj data)
-    "unrepl.java/class" (WithTag. data "class")
-    (WithTag. data tag)))
 
 (defn- leaf [text]
   (doto (.createElement js/document "div")
@@ -101,12 +80,6 @@
   (let [contents (to-html result-tree)]
     (.setContent result contents #js {:error false})))
 
-(defn read-result [res]
-  (try
-    (reader/read-string {:default default-tag} res)
-    (catch :default _
-      (symbol res))))
-
 (defn put-more-to-end [contents]
   (if-let [get-more (get contents {:repl-tooling/... nil})]
     (-> contents (dissoc {:repl-tooling/... nil}) vec (conj get-more))
@@ -114,17 +87,17 @@
 
 (defn- get-more [path command wrap?]
   (let [with-res (fn [{:keys [result]}]
-                   (let [res (cond->> (put-more-to-end (read-result result))
+                   (let [res (cond->> (put-more-to-end (editor-helpers/read-result result))
                                       wrap? (map #(hash-map :contents %)))
-                         tagged? (instance? WithTag @path)
-                         obj (cond-> @path tagged? obj)
+                         tagged? (instance? editor-helpers/WithTag @path)
+                         obj (cond-> @path tagged? editor-helpers/obj)
                          ; FIXME: this cond is unnecessary, but it will stay here because
                          ; I want to be sure
                          merged (cond
                                   (vector? obj) (-> obj butlast (concat res) vec)
                                   :else (throw (ex-info "NOT FOUND!!! FIX IT" {})))]
                      (if tagged?
-                       (reset! path (WithTag. merged (tag @path)))
+                       (reset! path (editor-helpers/WithTag. merged (editor-helpers/tag @path)))
                        (reset! path merged))))]
     (some-> @state :repls :clj-eval (eval/evaluate command {} with-res))))
 
@@ -142,8 +115,8 @@
      (:contents piece))])
 
 (defn- error-view [error]
-  (when (instance? WithTag (:ex @error))
-    (swap! error update :ex obj))
+  (when (instance? editor-helpers/WithTag (:ex @error))
+    (swap! error update :ex editor-helpers/obj))
   (let [ex (:ex @error)
         [cause & vias] (:via ex)
         path (r/cursor error [:ex :trace])
@@ -159,7 +132,7 @@
 
 (defn render-error! [result error]
   (let [div (. js/document (createElement "div"))
-        res (r/atom (read-result error))]
+        res (r/atom (editor-helpers/read-result error))]
     (r/render [error-view res] div)
     (.. div -classList (add "error" "clojure-plus"))
     (.setContent result div #js {:error true})))
@@ -168,15 +141,15 @@
   (if (contains? @parent :children)
     (swap! parent dissoc :children)
     (let [contents (:contents @parent)
-          tag? (instance? WithTag contents)
-          tag-or-map? (or (map? contents) (and tag? (-> contents obj map?)))
-          to-get (cond-> contents (instance? WithTag contents) obj)
+          tag? (instance? editor-helpers/WithTag contents)
+          tag-or-map? (or (map? contents) (and tag? (-> contents editor-helpers/obj map?)))
+          to-get (cond-> contents (instance? editor-helpers/WithTag contents) editor-helpers/obj)
           children (mapv (fn [c] {:contents c}) (put-more-to-end to-get))]
       (swap! parent assoc :children children))))
 
 (defn- as-tree-element [edn result]
-  (let [tag (when (instance? WithTag edn) (tag edn))
-        edn (cond-> edn (instance? WithTag edn) obj)]
+  (let [tag (when (instance? editor-helpers/WithTag edn) (editor-helpers/tag edn))
+        edn (cond-> edn (instance? editor-helpers/WithTag edn) editor-helpers/obj)]
     (-> edn
         pr-str
         (str/replace #"\{:repl-tooling/\.\.\. .+?\}" "...")
@@ -189,6 +162,37 @@
                                "icon-chevron-down"
                                "icon-chevron-right")]}]]])
 
+(defn- result-row [is-more? parent result]
+  (let [contents (:contents @result)
+        with-res (fn [res]
+                   (def res res)
+                   (prn [:RES res])
+                   (let [res (editor-helpers/parse-result res)]
+                    (prn [:RES2 res "---" (:result res)]
+                     (when-let [string (:result res)]
+                       (prn [:result string (type string)])
+                       (swap! result update :contents editor-helpers/concat-with string)))))
+        more-str (fn [command]
+                   (some-> @state :repls :clj-eval
+                           (eval/evaluate command {} with-res)))]
+    (prn [:CONT contents])
+    [:span {:style {:white-space "nowrap"}}
+     (cond
+       is-more?
+       [:a {:on-click #(get-more (r/cursor parent [:children])
+                                 (:repl-tooling/... contents)
+                                 true)}
+        (to-str contents)]
+
+       (instance? editor-helpers/IncompleteStr contents)
+       [:span
+        (str/replace (pr-str contents) #"\.{3}\"$" "")
+        [:a {:on-click #(-> contents meta :get-more more-str)} "..."]
+        "\""]
+
+       :else
+       (to-str contents))]))
+
 (defn- result-view [parent key]
   (let [result (r/cursor parent key)
         r @result
@@ -198,25 +202,22 @@
                    (-> r :children keys)
                    (-> r :children keys count range))]
 
+    (prn [:RENDERING @result])
     [:div {:key (str key)}
      [:div {:style {:display "flex"}}
       (when (and (not is-more?)
-                 (or (instance? WithTag contents) (coll? contents)))
+                 (or (instance? editor-helpers/WithTag contents) (coll? contents)))
         [coll-views result])
-      [:span {:style {:white-space "nowrap"}}
-       (if is-more?
-         [:a {:on-click #(get-more (r/cursor parent [:children])
-                                   (:repl-tooling/... contents)
-                                   true)}
-          (to-str contents)]
-         (to-str contents))]]
+
+      [result-row is-more? parent result]]
+
      (when (contains? r :children)
        [:div {:class "children"}
         (doall (map #(result-view result [:children %]) (keys-of)))])]))
 
 (defn render-result! [result eval-result]
   (let [div (. js/document (createElement "div"))
-        res (r/atom [{:contents (read-result eval-result)}])]
+        res (r/atom [{:contents (editor-helpers/read-result eval-result)}])]
     (r/render [result-view res [0]] div)
     (.. div -classList (add "result" "clojure-plus"))
     (.setContent result div #js {:error false})))
