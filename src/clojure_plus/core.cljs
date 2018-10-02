@@ -3,7 +3,8 @@
             [clojure-plus.ui.connection :as conn]
             [clojure-plus.providers-consumers.status-bar :as sbar]
             [clojure-plus.repl :as repl]
-            [clojure-plus.features.refresh :as refresh]))
+            [clojure-plus.features.refresh :as refresh]
+            [clojure-plus.ui.doc :as doc]))
 
 (def config #js {})
 
@@ -34,7 +35,8 @@
 
   (aux/command-for "evaluate-block" #(repl/evaluate-block!))
   (aux/command-for "evaluate-top-block" #(repl/evaluate-top-block!))
-  (aux/command-for "evaluate-selection" #(repl/evaluate-selection!)))
+  (aux/command-for "evaluate-selection" #(repl/evaluate-selection!))
+  (aux/command-for "doc-for-var" doc/doc))
 
 (defn deactivate [s]
   (.dispose @aux/subscriptions))

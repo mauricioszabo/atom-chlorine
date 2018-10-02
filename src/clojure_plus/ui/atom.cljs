@@ -8,3 +8,15 @@
 
 (defn info [title text]
   (.. js/atom -notifications (addInfo title #js {:detail text})))
+
+(defn current-editor []
+  (.. js/atom -workspace getActiveTextEditor))
+
+(defn current-pos [editor]
+  (let [point (.getCursorBufferPosition editor)]
+    [(.-row point) (.-column point)]))
+
+(def clj-var-regex #"[a-zA-Z0-9\-.$!?\/><*=_:]+")
+
+(defn current-var [editor]
+  (.. editor (getWordUnderCursor #js {:wordRegex clj-var-regex})))
