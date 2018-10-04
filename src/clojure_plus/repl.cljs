@@ -3,49 +3,32 @@
             [repl-tooling.eval :as eval]
             [repl-tooling.repl-client.clojure :as clj-repl]
             [clojure-plus.state :refer [state]]
+            [repl-tooling.editor-helpers :as helpers]
             [clojure-plus.ui.inline-results :as inline]
             [clojure-plus.ui.atom :as atom]))
-
-(defn- get-two-repls [host port callback]
-  ; FIXME: Fix this `println`
-  (let [aux (clj-repl/repl :clj-aux host port println)
-        connect-primary (fn [_]
-                          (let [repl (clj-repl/repl :clj-eval host port #(do
-                                                                           (prn [:STDOUT %])
-                                                                           (when-let [out (:out %)]
-                                                                             (.stdout js/protoRepl out))))]
-                            (callback repl aux)))]
-
-    (eval/evaluate aux ":done" {} connect-primary)))
 
 (defn connect! [host port]
   ; FIXME: Fix this `println`
   (let [aux (clj-repl/repl :clj-aux host port println)
-        connect-primary (fn [_]
-                          (let [repl (clj-repl/repl :clj-eval host port #(do
-                                                                           (prn [:STDOUT %])
-                                                                           (when-let [out (:out %)]
-                                                                             (.stdout js/protoRepl out))))]
-                            (swap! state #(-> %
-                                              (assoc-in [:repls :clj-eval] repl)
-                                              (assoc-in [:repls :clj-aux] aux)
-                                              (assoc :connection {:host host :port port})))
-                            (eval/evaluate repl ":done" {}
-                                           #(atom/info "Clojure REPL connected" ""))))]
+        primary (clj-repl/repl :clj-eval host port #(do
+                                                      (prn [:STDOUT %])
+                                                      (when-let [out (:out %)]
+                                                        (.stdout js/protoRepl out))))]
 
-    (eval/evaluate aux ":done" {} connect-primary)))
-
-#_#_#_
-(ns clojure-plus.repl)
-(swap! state assoc-in [:repls :cljs-eval] nil)
-(/ 10 0)
+    (eval/evaluate aux ":done" {} #(swap! state assoc-in [:repls :clj-aux] aux))
+    (eval/evaluate primary ":ok2" {} (fn []
+                                       (atom/info "Clojure REPL connected" "")
+                                       (swap! state
+                                              #(-> %
+                                                   (assoc-in [:repls :clj-eval] primary)
+                                                   (assoc :connection {:host host
+                                                                       :port port})))))))
 
 (defn connect-self-hosted []
   (let [code `(do (clojure.core/require '[shadow.cljs.devtools.api])
                 (shadow.cljs.devtools.api/repl :dev))
         {:keys [host port]} (:connection @state)
         repl (clj-repl/repl :clj-aux host port #(prn [:CLJS-REL %]))]
-    ; (eval/evaluate repl code {} println)
 
     (. (clj-repl/self-host repl code)
       (then #(do
@@ -57,29 +40,38 @@
     (inline/render-result! inline-result res)
     (inline/render-error! inline-result (:error eval-result))))
 
-(defn- need-cljs? [editor]
+(defn need-cljs? [editor]
   (or
    (= (:eval-mode @state) :cljs)
    (and (= (:eval-mode @state) :discover)
         (str/ends-with? (.getFileName editor) ".cljs"))))
 
-(defn- eval-cljs [editor ns-name filename row col code result]
+(defn- eval-cljs [editor ns-name filename row col code result callback]
   (if-let [repl (-> @state :repls :cljs-eval)]
     (eval/evaluate repl code
                    {:namespace ns-name :row row :col col :filename filename}
                    #(set-inline-result result %))
     (do
-      (.destroy result)
+      (some-> result .destroy)
       (atom/error "REPL not connected"
                   (str "REPL not connected for ClojureScript.\n\n"
                        "You can connect a repl using "
                        "'Connect ClojureScript Socket REPL' command,"
                        "or 'Connect a self-hosted ClojureScript' command")))))
 
+(defn evaluate-aux [editor ns-name filename row col code callback]
+  (if (need-cljs? editor)
+    (eval-cljs editor ns-name filename row col code nil #(-> % helpers/parse-result callback))
+    (some-> @state :repls :clj-aux
+            (eval/evaluate code
+                           {:namespace ns-name :row row :col col :filename filename}
+                           #(-> % helpers/parse-result callback)))))
+
+
 (defn eval-and-present [editor ns-name filename row col code]
   (let [result (inline/new-result editor row)]
     (if (need-cljs? editor)
-      (eval-cljs editor ns-name filename row col code result)
+      (eval-cljs editor ns-name filename row col code result #(set-inline-result result %))
       (some-> @state :repls :clj-eval
               (eval/evaluate code
                              {:namespace ns-name :row row :col col :filename filename}

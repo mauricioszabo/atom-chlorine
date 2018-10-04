@@ -7,3 +7,4 @@ target
 .figwheel*
 figwheel*
 lib/js
+src/repl_tooling
