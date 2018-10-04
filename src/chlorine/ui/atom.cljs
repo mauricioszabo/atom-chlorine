@@ -1,4 +1,4 @@
-(ns clojure-plus.ui.atom)
+(ns chlorine.ui.atom)
 
 (defn warn [title text]
   (.. js/atom -notifications (addWarning title #js {:detail text})))

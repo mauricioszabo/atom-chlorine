@@ -1,10 +1,11 @@
-(ns clojure-plus.core
-  (:require [clojure-plus.aux :as aux]
-            [clojure-plus.ui.connection :as conn]
-            [clojure-plus.providers-consumers.status-bar :as sbar]
-            [clojure-plus.repl :as repl]
-            [clojure-plus.features.refresh :as refresh]
-            [clojure-plus.ui.doc :as doc]))
+(ns chlorine.core
+  (:require [chlorine.aux :as aux]
+            [chlorine.ui.connection :as conn]
+            [chlorine.providers-consumers.status-bar :as sbar]
+            [chlorine.repl :as repl]
+            [chlorine.features.refresh :as refresh]
+            [chlorine.ui.doc :as doc]
+            [chlorine.ui.console :as console]))
 
 (def config #js {})
 
@@ -13,10 +14,10 @@
     (.add @aux/subscriptions (.onDidSave editor #(refresh/run-refresh!)))))
       ; editor.onDidChangeGrammar (e) =>
       ;   grammarCode(editor, e)
-      ;   @updateStatusbar(atom.config.get("clojure-plus.simpleRefresh"), editor)
+      ;   @updateStatusbar(atom.config.get("chlorine.simpleRefresh"), editor)
       ;
       ; editor.onDidSave =>
-      ;   if atom.config.get('clojure-plus.refreshAfterSave') && editor.getGrammar().scopeName == 'source.clojure'
+      ;   if atom.config.get('chlorine.refreshAfterSave') && editor.getGrammar().scopeName == 'source.clojure'
       ;     @getCommands().runRefresh()))
 
 (defn- observe-editors []
@@ -27,6 +28,7 @@
 (defn activate [s]
   (aux/reload-subscriptions!)
   (observe-editors)
+  (console/register-console)
 
   (aux/command-for "connect-clojure-socket-repl" conn/connect!)
   (aux/command-for "connect-clojurescript-socket-repl" identity)

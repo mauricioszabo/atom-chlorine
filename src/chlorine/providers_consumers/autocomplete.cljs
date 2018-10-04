@@ -1,10 +1,10 @@
-(ns clojure-plus.providers-consumers.autocomplete
+(ns chlorine.providers-consumers.autocomplete
   (:require [clojure.walk :as walk]
             [clojure.string :as str]
-            [clojure-plus.repl :as repl]
-            [clojure-plus.state :refer [state]]
+            [chlorine.repl :as repl]
+            [chlorine.state :refer [state]]
             [repl-tooling.eval :as eval]
-            [clojure-plus.ui.inline-results :as inline]
+            [chlorine.ui.inline-results :as inline]
             [repl-tooling.features.autocomplete :as compl]))
 
 (def clj-var-regex #"[a-zA-Z0-9\-.$!?\/><*=_:]+")

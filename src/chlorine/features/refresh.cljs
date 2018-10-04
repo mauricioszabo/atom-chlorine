@@ -1,7 +1,7 @@
-(ns clojure-plus.features.refresh
-  (:require [clojure-plus.state :refer [state]]
-            [clojure-plus.ui.atom :as atom]
-            [clojure-plus.repl :as repl]))
+(ns chlorine.features.refresh
+  (:require [chlorine.state :refer [state]]
+            [chlorine.ui.atom :as atom]
+            [chlorine.repl :as repl]))
 
 (defn full-command []
   '(do

@@ -1,7 +1,7 @@
-(ns clojure-plus.ui.doc
-  (:require [clojure-plus.repl :as repl]
+(ns chlorine.ui.doc
+  (:require [chlorine.repl :as repl]
             [repl-tooling.editor-helpers :as editor-helpers]
-            [clojure-plus.ui.atom :as atom]))
+            [chlorine.ui.atom :as atom]))
 
 (defn doc-for [editor row var-name]
   (let [ns-name (repl/ns-for editor)

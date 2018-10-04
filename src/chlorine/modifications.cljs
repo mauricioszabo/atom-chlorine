@@ -1,5 +1,7 @@
-(ns clojure-plus.watches.modifications
-  (:require [clojure.string :as str]))
+(ns chlorine.modifications
+ (:require [clojure.string :as str]))
+
+(def AtomRange (.-Range (js/require "atom")))
 
 (defn rewrite-once [text {:keys [replace start end]}]
   (str (subs text 0 start)
@@ -9,3 +11,6 @@
 (defn rewrite-txt [original-txt replacements]
   (let [sorted (sort-by #(- (:start %)) replacements)]
     (reduce rewrite-once original-txt sorted)))
+
+;(defn rewrite [original-txt replacements]
+;  (let [range (AtomRange.)]))

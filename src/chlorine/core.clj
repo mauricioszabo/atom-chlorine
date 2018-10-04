@@ -1,4 +1,4 @@
-(ns clojure-plus.core)
+(ns chlorine.core)
 
 (defmacro defcmd [name & cmds]
   `(do

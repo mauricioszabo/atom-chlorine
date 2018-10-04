@@ -1,12 +1,12 @@
-(ns clojure-plus.ui.connection
+(ns chlorine.ui.connection
   (:require [reagent.core :as r]
             [cljsjs.react :as react]
-            [clojure-plus.repl :as repl]
-            [clojure-plus.state :refer [state]]
-            [clojure-plus.ui.atom :as atom]
+            [chlorine.repl :as repl]
+            [chlorine.state :refer [state]]
+            [chlorine.ui.atom :as atom]
             [repl-tooling.repl-client :as repl-client]
             [repl-tooling.repl-client.clojure :as clj-repl]
-            [clojure-plus.aux :as aux]))
+            [chlorine.aux :as aux]))
 
 (defonce local-state
   (r/atom {:hostname "localhost"

@@ -1,4 +1,4 @@
-(ns clojure-plus.state
+(ns chlorine.state
   (:require [reagent.core :as r]))
 
 ; Eval-mode is: discover, clj, cljs

@@ -1,19 +1,25 @@
-(ns clojure-plus.repl
+(ns chlorine.repl
   (:require [clojure.string :as str]
             [repl-tooling.eval :as eval]
             [repl-tooling.repl-client.clojure :as clj-repl]
-            [clojure-plus.state :refer [state]]
+            [chlorine.state :refer [state]]
             [repl-tooling.editor-helpers :as helpers]
-            [clojure-plus.ui.inline-results :as inline]
-            [clojure-plus.ui.atom :as atom]))
+            [chlorine.ui.inline-results :as inline]
+            [chlorine.ui.console :as console]
+            [chlorine.ui.atom :as atom]))
+
+(defn callback [output]
+  (prn [:STDOUT output])
+  (prn [:FOO @console/console])
+  (when-let [out (:out output)]
+    (some-> @console/console (.stdout out))))
+
+(def callback-fn (atom callback))
 
 (defn connect! [host port]
   ; FIXME: Fix this `println`
   (let [aux (clj-repl/repl :clj-aux host port println)
-        primary (clj-repl/repl :clj-eval host port #(do
-                                                      (prn [:STDOUT %])
-                                                      (when-let [out (:out %)]
-                                                        (.stdout js/protoRepl out))))]
+        primary (clj-repl/repl :clj-eval host port #(@callback-fn %))]
 
     (eval/evaluate aux ":done" {} #(swap! state assoc-in [:repls :clj-aux] aux))
     (eval/evaluate primary ":ok2" {} (fn []

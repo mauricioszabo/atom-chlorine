@@ -1,4 +1,4 @@
-(ns clojure-plus.helpers)
+(ns chlorine.helpers)
 
 (def ^:private CompositeDisposable (.-CompositeDisposable (js/require "atom")))
 

@@ -1,4 +1,4 @@
-(ns clojure-plus.ui.select-view)
+(ns chlorine.ui.select-view)
 
 (def SelectListView (.-SelectListView (js/require "atom-space-pen-views")))
 
