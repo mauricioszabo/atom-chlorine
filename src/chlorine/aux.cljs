@@ -1,5 +1,5 @@
-(ns clojure-plus.aux
-  (:require [clojure-plus.state :refer [state]]))
+(ns chlorine.aux
+  (:require [chlorine.state :refer [state]]))
 
 (def ^:private atom-ed (js/require "atom"))
 (def ^:private CompositeDisposable (.-CompositeDisposable atom-ed))
@@ -10,7 +10,7 @@
 
 (defn command-for [name f]
   (let [disp (-> js/atom .-commands (.add "atom-text-editor"
-                                          (str "clojure-plus-reloaded:" name)
+                                          (str "chlorine-reloaded:" name)
                                           f))]
     (.add @subscriptions disp)))
 

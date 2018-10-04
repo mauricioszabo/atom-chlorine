@@ -1,7 +1,6 @@
 ;; shadow-cljs configuration
 {:source-paths
- [
-  "repl-tooling/src"
+ ["repl-tooling/src"
   "repl-tooling/test"
   "src"
   "test"]
@@ -21,22 +20,22 @@
 
  :builds
  {:dev {:target :node-library
-        :exports {:config clojure-plus.core/config
-                  :activate clojure-plus.core/activate
-                  :deactivate clojure-plus.core/deactivate
+        :exports {:config chlorine.core/config
+                  :activate chlorine.core/activate
+                  :deactivate chlorine.core/deactivate
 
                   :everything-provider
-                  clojure-plus.providers-consumers.everything/activate
+                  chlorine.providers-consumers.everything/activate
 
                   :autocomplete-provider
-                  clojure-plus.providers-consumers.autocomplete/provider
+                  chlorine.providers-consumers.autocomplete/provider
 
                   :status-bar-consumer
-                  clojure-plus.providers-consumers.status-bar/activate
+                  chlorine.providers-consumers.status-bar/activate
 
                   :ink-consumer
-                  clojure-plus.providers-consumers.ink/activate}
+                  chlorine.providers-consumers.ink/activate}
 
         :output-dir "lib/js"
         :output-to "lib/main.js"
-        :devtools {:before-load-async clojure-plus.core/before}}}}
+        :devtools {:before-load-async chlorine.core/before}}}}

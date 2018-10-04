@@ -1,6 +1,6 @@
-(ns clojure-plus.refactor-nrepl
-  (:require [clojure-plus.repl :as repl]
-            [clojure-plus.ui.select-view :as sv]
+(ns chlorine.refactor-nrepl
+  (:require [chlorine.repl :as repl]
+            [chlorine.ui.select-view :as sv]
             [cljs.reader :as edn]
             [clojure.string :as str]))
 

@@ -1,6 +1,6 @@
-(ns clojure-plus.socket-repl
+(ns chlorine.socket-repl
   (:require [cljs.reader :as edn]
-            [clojure-plus.ui.inline-results :as inline]
+            [chlorine.ui.inline-results :as inline]
             [repl-tooling.repl-client.clojure :as repl]))
 
 (defonce repl (-> (repl/repl :primary "localhost" 5556 println)

@@ -1,11 +1,11 @@
-(ns clojure-plus.ui.inline-results
+(ns chlorine.ui.inline-results
   (:require [cljs.reader :as reader]
             [clojure.string :as str]
             [reagent.core :as r]
             [clojure.walk :as walk]
             [repl-tooling.eval :as eval]
             [repl-tooling.editor-helpers :as editor-helpers]
-            [clojure-plus.state :refer [state]]))
+            [chlorine.state :refer [state]]))
 
 (defonce ink (atom nil))
 
@@ -111,29 +111,6 @@
      [:a {:on-click fun} (:contents piece)]
      (:contents piece))])
 
-(defn- error-view [error]
-  (when (instance? editor-helpers/WithTag (:ex @error))
-    (swap! error update :ex editor-helpers/obj))
-  (let [ex (:ex @error)
-        [cause & vias] (:via ex)
-        path (r/cursor error [:ex :trace])
-        stacks (->> @path
-                    (map (partial parse-stack path))
-                    (filter identity))]
-    [:div
-     [:strong {:class "error-description"} (str (:type cause)
-                                                ": "
-                                                (:message cause))]
-     [:div {:class "stacktrace"}
-      (map stack-line (range) stacks)]]))
-
-(defn render-error! [result error]
-  (let [div (. js/document (createElement "div"))
-        res (r/atom (editor-helpers/read-result error))]
-    (r/render [error-view res] div)
-    (.. div -classList (add "error" "clojure-plus"))
-    (.setContent result div #js {:error true})))
-
 (defn- expand [parent]
   (if (contains? @parent :children)
     (swap! parent dissoc :children)
@@ -159,7 +136,7 @@
                                "icon-chevron-down"
                                "icon-chevron-right")]}]]])
 
-(defn- result-row [is-more? parent result]
+(defn- string-row [result]
   (let [contents (:contents @result)
         with-res (fn [res]
                    (let [res (editor-helpers/parse-result res)]
@@ -168,22 +145,20 @@
         more-str (fn [command]
                    (some-> @state :repls :clj-eval
                            (eval/evaluate command {} with-res)))]
-    [:span
-     (cond
-       is-more?
-       [:a {:on-click #(get-more (r/cursor parent [:children])
-                                 (:repl-tooling/... contents)
-                                 true)}
-        (to-str contents)]
+    (if (instance? editor-helpers/IncompleteStr contents)
+      [:span
+       (str/replace (pr-str contents) #"\.{3}\"$" "")
+       [:a {:on-click #(-> contents meta :get-more more-str)} "..."]
+       "\""]
+      (to-str contents))))
 
-       (instance? editor-helpers/IncompleteStr contents)
-       [:span
-        (str/replace (pr-str contents) #"\.{3}\"$" "")
-        [:a {:on-click #(-> contents meta :get-more more-str)} "..."]
-        "\""]
-
-       :else
-       (to-str contents))]))
+(defn- result-row [is-more? parent result]
+  (if is-more?
+    [:a {:on-click #(get-more (r/cursor parent [:children])
+                              (-> @result :contents :repl-tooling/...)
+                              true)}
+     (to-str (:contents @result))]
+    (string-row result)))
 
 (defn- result-view [parent key]
   (let [result (r/cursor parent key)
@@ -210,5 +185,29 @@
   (let [div (. js/document (createElement "div"))
         res (r/atom [{:contents (editor-helpers/read-result eval-result)}])]
     (r/render [result-view res [0]] div)
-    (.. div -classList (add "result" "clojure-plus"))
+    (.. div -classList (add "result" "chlorine"))
     (.setContent result div #js {:error false})))
+
+(defn- error-view [error]
+  (when (instance? editor-helpers/WithTag (:ex @error))
+    (swap! error update :ex editor-helpers/obj))
+  (let [ex (:ex @error)
+        [cause & vias] (:via ex)
+        path (r/cursor error [:ex :trace])
+        stacks (->> @path
+                    (map (partial parse-stack path))
+                    (filter identity))]
+    [:div
+     [:strong {:class "error-description"}
+      [:div (:type cause)
+       ": "
+       [string-row (r/atom {:contents (:message cause)})]]]
+     [:div {:class "stacktrace"}
+      (map stack-line (range) stacks)]]))
+
+(defn render-error! [result error]
+  (let [div (. js/document (createElement "div"))
+        res (r/atom (editor-helpers/read-result error))]
+    (r/render [error-view res] div)
+    (.. div -classList (add "error" "chlorine"))
+    (.setContent result div #js {:error true})))

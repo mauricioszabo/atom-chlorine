@@ -1,6 +1,6 @@
-(ns clojure-plus.providers-consumers.status-bar
+(ns chlorine.providers-consumers.status-bar
   (:require [reagent.core :as r]
-            [clojure-plus.state :refer [state]]))
+            [chlorine.state :refer [state]]))
 
 (defonce status-bar (atom nil))
 (defonce status-bar-tile (atom nil))
@@ -23,7 +23,7 @@
   (let [div (. js/document (createElement "div"))]
     ; FIXME: Remove, debug info!
     (def div div)
-    (.. div -classList (add "inline-block" "clojure-plus"))
+    (.. div -classList (add "inline-block" "chlorine"))
     (reset! status-bar-tile (.
                               @status-bar
                               (addRightTile #js {:item div :priority 101})))
