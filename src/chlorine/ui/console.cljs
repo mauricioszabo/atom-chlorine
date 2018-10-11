@@ -21,3 +21,6 @@
         (.. js/atom -workspace (addOpener (fn [uri]
                                             (when (= uri console-uri)
                                               @console))))))
+
+(defn clear []
+  (some-> @console .reset))
