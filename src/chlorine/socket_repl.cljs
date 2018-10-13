@@ -37,12 +37,13 @@
     (evaluate-cljs cmd ns-name opts callback)
     (evaluate-clj cmd ns-name opts callback)))
 
+(def ^:private EditorUtils (js/require "./editor-utils"))
 (defn- get-range [editor which]
   (case which
-    :top-level (-> js/protoRepl .-EditorUtils
+    :top-level (-> EditorUtils
                   (.getCursorInBlockRange editor #js {:topLevel true}))
     :selection (.getSelectedBufferRange editor)
-    (-> js/protoRepl .-EditorUtils (.getCursorInBlockRange editor))))
+    (. EditorUtils (getCursorInBlockRange editor))))
 
 (defn- editor-and-range [opts]
   (let [editor (-> js/atom .-workspace .getActiveTextEditor)]
@@ -56,7 +57,7 @@
         line (-> range .-end .-row)
         command (. editor getTextInBufferRange range)
         result (inline/new-result editor line)]
-    (evaluate command (-> js/protoRepl .-EditorUtils (.findNsDeclaration editor)) opts
+    (evaluate command (. EditorUtils (findNsDeclaration editor)) opts
               (fn [{:keys [value error]}]
                 (if value
                   (create-inline-result value result))))))
