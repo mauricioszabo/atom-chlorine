@@ -38,7 +38,8 @@
   (aux/command-for "evaluate-block" #(repl/evaluate-block!))
   (aux/command-for "evaluate-top-block" #(repl/evaluate-top-block!))
   (aux/command-for "evaluate-selection" #(repl/evaluate-selection!))
-  (aux/command-for "doc-for-var" doc/doc))
+  (aux/command-for "doc-for-var" doc/doc)
+  (aux/command-for "clear-console" console/clear))
 
 (defn deactivate [s]
   (.dispose @aux/subscriptions))
@@ -48,4 +49,5 @@
   (deactivate nil)
   (done)
   (activate nil)
+  (.. js/atom -notifications (addSuccess "Reloaded Chlorine"))
   (println "Reloaded"))
