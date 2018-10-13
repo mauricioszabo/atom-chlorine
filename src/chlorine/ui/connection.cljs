@@ -27,7 +27,7 @@
                         :value (:port @local-state)
                         :on-change #(swap! local-state assoc :port (-> % .-target .-value int))}]]])
 
-(defn destroy! [panel]
+(defn destroy! [^js panel]
   (.destroy panel)
   (aux/refocus!))
 

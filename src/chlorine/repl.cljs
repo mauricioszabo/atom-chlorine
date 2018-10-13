@@ -29,10 +29,10 @@
     (handle-disconnect!))
 
   (when-let [out (:out output)]
-    (some-> @console/console (.stdout out)))
+    (some-> ^js @console/console (.stdout out)))
   (when (:result output)
     (let [[div res] (-> output :result inline/view-for-result)]
-      (some-> @console/console (.result div)))))
+      (some-> ^js @console/console (.result div)))))
 
 (def callback-fn (atom callback))
 
@@ -45,7 +45,7 @@
                                        (atom/info "Clojure REPL connected" "")
                                        (.. js/atom
                                            -workspace
-                                           (open "atom://chlorine/console" 
+                                           (open "atom://chlorine/console"
                                                  #js {:split "right"}))
                                        (swap! state
                                               #(-> %
@@ -75,7 +75,7 @@
    (and (= (:eval-mode @state) :discover)
         (str/ends-with? (.getFileName editor) ".cljs"))))
 
-(defn- eval-cljs [editor ns-name filename row col code result callback]
+(defn- eval-cljs [editor ns-name filename row col code ^js result callback]
   (if-let [repl (-> @state :repls :cljs-eval)]
     (eval/evaluate repl code
                    {:namespace ns-name :row row :col col :filename filename}
@@ -88,7 +88,7 @@
                        "'Connect ClojureScript Socket REPL' command,"
                        "or 'Connect a self-hosted ClojureScript' command")))))
 
-(defn evaluate-aux [editor ns-name filename row col code callback]
+(defn evaluate-aux [^js editor ns-name filename row col code callback]
   (if (need-cljs? editor)
     (eval-cljs editor ns-name filename row col code nil #(-> % helpers/parse-result callback))
     (some-> @state :repls :clj-aux
@@ -97,7 +97,7 @@
                            #(-> % helpers/parse-result callback)))))
 
 
-(defn eval-and-present [editor ns-name filename row col code]
+(defn eval-and-present [^js editor ns-name filename row col code]
   (let [result (inline/new-result editor row)]
     (if (need-cljs? editor)
       (eval-cljs editor ns-name filename row col code result #(set-inline-result result %))
@@ -107,12 +107,12 @@
                              #(set-inline-result result %))))))
 
 (def ^:private EditorUtils (js/require "./editor-utils"))
-(defn top-level-code [editor range]
+(defn top-level-code [^js editor ^js range]
   (let [range (. EditorUtils
                 (getCursorInBlockRange editor #js {:topLevel true}))]
     [range (some->> range (.getTextInBufferRange editor))]))
 
-(defn ns-for [editor]
+(defn ns-for [^js editor]
   (.. EditorUtils (findNsDeclaration editor)))
 
 (defn- current-editor []
@@ -120,7 +120,7 @@
 
 (defn evaluate-top-block!
   ([] (evaluate-top-block! (current-editor)))
-  ([editor]
+  ([^js editor]
    (let [range (. EditorUtils
                  (getCursorInBlockRange editor #js {:topLevel true}))
          code (.getTextInBufferRange editor range)]
@@ -131,7 +131,7 @@
 
 (defn evaluate-block!
   ([] (evaluate-block! (current-editor)))
-  ([editor]
+  ([^js editor]
    (let [range (. EditorUtils
                  (getCursorInBlockRange editor))
          code (.getTextInBufferRange editor range)]
@@ -142,7 +142,7 @@
 
 (defn evaluate-selection!
   ([] (evaluate-selection! (current-editor)))
-  ([editor]
+  ([^js editor]
    (let [end (.. editor getSelectedBufferRange -end)
          row (.-row end)
          col (.-column end)

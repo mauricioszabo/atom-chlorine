@@ -9,11 +9,11 @@
 
 (def clj-var-regex #"[a-zA-Z0-9\-.$!?\/><*=_:]+")
 
-(defn suggestions [{:keys [editor bufferPosition scopeDescriptor prefix activatedManually]}]
+(defn suggestions [{:keys [^js editor ^js bufferPosition scopeDescriptor prefix activatedManually]}]
   (let [prefix (.. editor (getWordUnderCursor #js {:wordRegex clj-var-regex}))
         [range text] (repl/top-level-code editor bufferPosition)
         [row col] (if range
-                    [(- (.-row bufferPosition) (.. range -start -row))
+                    [(- (.-row bufferPosition) (.. ^js range -start -row))
                      (.-column bufferPosition)]
                     [0 0])
         ns-name (repl/ns-for editor)
