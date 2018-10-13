@@ -9,18 +9,9 @@
 
 (defonce ink (atom nil))
 
-(defn new-result [editor row]
-  (when-let [InkResult (some-> @ink .-Result)]
+(defn ^js new-result [^js editor row]
+  (when-let [InkResult (some-> ^js @ink .-Result)]
     (InkResult. editor #js [row row] #js {:type "block"})))
-
-(defn- ink-tree [header elements block?]
-  (when @ink
-    (cond-> (-> @ink .-tree (.treeView header (clj->js elements)))
-            block? (doto (-> .-classList (.add "line"))))))
-
-(defn set-content [result header elements]
-  (let [contents (ink-tree header elements true)]
-    (.setContent result contents #js {:error false})))
 
 (defn- to-str [edn]
   (let [tag (when (instance? editor-helpers/WithTag edn) (editor-helpers/tag edn))
@@ -67,13 +58,7 @@
       (.appendChild div (to-html child)))
     div))
 
-(defn- to-html [[header children]]
-  (cond
-    (empty? children) (leaf header)
-    (= :row header) (html-row children)
-    :else (ink-tree header (mapv to-html children) false)))
-
-(defn set-content! [result result-tree]
+(defn set-content! [^js result result-tree]
   (let [contents (to-html result-tree)]
     (.setContent result contents #js {:error false})))
 
@@ -196,7 +181,7 @@
     (r/render [result-view res [0]] div)
     [div res]))
 
-(defn render-result! [result eval-result]
+(defn render-result! [^js result eval-result]
   (let [[div res] (view-for-result eval-result)]
     (.. div -classList (add "result" "chlorine"))
     (.setContent result div #js {:error false})))
@@ -219,7 +204,7 @@
      [:div {:class "stacktrace"}
       (map stack-line (range) stacks)]]))
 
-(defn render-error! [result error]
+(defn render-error! [^js result error]
   (let [div (. js/document (createElement "div"))
         res (r/atom (editor-helpers/read-result error))]
     (r/render [error-view res] div)

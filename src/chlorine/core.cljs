@@ -9,16 +9,9 @@
 
 (def config #js {})
 
-(defn- subscribe-editor-events [editor]
+(defn- subscribe-editor-events [^js editor]
   (when (-> editor .getGrammar .-scopeName (= "source.clojure"))
-    (.add @aux/subscriptions (.onDidSave editor #(refresh/run-refresh!)))))
-      ; editor.onDidChangeGrammar (e) =>
-      ;   grammarCode(editor, e)
-      ;   @updateStatusbar(atom.config.get("chlorine.simpleRefresh"), editor)
-      ;
-      ; editor.onDidSave =>
-      ;   if atom.config.get('chlorine.refreshAfterSave') && editor.getGrammar().scopeName == 'source.clojure'
-      ;     @getCommands().runRefresh()))
+    (.add ^js @aux/subscriptions (.onDidSave editor #(refresh/run-refresh!)))))
 
 (defn- observe-editors []
   (.add @aux/subscriptions
@@ -42,7 +35,7 @@
   (aux/command-for "clear-console" console/clear))
 
 (defn deactivate [s]
-  (.dispose @aux/subscriptions))
+  (.dispose ^js @aux/subscriptions))
   ; (some-> @sbar/status-bar-tile .destroy))
 
 (defn before [done]

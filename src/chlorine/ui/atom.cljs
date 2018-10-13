@@ -12,11 +12,11 @@
 (defn current-editor []
   (.. js/atom -workspace getActiveTextEditor))
 
-(defn current-pos [editor]
+(defn current-pos [^js editor]
   (let [point (.getCursorBufferPosition editor)]
     [(.-row point) (.-column point)]))
 
 (def clj-var-regex #"[a-zA-Z0-9\-.$!?\/><*=_:]+")
 
-(defn current-var [editor]
+(defn current-var [^js editor]
   (.. editor (getWordUnderCursor #js {:wordRegex clj-var-regex})))

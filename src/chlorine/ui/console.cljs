@@ -4,17 +4,20 @@
 
 (def console-uri "atom://chlorine/console")
 
-(def console
-  (delay
-   (some-> @inline/ink .-Console
-           (.fromId "chlorine")
-           (doto
-            (.getTitle (fn [] "Clojure REPL"))
-            (.activate)
-            (.onEval (fn [ed] (prn [:INSERTED ed])))
-            (.setModes (clj->js [{:name "chlorine"
-                                  :default true
-                                  :grammar "source.clojure"}]))))))
+; Just don't ask, Google Closure Compiler issues...
+
+(defn- from-console-id [^js ink]
+  (-> ink .-Console
+      (.fromId "chlorine")
+      (doto
+       (.getTitle (fn [] "Clojure REPL"))
+       (.activate)
+       (.onEval (fn [ed] (prn [:INSERTED ed])))
+       (.setModes (clj->js [{:name "chlorine"
+                             :default true
+                             :grammar "source.clojure"}])))))
+
+(def console (delay (some-> @inline/ink from-console-id)))
 
 (defn register-console []
   (.add @aux/subscriptions

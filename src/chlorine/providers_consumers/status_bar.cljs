@@ -25,6 +25,6 @@
     (def div div)
     (.. div -classList (add "inline-block" "chlorine"))
     (reset! status-bar-tile (.
-                              @status-bar
+                              ^js @status-bar
                               (addRightTile #js {:item div :priority 101})))
     (r/render [view] div)))

@@ -10,7 +10,6 @@
     "atom": ">=1.0.0 <2.0.0"
   },
   "dependencies": {
-    "atom-space-pen-views": "^2.2.0",
     "create-react-class": "^15.6.3",
     "react": "^16.4.2",
     "react-dom": "^16.4.2"
