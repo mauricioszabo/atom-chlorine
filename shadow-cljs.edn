@@ -20,6 +20,7 @@
 
  :builds
  {:dev {:target :node-library
+        :compiler-options {:infer-externs :auto}
         :exports {:config chlorine.core/config
                   :activate chlorine.core/activate
                   :deactivate chlorine.core/deactivate
