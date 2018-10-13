@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "description": "Socket REPL client for Clojure and ClojureScript",
   "keywords": [],
-  "repository": "https://github.com/mauricioszabo/chlorine",
+  "repository": "https://github.com/mauricioszabo/atom-chlorine",
   "license": "MIT",
   "engines": {
     "atom": ">=1.0.0 <2.0.0"
