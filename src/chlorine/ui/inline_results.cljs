@@ -96,7 +96,7 @@
                      (if tagged?
                        (reset! path (editor-helpers/WithTag. merged (editor-helpers/tag @path)))
                        (reset! path merged))))]
-    (some-> @state :repls :clj-eval (eval/evaluate command {} with-res))))
+    (some-> @state :repls :clj-eval (eval/evaluate command {:ignore true} with-res))))
 
 (defn- parse-stack [path stack]
   (if (and (map? stack) (:repl-tooling/... stack))
@@ -111,7 +111,7 @@
      [:a {:on-click fun} (:contents piece)]
      (:contents piece))])
 
-(defn- expand [parent]
+(defn expand [parent]
   (if (contains? @parent :children)
     (swap! parent dissoc :children)
     (let [contents (:contents @parent)
@@ -144,13 +144,22 @@
                        (swap! result update :contents editor-helpers/concat-with string))))
         more-str (fn [command]
                    (some-> @state :repls :clj-eval
-                           (eval/evaluate command {} with-res)))]
-    (if (instance? editor-helpers/IncompleteStr contents)
-      [:span
+                           (eval/evaluate command {:ignore true} with-res)))]
+    (cond
+      (instance? editor-helpers/IncompleteStr contents)
+      [:span.multiline
        (str/replace (pr-str contents) #"\.{3}\"$" "")
        [:a {:on-click #(-> contents meta :get-more more-str)} "..."]
        "\""]
-      (to-str contents))))
+
+      (instance? editor-helpers/LiteralRender contents)
+      [:span.multiline (to-str contents)]
+
+      (string? contents)
+      [:span.multiline (to-str contents)]
+
+      :else
+      [:span.single-line (to-str contents)])))
 
 (defn- result-row [is-more? parent result]
   (if is-more?
@@ -158,7 +167,7 @@
                               (-> @result :contents :repl-tooling/...)
                               true)}
      (to-str (:contents @result))]
-    (string-row result)))
+    [string-row result]))
 
 (defn- result-view [parent key]
   (let [result (r/cursor parent key)
@@ -181,16 +190,21 @@
        [:div {:class "children"}
         (doall (map #(result-view result [:children %]) (keys-of)))])]))
 
-(defn render-result! [result eval-result]
+(defn view-for-result [eval-result]
   (let [div (. js/document (createElement "div"))
         res (r/atom [{:contents (editor-helpers/read-result eval-result)}])]
     (r/render [result-view res [0]] div)
+    [div res]))
+
+(defn render-result! [result eval-result]
+  (let [[div res] (view-for-result eval-result)]
     (.. div -classList (add "result" "chlorine"))
     (.setContent result div #js {:error false})))
 
 (defn- error-view [error]
   (when (instance? editor-helpers/WithTag (:ex @error))
     (swap! error update :ex editor-helpers/obj))
+  (def ex (:ex @error))
   (let [ex (:ex @error)
         [cause & vias] (:via ex)
         path (r/cursor error [:ex :trace])
@@ -201,7 +215,7 @@
      [:strong {:class "error-description"}
       [:div (:type cause)
        ": "
-       [string-row (r/atom {:contents (:message cause)})]]]
+       [string-row (r/atom {:contents (or (:cause ex) (:message cause))})]]]
      [:div {:class "stacktrace"}
       (map stack-line (range) stacks)]]))
 

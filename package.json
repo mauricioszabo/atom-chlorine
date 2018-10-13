@@ -1,10 +1,10 @@
 {
-  "name": "clojure-plus-reloaded",
+  "name": "chlorine",
   "main": "./lib/main",
-  "version": "0.3.0",
-  "description": "Extensions to proto-repl, to be more configurable",
+  "version": "0.0.1",
+  "description": "Socket REPL client for Clojure and ClojureScript",
   "keywords": [],
-  "repository": "https://github.com/mauricioszabo/clojure-plus-reloaded",
+  "repository": "https://github.com/mauricioszabo/chlorine",
   "license": "MIT",
   "engines": {
     "atom": ">=1.0.0 <2.0.0"
@@ -17,8 +17,8 @@
   },
   "activationCommands": {
     "atom-workspace": [
-      "clojure-plus-reloaded:connect-clojure-socket-repl",
-      "clojure-plus-reloaded:connect-clojurescript-socket-repl"
+      "chlorine:connect-clojure-socket-repl",
+      "chlorine:connect-clojurescript-socket-repl"
     ]
   },
   "providedServices": {

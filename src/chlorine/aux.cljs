@@ -10,7 +10,7 @@
 
 (defn command-for [name f]
   (let [disp (-> js/atom .-commands (.add "atom-text-editor"
-                                          (str "chlorine-reloaded:" name)
+                                          (str "chlorine:" name)
                                           f))]
     (.add @subscriptions disp)))
 

@@ -13,7 +13,7 @@ atom-text-editor {
   }
 }
 
-.ink div.clojure-plus.error {
+.ink div.chlorine.error {
   strong.error-description {
     font-weight: 900;
   }
@@ -27,10 +27,18 @@ atom-text-editor {
   display: block;
 }
 
-status-bar div.clojure-plus {
+status-bar div.chlorine {
   font-style: italic;
 }
 
-.ink div.clojure-plus.result .children {
-  margin-left: 1em;
+.ink div.chlorine {
+  .children {
+    margin-left: 1em;
+  }
+
+  .ink div.chlorine {
+    span.single-line {
+      white-space: nowrap;
+    }
+  }
 }

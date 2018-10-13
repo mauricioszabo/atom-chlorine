@@ -8,3 +8,5 @@ target
 figwheel*
 lib/js
 src/repl_tooling
+.shadow-cljs
+lib/main.js

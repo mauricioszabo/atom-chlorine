@@ -5,25 +5,48 @@
             [chlorine.state :refer [state]]
             [repl-tooling.editor-helpers :as helpers]
             [chlorine.ui.inline-results :as inline]
+            [reagent.core :as r]
             [chlorine.ui.console :as console]
+            [cljfmt.core :as fmt]
+            [clojure.pprint :as pp]
+            [repl-tooling.repl-client :as repl-client]
             [chlorine.ui.atom :as atom]))
 
+(defn- handle-disconnect! []
+  ; Just to be sure...
+  (repl-client/disconnect! :clj-eval)
+  (repl-client/disconnect! :clj-aux)
+  (repl-client/disconnect! :cljs-eval)
+  (swap! state assoc
+         :repls {:clj-eval nil
+                 :cljs-eval nil
+                 :clj-aux nil}
+         :connection nil)
+  (atom/info "Disconnected from REPLs" ""))
+
 (defn callback [output]
-  (prn [:STDOUT output])
-  (prn [:FOO @console/console])
+  (when (nil? output)
+    (handle-disconnect!))
+
   (when-let [out (:out output)]
-    (some-> @console/console (.stdout out))))
+    (some-> @console/console (.stdout out)))
+  (when (:result output)
+    (let [[div res] (-> output :result inline/view-for-result)]
+      (some-> @console/console (.result div)))))
 
 (def callback-fn (atom callback))
 
 (defn connect! [host port]
-  ; FIXME: Fix this `println`
-  (let [aux (clj-repl/repl :clj-aux host port println)
+  (let [aux (clj-repl/repl :clj-aux host port #(@callback-fn %))
         primary (clj-repl/repl :clj-eval host port #(@callback-fn %))]
 
     (eval/evaluate aux ":done" {} #(swap! state assoc-in [:repls :clj-aux] aux))
     (eval/evaluate primary ":ok2" {} (fn []
                                        (atom/info "Clojure REPL connected" "")
+                                       (.. js/atom
+                                           -workspace
+                                           (open "atom://chlorine/console" 
+                                                 #js {:split "right"}))
                                        (swap! state
                                               #(-> %
                                                    (assoc-in [:repls :clj-eval] primary)
@@ -83,13 +106,14 @@
                              {:namespace ns-name :row row :col col :filename filename}
                              #(set-inline-result result %))))))
 
+(def ^:private EditorUtils (js/require "./editor-utils"))
 (defn top-level-code [editor range]
-  (let [range (.. js/protoRepl -EditorUtils
-                  (getCursorInBlockRange editor #js {:topLevel true}))]
+  (let [range (. EditorUtils
+                (getCursorInBlockRange editor #js {:topLevel true}))]
     [range (some->> range (.getTextInBufferRange editor))]))
 
 (defn ns-for [editor]
-  (.. js/protoRepl -EditorUtils (findNsDeclaration editor)))
+  (.. EditorUtils (findNsDeclaration editor)))
 
 (defn- current-editor []
   (.. js/atom -workspace getActiveTextEditor))
@@ -97,8 +121,8 @@
 (defn evaluate-top-block!
   ([] (evaluate-top-block! (current-editor)))
   ([editor]
-   (let [range (.. js/protoRepl -EditorUtils
-                   (getCursorInBlockRange editor #js {:topLevel true}))
+   (let [range (. EditorUtils
+                 (getCursorInBlockRange editor #js {:topLevel true}))
          code (.getTextInBufferRange editor range)]
      (eval-and-present editor
                        (ns-for editor)
@@ -108,8 +132,8 @@
 (defn evaluate-block!
   ([] (evaluate-block! (current-editor)))
   ([editor]
-   (let [range (.. js/protoRepl -EditorUtils
-                   (getCursorInBlockRange editor))
+   (let [range (. EditorUtils
+                 (getCursorInBlockRange editor))
          code (.getTextInBufferRange editor range)]
      (eval-and-present editor
                        (ns-for editor)
