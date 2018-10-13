@@ -75,9 +75,4 @@
 (defn disconnect! []
   (repl-client/disconnect! :clj-eval)
   (repl-client/disconnect! :clj-aux)
-  (repl-client/disconnect! :cljs-eval)
-  (swap! state assoc
-         :repls {:clj-eval nil
-                 :cljs-eval nil
-                 :clj-aux nil}
-         :connection nil))
+  (repl-client/disconnect! :cljs-eval))
