@@ -1,7 +1,8 @@
-(defproject clojure-plus "0.0.1-SNAPSHOT"
+(defproject chlorine "0.0.1-SNAPSHOT"
   :dependencies [[org.clojure/clojure "1.9.0"]
                  [org.clojure/clojurescript "1.10.339"]
                  [org.clojure/core.async "0.4.474"]
+                 [lein-cljfmt "0.6.1"]
                  ;[repl-tooling "0.0.1-SNAPSHOT"]
                  [reagent "0.8.1"]]
 
