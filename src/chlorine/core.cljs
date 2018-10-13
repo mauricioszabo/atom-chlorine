@@ -34,8 +34,8 @@
   (aux/command-for "doc-for-var" doc/doc)
   (aux/command-for "clear-console" console/clear))
 
-(defn deactivate [s])
-  ; (.dispose ^js @aux/subscriptions))
+(defn deactivate [s]
+  (.dispose ^js @aux/subscriptions))
   ; (some-> @sbar/status-bar-tile .destroy))
 
 (defn before [done]
