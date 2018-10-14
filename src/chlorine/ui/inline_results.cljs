@@ -189,9 +189,9 @@
 (defn- error-view [error]
   (when (instance? editor-helpers/WithTag (:ex @error))
     (swap! error update :ex editor-helpers/obj))
-  (def ex (:ex @error))
   (let [ex (:ex @error)
         [cause & vias] (:via ex)
+        exception-msg (or (:cause ex) (:message cause) @error)
         path (r/cursor error [:ex :trace])
         stacks (->> @path
                     (map (partial parse-stack path))
@@ -200,7 +200,7 @@
      [:strong {:class "error-description"}
       [:div (:type cause)
        ": "
-       [string-row (r/atom {:contents (or (:cause ex) (:message cause))})]]]
+       [string-row (r/atom {:contents exception-msg})]]]
      [:div {:class "stacktrace"}
       (map stack-line (range) stacks)]]))
 
