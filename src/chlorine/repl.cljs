@@ -3,12 +3,11 @@
             [repl-tooling.eval :as eval]
             [repl-tooling.repl-client.clojure :as clj-repl]
             [chlorine.state :refer [state]]
+            [repl-tooling.repl-client.clojurescript :as cljs]
             [repl-tooling.editor-helpers :as helpers]
             [chlorine.ui.inline-results :as inline]
             [reagent.core :as r]
             [chlorine.ui.console :as console]
-            [cljfmt.core :as fmt]
-            [clojure.pprint :as pp]
             [repl-tooling.repl-client :as repl-client]
             [chlorine.ui.atom :as atom]))
 
@@ -52,6 +51,21 @@
                                                    (assoc-in [:repls :clj-eval] primary)
                                                    (assoc :connection {:host host
                                                                        :port port})))))))
+
+(defn connect-cljs! [host port]
+  (let [repl (cljs/repl :clj-eval host port #(@callback-fn %))]
+    (eval/evaluate repl ":ok" {} (fn []
+                                   (atom/info "ClojureScript REPL connected" "")
+                                   (.. js/atom
+                                       -workspace
+                                       (open "atom://chlorine/console"
+                                             #js {:split "right"}))
+                                   (swap! state
+                                          #(-> %
+                                               (assoc-in [:repls :cljs-eval] repl)
+                                               (assoc :connection {:host host
+                                                                   :port port})))))))
+
 
 (defn connect-self-hosted []
   (let [code `(do (clojure.core/require '[shadow.cljs.devtools.api])
