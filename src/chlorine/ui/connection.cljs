@@ -56,11 +56,18 @@
   (atom/warn "REPL already connected"
              (str "REPL is already connected.\n\n"
                   "Please, disconnect the current REPL "
-                  "if you want to connect to another REPL")))
+                  "if you want to connect to another.")))
 
 (defn connect! []
   (if (-> @state :repls :clj-eval nil?)
     (conn-view repl-connect!)
+    (already-connected)))
+
+(defn connect-cljs! []
+  (if (-> @state :repls :cljs-eval nil?)
+    (conn-view #(do
+                  (repl/connect-cljs! (:hostname @local-state) (:port @local-state))
+                  (destroy! %)))
     (already-connected)))
 
 (defn connect-self-hosted! []
