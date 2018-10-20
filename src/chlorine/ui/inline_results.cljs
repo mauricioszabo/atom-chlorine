@@ -197,15 +197,10 @@
       (let [[cause] (:via ex)]
         [(:type cause) (or (:cause ex) (:message cause)) (r/cursor error [:ex :trace])])
       (let [t (:trace e)
-            obj (:obj e)
-            error-class (if (instance? editor-helpers/WithTag obj)
-                          "Error"
-                          (type obj))
             trace (cond-> t
                           (string? t)
                           (str/split "\n"))]
-        [(or (:type e) error-class) (or (:message e) obj) (r/atom trace)]))))
-
+        [(or (:type e) "Error") (or (:message e) (:obj e)) (r/atom trace)]))))
 
 (defn- error-view [error]
   (when (instance? editor-helpers/WithTag (:ex @error))
