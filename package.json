@@ -45,8 +45,10 @@
     }
   },
   "devDependencies": {
+    "mocha": "^5.2.0",
     "shadow-cljs": "^2.6.6",
     "source-map-support": "^0.5.9",
+    "spectron": "^4.0.0",
     "ws": "^6.0.0"
   }
 }
