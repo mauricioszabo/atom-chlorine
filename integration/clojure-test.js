@@ -23,6 +23,10 @@ const evalCommand = async (cmd) => {
 }
 
 describe('Atom should open and evaluate code', function () {
+  after(() => {
+    app.stop()
+  })
+
   this.timeout(30000)
 
   it('opens an atom window', async () => {
@@ -80,7 +84,7 @@ describe('Atom should open and evaluate code', function () {
       assert.ok(await haveText("nil"))
 
       await evalCommand("(+ 1 2)")
-      assert.ok(await haveText(3))
+      assert.ok(await haveText(`3`))
 
       await evalCommand("(str (+ 90 120))")
       assert.ok(await haveText(`"210"`))
@@ -101,6 +105,10 @@ describe('Atom should open and evaluate code', function () {
       await evalCommand(`(ex-info "Error Number 4", {})`)
       assert.ok(await haveSelector(`div.result`))
       assert.ok(await haveText(`#error {:message "Error Number 4"`))
+
+      await evalCommand(`(somestrangefn 10)`)
+      assert.ok(await haveSelector(`div.error`))
+      assert.ok(await haveText(`Error: "Cannot read property`))
     })
   })
 })
