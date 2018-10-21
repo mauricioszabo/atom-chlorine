@@ -11,19 +11,16 @@ const sendJS = (cmd) =>
 const sendCommand = (cmd) =>
   sendJS(`atom.commands.dispatch(document.activeElement, "${cmd}")`)
 
-const openAndConnect = async () => {
-  app.start()
+const haveSelector = (sel) => app.client.waitForText(sel)
 
-  sendCommand("pane:show-next-item")
-  app.client.keys("(ns user.test1)")
-  sendCommand("chlorine:connect-clojure-socket-repl")
-  app.client.keys("Tab")
-  app.client.keys("46739")
-  app.client.keys("Enter")
-  // sendJS('atom.workspace.getActiveTextEditor().getFileName()').then(console.log)
+const haveText = (text) =>
+  haveSelector(`//div[contains(., '${text}')]`)
+
+const evalCommand = async (cmd) => {
+  await sendCommand("vim-mode-plus:activate-insert-mode")
+  await app.client.keys(`\n\n${cmd}`)
+  await sendCommand("chlorine:evaluate-block")
 }
-
-const haveText = (text) => app.client.waitForText(text)
 
 describe('Atom should open and evaluate code', function () {
   this.timeout(30000)
@@ -38,22 +35,72 @@ describe('Atom should open and evaluate code', function () {
     const title = await app.browserWindow.getTitle()
     assert.ok(title.match(/test\.clj/))
     await sendCommand("chlorine:connect-clojure-socket-repl")
-    assert.ok(await haveText('div*=Connect to Socket REPL'))
-    app.client.keys("Tab")
-    app.client.keys("46739")
-    app.client.keys("Enter")
-    assert.ok(await haveText("div*=Console"))
+    assert.ok(await haveSelector('div*=Connect to Socket REPL'))
+    await app.client.keys("Tab")
+    await app.client.keys("4444")
+    await app.client.keys("Enter")
+    assert.ok(await haveSelector("div*=Console"))
     await sendCommand("window:focus-next-pane")
   })
 
-  it('evaluates Clojure code', async () => {
-    await sendCommand("vim-mode-plus:activate-insert-mode")
-    await app.client.keys("(ns user.test1)")
-    await sendCommand("chlorine:evaluate-block")
-    assert.ok(await haveText('div*=nil'))
+  describe('when connecting to Clojure', () => {
+    it('evaluates code', async () => {
+      await sendCommand("vim-mode-plus:activate-insert-mode")
+      await app.client.keys("(ns user.test1)")
+      await sendCommand("chlorine:evaluate-block")
+      assert.ok(await haveSelector('div*=nil'))
 
-    await app.client.keys("\n\n(str (+ 90 120))")
-    await sendCommand("chlorine:evaluate-block")
-    assert.ok(await haveText(`//div[contains(., '"210"')]`))
+      await app.client.keys("\n\n(str (+ 90 120))")
+      await sendCommand("chlorine:evaluate-block")
+      assert.ok(await haveSelector(`//div[contains(., '"210"')]`))
+    })
+
+    it('captures exceptions', async () => {
+      await evalCommand(`(throw (ex-info "Error Number 1", {}))`)
+      assert.ok(await haveSelector(`div.error`))
+      assert.ok(await haveSelector(`div*=Error Number 1`))
+
+      await evalCommand(`(ex-info "Error Number 2", {})`)
+      assert.ok(await haveText(`#error {:cause "Error Number 2"`))
+    })
+  })
+
+  describe('when connecting to ClojureScript inside Clojure', () => {
+    it('connects to embedded ClojureScript', async () => {
+      await sendCommand('chlorine:connect-embeded-clojurescript-repl')
+      assert.ok(await haveText("ClojureScript REPL connected"))
+
+      await sendJS('atom.workspace.open("test2.cljs")')
+      const title = await app.browserWindow.getTitle()
+      assert.ok(title.match(/test2\.cljs/))
+    })
+
+    it('evaluates code', async () => {
+      await evalCommand("(ns user.test2)")
+      assert.ok(await haveText("nil"))
+
+      await evalCommand("(+ 1 2)")
+      assert.ok(await haveText(3))
+
+      await evalCommand("(str (+ 90 120))")
+      assert.ok(await haveText(`"210"`))
+
+      await evalCommand("(/ 10 0)")
+      assert.ok(await haveText("##Inf"))
+    })
+
+    it('captures exceptions', async () => {
+      await evalCommand(`(throw (ex-info "Error Number 2", {}))`)
+      assert.ok(await haveSelector(`div.error`))
+      assert.ok(await haveText(`Error Number 2`))
+
+      await evalCommand(`(throw "Error Number 3")`)
+      assert.ok(await haveSelector(`div.error`))
+      assert.ok(await haveText(`Error Number 3`))
+
+      await evalCommand(`(ex-info "Error Number 4", {})`)
+      assert.ok(await haveSelector(`div.result`))
+      assert.ok(await haveText(`#error {:message "Error Number 4"`))
+    })
   })
 })
