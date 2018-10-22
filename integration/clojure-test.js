@@ -71,6 +71,7 @@ describe('Atom should open and evaluate code', function () {
 
   describe('when connecting to ClojureScript inside Clojure', () => {
     it('connects to embedded ClojureScript', async () => {
+      await sendCommand('chlorine:clear-console')
       await sendCommand('chlorine:connect-embeded-clojurescript-repl')
       assert.ok(await haveText("ClojureScript REPL connected"))
 
