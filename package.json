@@ -1,7 +1,7 @@
 {
   "name": "chlorine",
   "main": "./lib/main",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Socket REPL client for Clojure and ClojureScript",
   "keywords": [],
   "repository": "https://github.com/mauricioszabo/atom-chlorine",
@@ -45,6 +45,7 @@
     }
   },
   "devDependencies": {
+    "lumo-cljs": "^1.9.0-alpha",
     "mocha": "^5.2.0",
     "shadow-cljs": "^2.6.6",
     "source-map-support": "^0.5.9",
