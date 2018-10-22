@@ -41,7 +41,7 @@ describe('Atom should open and evaluate code', function () {
     await sendCommand("chlorine:connect-clojure-socket-repl")
     assert.ok(await haveSelector('div*=Connect to Socket REPL'))
     await app.client.keys("Tab")
-    await app.client.keys("4444")
+    await app.client.keys("3333")
     await app.client.keys("Enter")
     assert.ok(await haveSelector("div*=Console"))
     await sendCommand("window:focus-next-pane")
@@ -84,8 +84,8 @@ describe('Atom should open and evaluate code', function () {
       await evalCommand("(ns user.test2)")
       assert.ok(await haveText("nil"))
 
-      await evalCommand("(+ 1 2)")
-      assert.ok(await haveText(`3`))
+      await evalCommand("(+ 5 2)")
+      assert.ok(await haveText(7))
 
       await evalCommand("(str (+ 90 120))")
       assert.ok(await haveText(`"210"`))
