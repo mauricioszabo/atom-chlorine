@@ -86,9 +86,11 @@
 (defn- parse-stack [path stack]
   (if (and (map? stack) (:repl-tooling/... stack))
     {:contents "..." :fn #(get-more path (:repl-tooling/... stack) false)}
-    (let [[class method file num] stack]
-      (when-not (re-find #"unrepl\.repl\$" (str class))
-        {:contents (str "in " (demunge class) " (" method ") at " file ":" num)}))))
+    (if (string? stack)
+      {:contents stack}
+      (let [[class method file num] stack]
+        (when-not (re-find #"unrepl\.repl\$" (str class))
+          {:contents (str "in " (demunge class) " (" method ") at " file ":" num)})))))
 
 (defn- stack-line [idx piece]
   [:div {:key idx}
@@ -186,21 +188,33 @@
     (.. div -classList (add "result" "chlorine"))
     (.setContent result div #js {:error false})))
 
+(defn- deconstruct-stack
+  "Returns a [type message trace-atom] for exception"
+  [error]
+  (let [e @error
+        ex (:ex e)]
+    (if ex ; Probably Clojure exception
+      (let [[cause] (:via ex)]
+        [(:type cause) (or (:cause ex) (:message cause)) (r/cursor error [:ex :trace])])
+      (let [t (:trace e)
+            trace (cond-> t
+                          (string? t)
+                          (str/split "\n"))]
+        [(or (:type e) "Error") (or (:message e) (:obj e)) (r/atom trace)]))))
+
 (defn- error-view [error]
   (when (instance? editor-helpers/WithTag (:ex @error))
     (swap! error update :ex editor-helpers/obj))
-  (def ex (:ex @error))
   (let [ex (:ex @error)
-        [cause & vias] (:via ex)
-        path (r/cursor error [:ex :trace])
-        stacks (->> @path
-                    (map (partial parse-stack path))
+        [ex-type ex-msg trace] (deconstruct-stack error)
+        stacks (->> @trace
+                    (map (partial parse-stack trace))
                     (filter identity))]
     [:div
      [:strong {:class "error-description"}
-      [:div (:type cause)
+      [:div ex-type
        ": "
-       [string-row (r/atom {:contents (or (:cause ex) (:message cause))})]]]
+       [string-row (r/atom {:contents ex-msg})]]]
      [:div {:class "stacktrace"}
       (map stack-line (range) stacks)]]))
 
