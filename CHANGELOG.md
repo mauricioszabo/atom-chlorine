@@ -1,3 +1,6 @@
+## 0.0.3 - Clojure's Autocomplete FIX
+* Fixed autocomplete on Clojure (incorrect predictions, more... string, require, and other issues)
+
 ## 0.0.2 - Better CLJS support (ALPHA!)
 * Support for self-hosted REPLs like Lumo
 * Support for exceptons in CLJS
