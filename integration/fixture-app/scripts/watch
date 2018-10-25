@@ -1,4 +1,4 @@
 #!/bin/bash
 
 export JVM_OPTS='-Dclojure.server.myrepl={:port,3333,:accept,clojure.core.server/repl}'
-lein trampoline run -m shadow.cljs.devtools.cli --npm watch dev
+lein repl
