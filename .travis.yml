@@ -1,9 +1,9 @@
 sudo: required
-
 language: node
 
+git:
+  submodules: false
 services:
   - docker
-
 script:
-  - ./scripts/ci 
+  - ./scripts/ci
