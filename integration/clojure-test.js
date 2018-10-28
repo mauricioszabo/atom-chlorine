@@ -1,7 +1,7 @@
 const assert = require('assert')
 const Application = require('spectron').Application
 const app = new Application({
-  path: '/usr/bin/atom-beta',
+  path: '/usr/bin/atom',
   args: ['--dev', '--socket-path=/tmp/atom-dev-socket-1.sock', '/tmp/test.clj', '/tmp/test2.cljs']
 })
 
