@@ -32,9 +32,13 @@ const gotoTab = async (fileName) => {
   return false
 }
 
+const time = (time) => new Promise(res => {
+  setTimeout(() => res(true), time)
+})
+
 describe('Atom should open and evaluate code', function () {
   after(() => {
-    // app.stop()
+    app.stop()
   })
 
   this.timeout(30000)
@@ -45,9 +49,6 @@ describe('Atom should open and evaluate code', function () {
   })
 
   it('connects to editor', async () => {
-    assert.ok(await gotoTab('test.clj'))
-    const title = await app.browserWindow.getTitle()
-    assert.ok(title.match(/test\.clj/))
     await sendCommand("chlorine:connect-clojure-socket-repl")
     assert.ok(await haveSelector('div*=Connect to Socket REPL'))
     await app.client.keys("Tab")
@@ -60,7 +61,10 @@ describe('Atom should open and evaluate code', function () {
 
   describe('when connecting to Clojure', () => {
     it('evaluates code', async () => {
+      await time(1000)
       await sendCommand("vim-mode-plus:activate-insert-mode")
+      // await time(1000)
+      assert.ok(await gotoTab('test.clj'))
       await app.client.keys("(ns user.test1)")
       await sendCommand("chlorine:evaluate-block")
       assert.ok(await haveSelector('div*=nil'))
