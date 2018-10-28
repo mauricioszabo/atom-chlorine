@@ -1,0 +1,9 @@
+sudo: required
+
+language: node
+
+services:
+  - docker
+
+script:
+  - ./scripts/ci 
