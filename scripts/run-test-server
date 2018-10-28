@@ -1,0 +1,11 @@
+#!/bin/bash
+
+rm -Rf integration/fixture-app/target/
+cd integration/fixture-app &&
+docker run --rm \
+    --network=host \
+    -it \
+    -u root \
+    -v`pwd`:/work \
+    clojure \
+    sh -c 'cd /work && lein run -m shadow.cljs.devtools.cli --npm release dev' &

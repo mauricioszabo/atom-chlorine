@@ -3,6 +3,7 @@ npm-debug.log
 node_modules
 .lein*
 .nrepl*
+*.swp
 target
 .figwheel*
 figwheel*

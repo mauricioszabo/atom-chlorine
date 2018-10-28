@@ -1,8 +1,8 @@
 #!/bin/bash
 
+git submodule init
 cp .git/config /tmp/config
 sed 's/git.github.com:mauricioszabo.repl-tooling/https:\/\/github.com\/mauricioszabo\/repl-tooling.git/' /tmp/config > .git/config
-git submodule init
 git submodule update
 cp -R repl-tooling/resources resources
 
@@ -10,4 +10,11 @@ docker run --rm -it -u root -v`pwd`:/work node sh -c 'cd /work && npm install'
 docker run --rm -it -u root -v`pwd`:/work clojure sh -c 'cd /work && lein run -m shadow.cljs.devtools.cli --npm release dev'
 
 docker build -f integration/Dockerfile -t atom .
-docker run --rm -it -u root -v`pwd`:/work atom
+#docker run --rm -it -u root -v`pwd`:/work atom
+
+docker run --rm \
+    -it \
+    -u root \
+    -v`pwd`:/work \
+    -v `pwd`:/root/.atom/packages/chlorine \
+    atom

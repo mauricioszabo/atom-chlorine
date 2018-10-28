@@ -1,0 +1,3 @@
+#!/bin/bash
+
+JVM_OPTS='-Dclojure.server.myrepl={:port,4444,:accept,clojure.core.server/repl}' lein run -m shadow.cljs.devtools.cli --npm watch dev
