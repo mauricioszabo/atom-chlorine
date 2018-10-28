@@ -1,0 +1,13 @@
+#!/bin/bash
+
+rm -Rf integration/fixture-app/target/
+cd integration/fixture-app && ./scripts/repl &
+for n in {1..15}; do
+  ls integration/fixture-app/target/main.js &>/dev/null && break
+  echo "Fixture APP not compiled yet, waiting..."
+  sleep 10
+done
+
+node integration/fixture-app/target/main.js &
+./node_modules/.bin/mocha integration/clojure-test.js
+echo -e "(System/exit 0)\n" | nc localhost 3333
