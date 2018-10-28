@@ -9,11 +9,13 @@ cp -R repl-tooling/resources resources
 docker run --rm -it -u root -v`pwd`:/work node sh -c 'cd /work && npm install'
 docker run --rm -it -u root -v`pwd`:/work clojure sh -c 'cd /work && lein run -m shadow.cljs.devtools.cli --npm release dev'
 
+./scripts/run-test-server
 docker build -f integration/Dockerfile -t atom .
 #docker run --rm -it -u root -v`pwd`:/work atom
 
 docker run --rm \
     -it \
+    --network=host \
     -u root \
     -v`pwd`:/work \
     -v `pwd`:/root/.atom/packages/chlorine \

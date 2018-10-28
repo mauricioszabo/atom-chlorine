@@ -1,12 +1,17 @@
 #!/bin/bash
 
 rm -Rf integration/fixture-app/target/
-cd integration/fixture-app &&
-docker run --rm -d \
-    --network=host \
-    -it \
-    -u root \
-    -v`pwd`:/work \
-    -e JVM_OPTS='-Dclojure.server.myrepl={:port,3333,:accept,clojure.core.server/repl}' \
-    clojure \
-    sh -c 'cd /work/integration/fixture-app && lein trampoline run -m shadow.cljs.devtools.cli --npm watch dev'
+
+if [ "$0" == "node" ]; then
+    cd integration/fixture-app && nohup ./scripts/repl &
+else
+    cd integration/fixture-app &&
+    docker run --rm -d \
+        --network=host \
+        -it \
+        -u root \
+        -v`pwd`:/work \
+        -e JVM_OPTS='-Dclojure.server.myrepl={:port,3333,:accept,clojure.core.server/repl}' \
+        clojure \
+        sh -c 'cd /work/integration/fixture-app && lein trampoline run -m shadow.cljs.devtools.cli --npm watch dev'
+fi
