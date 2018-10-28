@@ -12,5 +12,8 @@ RUN apt install -y nodejs netcat
 
 ENV DISPLAY=:0
 
+RUN mkdir /root/.atom
+RUN echo "'*':\n  welcome:\n    showOnStartup: false\n  core:\n    telemetryConsent: \"no\"\n    disabledPackages: [\"github\"]" > /root/.atom/config.cson
+
 WORKDIR /work
 CMD sh -c 'Xvfb & ./scripts/test'

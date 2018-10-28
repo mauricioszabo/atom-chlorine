@@ -2,10 +2,9 @@
 
 rm -Rf integration/fixture-app/target/
 
-if [ "$0" == "node" ]; then
+if [ "$1" == "node" ]; then
     cd integration/fixture-app && nohup ./scripts/repl &
 else
-    cd integration/fixture-app &&
     docker run --rm -d \
         --network=host \
         -it \

@@ -34,7 +34,7 @@ const gotoTab = async (fileName) => {
 
 describe('Atom should open and evaluate code', function () {
   after(() => {
-    app.stop()
+    // app.stop()
   })
 
   this.timeout(30000)
