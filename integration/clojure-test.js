@@ -56,7 +56,7 @@ describe('Atom should open and evaluate code', function () {
     await app.client.keys("Enter")
     assert.ok(await haveSelector("div*=Console"))
     await sendCommand("window:focus-next-pane")
-    assert.ok(await haveSelector('li.active*=test.clj'))
+    assert.ok(await gotoTab('test.clj'))
   })
 
   describe('when connecting to Clojure', () => {
