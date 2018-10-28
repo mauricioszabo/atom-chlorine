@@ -9,7 +9,7 @@
   ; :plugins [[lein-cljsbuild "1.1.5"]]
 
   ; :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
-  :jvm-opts ["-Dclojure.server.repl={:port 5556 :accept clojure.core.server/repl}"]
+  ; :jvm-opts ["-Dclojure.server.repl={:port 5556 :accept clojure.core.server/repl}"]
 
   :profiles {:dev {:dependencies [[midje "1.8.3"]
                                   [check "0.0.2-SNAPSHOT"]

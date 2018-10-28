@@ -2,7 +2,7 @@ const assert = require('assert')
 const Application = require('spectron').Application
 const app = new Application({
   path: '/usr/bin/atom-beta',
-  args: ['--dev', '--socket-path=/tmp/atom-dev-socket-1.sock', '/tmp/test.clj']
+  args: ['--dev', '--socket-path=/tmp/atom-dev-socket-1.sock', '/tmp/test.clj', '/tmp/test2.cljs']
 })
 
 const sendJS = (cmd) =>
@@ -22,6 +22,16 @@ const evalCommand = async (cmd) => {
   await sendCommand("chlorine:evaluate-block")
 }
 
+const gotoTab = async (fileName) => {
+  let i
+  for(i=0; i < 10; i++) {
+    await sendCommand("pane:show-next-item")
+    const title = await app.browserWindow.getTitle()
+    if(title.match(fileName)) return true
+  }
+  return false
+}
+
 describe('Atom should open and evaluate code', function () {
   after(() => {
     app.stop()
@@ -35,7 +45,7 @@ describe('Atom should open and evaluate code', function () {
   })
 
   it('connects to editor', async () => {
-    await sendCommand("pane:show-next-item")
+    assert.ok(await gotoTab('test.clj'))
     const title = await app.browserWindow.getTitle()
     assert.ok(title.match(/test\.clj/))
     await sendCommand("chlorine:connect-clojure-socket-repl")
@@ -45,6 +55,7 @@ describe('Atom should open and evaluate code', function () {
     await app.client.keys("Enter")
     assert.ok(await haveSelector("div*=Console"))
     await sendCommand("window:focus-next-pane")
+    assert.ok(await haveSelector('li.active*=test.clj'))
   })
 
   describe('when connecting to Clojure', () => {
@@ -72,12 +83,9 @@ describe('Atom should open and evaluate code', function () {
   describe('when connecting to ClojureScript inside Clojure', () => {
     it('connects to embedded ClojureScript', async () => {
       await sendCommand('chlorine:clear-console')
+      assert.ok(await gotoTab('test2.cljs'))
       await sendCommand('chlorine:connect-embeded-clojurescript-repl')
       assert.ok(await haveText("ClojureScript REPL connected"))
-
-      await sendJS('atom.workspace.open("test2.cljs")')
-      const title = await app.browserWindow.getTitle()
-      assert.ok(title.match(/test2\.cljs/))
     })
 
     it('evaluates code', async () => {

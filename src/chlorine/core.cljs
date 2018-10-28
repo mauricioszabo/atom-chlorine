@@ -25,7 +25,7 @@
 
   (aux/command-for "connect-clojure-socket-repl" conn/connect!)
   (aux/command-for "connect-clojurescript-socket-repl" conn/connect-cljs!)
-  (aux/command-for "connect-self-hosted-clojurescript-repl" conn/connect-self-hosted!)
+  (aux/command-for "connect-embeded-clojurescript-repl" conn/connect-self-hosted!)
   (aux/command-for "disconnect" conn/disconnect!)
 
   (aux/command-for "evaluate-block" #(repl/evaluate-block!))

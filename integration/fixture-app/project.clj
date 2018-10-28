@@ -6,6 +6,5 @@
   :dependencies [[org.clojure/clojurescript "1.10.339"]
                  [org.clojure/clojure "1.9.0"]
                  [thheller/shadow-cljs "2.6.6"]]
-  :main ^:skip-aot fixture-app.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})

@@ -10,3 +10,5 @@ lib/js
 src/repl_tooling
 .shadow-cljs
 lib/main.js
+
+integration/fixture-app/target/
