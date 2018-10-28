@@ -2,10 +2,11 @@
 
 rm -Rf integration/fixture-app/target/
 cd integration/fixture-app &&
-docker run --rm \
+docker run --rm -d \
     --network=host \
     -it \
     -u root \
     -v`pwd`:/work \
+    -e JVM_OPTS='-Dclojure.server.myrepl={:port,3333,:accept,clojure.core.server/repl}' \
     clojure \
-    sh -c 'cd /work && lein run -m shadow.cljs.devtools.cli --npm release dev' &
+    sh -c 'cd /work/integration/fixture-app && lein trampoline run -m shadow.cljs.devtools.cli --npm watch dev'
