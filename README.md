@@ -1,4 +1,5 @@
 # Chlorine
+[![Build Status](https://travis-ci.org/mauricioszabo/atom-chlorine.svg?branch=master)](https://travis-ci.org/mauricioszabo/atom-chlorine)
 
 Cl + Atom = Chlorine
 
