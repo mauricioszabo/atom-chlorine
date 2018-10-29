@@ -16,7 +16,6 @@ docker build -f integration/Dockerfile -t atom .
 git clone https://github.com/JunoLab/atom-ink.git ink
 docker run --rm -it -u root -v`pwd`/ink:/work node sh -c 'cd /work && npm install'
 
-
 docker run --rm \
     -it \
     --network=host \

@@ -9,5 +9,9 @@ for n in {1..15}; do
 done
 
 node integration/fixture-app/target/main.js &
+
 ./node_modules/.bin/mocha integration/clojure-test.js
+result=$?
+
 echo -e "(System/exit 0)\n" | nc localhost 3333
+exit $result
