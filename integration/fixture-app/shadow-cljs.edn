@@ -1,0 +1,14 @@
+;; shadow-cljs configuration
+{:source-paths
+ ["src"
+  "test"]
+
+ :dependencies
+ []
+
+ :lein true
+
+ :builds
+ {:dev {:target :node-script
+        :main fixture-app.core/main
+        :output-to "target/main.js"}}}

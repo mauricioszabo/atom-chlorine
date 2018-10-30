@@ -1,8 +1,8 @@
 const assert = require('assert')
 const Application = require('spectron').Application
 const app = new Application({
-  path: '/usr/bin/atom-beta',
-  args: ['--dev', '--socket-path=/tmp/atom-dev-socket-1.sock', '/tmp/test.clj']
+  path: '/usr/bin/atom',
+  args: ['--dev', '--socket-path=/tmp/atom-dev-socket-1.sock', '/tmp/test.clj', '/tmp/test2.cljs']
 })
 
 const sendJS = (cmd) =>
@@ -22,6 +22,20 @@ const evalCommand = async (cmd) => {
   await sendCommand("chlorine:evaluate-block")
 }
 
+const gotoTab = async (fileName) => {
+  let i
+  for(i=0; i < 10; i++) {
+    await sendCommand("pane:show-next-item")
+    const title = await app.browserWindow.getTitle()
+    if(title.match(fileName)) return true
+  }
+  return false
+}
+
+const time = (time) => new Promise(res => {
+  setTimeout(() => res(true), time)
+})
+
 describe('Atom should open and evaluate code', function () {
   after(() => {
     app.stop()
@@ -35,9 +49,6 @@ describe('Atom should open and evaluate code', function () {
   })
 
   it('connects to editor', async () => {
-    await sendCommand("pane:show-next-item")
-    const title = await app.browserWindow.getTitle()
-    assert.ok(title.match(/test\.clj/))
     await sendCommand("chlorine:connect-clojure-socket-repl")
     assert.ok(await haveSelector('div*=Connect to Socket REPL'))
     await app.client.keys("Tab")
@@ -45,11 +56,15 @@ describe('Atom should open and evaluate code', function () {
     await app.client.keys("Enter")
     assert.ok(await haveSelector("div*=Console"))
     await sendCommand("window:focus-next-pane")
+    assert.ok(await gotoTab('test.clj'))
   })
 
   describe('when connecting to Clojure', () => {
     it('evaluates code', async () => {
+      await time(1000)
       await sendCommand("vim-mode-plus:activate-insert-mode")
+      // await time(1000)
+      assert.ok(await gotoTab('test.clj'))
       await app.client.keys("(ns user.test1)")
       await sendCommand("chlorine:evaluate-block")
       assert.ok(await haveSelector('div*=nil'))
@@ -72,12 +87,9 @@ describe('Atom should open and evaluate code', function () {
   describe('when connecting to ClojureScript inside Clojure', () => {
     it('connects to embedded ClojureScript', async () => {
       await sendCommand('chlorine:clear-console')
+      assert.ok(await gotoTab('test2.cljs'))
       await sendCommand('chlorine:connect-embeded-clojurescript-repl')
       assert.ok(await haveText("ClojureScript REPL connected"))
-
-      await sendJS('atom.workspace.open("test2.cljs")')
-      const title = await app.browserWindow.getTitle()
-      assert.ok(title.match(/test2\.cljs/))
     })
 
     it('evaluates code', async () => {

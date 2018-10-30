@@ -1,0 +1,26 @@
+#!/bin/bash
+
+git submodule init
+cp .git/config /tmp/config
+sed 's/git.github.com:mauricioszabo.repl-tooling/https:\/\/github.com\/mauricioszabo\/repl-tooling.git/' /tmp/config > .git/config
+git submodule update
+cp -R repl-tooling/resources resources
+
+docker run --rm -it -u root -v`pwd`:/work node sh -c 'cd /work && npm install'
+docker run --rm -it -u root -v`pwd`:/work clojure sh -c 'cd /work && lein run -m shadow.cljs.devtools.cli --npm release dev'
+
+./scripts/run-test-server
+docker build -f integration/Dockerfile -t atom .
+#docker run --rm -it -u root -v`pwd`:/work atom
+
+git clone https://github.com/JunoLab/atom-ink.git ink
+docker run --rm -it -u root -v`pwd`/ink:/work node sh -c 'cd /work && npm install'
+
+docker run --rm \
+    -it \
+    --network=host \
+    -u root \
+    -v`pwd`:/work \
+    -v `pwd`:/root/.atom/packages/chlorine \
+    -v `pwd`/ink:/root/.atom/packages/ink \
+    atom
