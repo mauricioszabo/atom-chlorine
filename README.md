@@ -5,6 +5,8 @@ Cl + Atom = Chlorine
 
 Socket-REPL integration with Clojure and ClojureScript with Atom.
 
+This package requires `Ink` to work. Install it on Atom package manager
+
 ## WARNING!
 
 This package is still in ALPHA! Expect breakages!
