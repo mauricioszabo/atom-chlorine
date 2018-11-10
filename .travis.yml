@@ -7,3 +7,6 @@ services:
   - docker
 script:
   - ./scripts/ci
+
+notifications:
+  email: false
