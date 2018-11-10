@@ -5,9 +5,10 @@
             [chlorine.repl :as repl]
             [chlorine.features.refresh :as refresh]
             [chlorine.ui.doc :as doc]
+            [chlorine.configs :as configs]
             [chlorine.ui.console :as console]))
 
-(def config #js {})
+(def config (configs/get-configs))
 
 (defn- subscribe-editor-events [^js editor]
   (when (-> editor .getGrammar .-scopeName (= "source.clojure"))
@@ -22,6 +23,7 @@
   (aux/reload-subscriptions!)
   (observe-editors)
   (console/register-console)
+  (configs/observe-configs!)
 
   (aux/command-for "connect-clojure-socket-repl" conn/connect!)
   (aux/command-for "connect-clojurescript-socket-repl" conn/connect-cljs!)

@@ -25,6 +25,6 @@
                             (atom/warn "Failed to refresh" (:error %)))))))
 
 (defn run-refresh! []
-  (when (-> @state :refresh :on-save?)
+  (when (-> @state :config :refresh :on-save?)
     (refresh-editor (.. js/atom -workspace getActiveTextEditor)
-                    (-> @state :refresh :mode))))
+                    (-> @state :config :refresh :mode))))

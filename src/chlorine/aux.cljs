@@ -24,3 +24,5 @@
   (when-let [elem (:last-focus @state)]
     (.focus elem)
     (swap! state dissoc :last-focus)))
+
+(goog-define TESTS false)

@@ -20,6 +20,8 @@
 
  :builds
  {:dev {:target :node-library
+        :dev {:closure-defines {chlorine.aux/TESTS true}}
+
         :compiler-options {:infer-externs :auto}
         :exports {:config chlorine.core/config
                   :activate chlorine.core/activate
