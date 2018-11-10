@@ -1,3 +1,9 @@
+## NEXT Version
+* Fixes #9 (Error while evaluating block, top-level block, and we're not on a form)
+* Configuration for refresh-mode, save on refresh
+* Better refreshable architecture
+* More info on statusbar (about refresh)
+
 ## 0.0.3 - Clojure's Autocomplete FIX
 * Fixed autocomplete on Clojure (incorrect predictions, more... string, require, and other issues)
 
