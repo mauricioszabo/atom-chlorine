@@ -85,8 +85,8 @@
 
 (defn need-cljs? [editor]
   (or
-   (= (:eval-mode @state) :cljs)
-   (and (= (:eval-mode @state) :discover)
+   (-> @state :config :eval-mode (= :cljs))
+   (and (-> @state :config :eval-mode (= :discover))
         (str/ends-with? (.getFileName editor) ".cljs"))))
 
 (defn- eval-cljs [editor ns-name filename row col code ^js result callback]
@@ -136,23 +136,27 @@
   ([] (evaluate-top-block! (current-editor)))
   ([^js editor]
    (let [range (. EditorUtils
-                 (getCursorInBlockRange editor #js {:topLevel true}))
-         code (.getTextInBufferRange editor range)]
-     (eval-and-present editor
-                       (ns-for editor)
-                       (.getFileName editor)
-                       (.. range -end -row) (.. range -end -column) code))))
+                 (getCursorInBlockRange editor #js {:topLevel true}))]
+     (some->> range
+              (.getTextInBufferRange editor)
+              (eval-and-present editor
+                                (ns-for editor)
+                                (.getFileName editor)
+                                (.. range -end -row)
+                                (.. range -end -column))))))
 
 (defn evaluate-block!
   ([] (evaluate-block! (current-editor)))
   ([^js editor]
    (let [range (. EditorUtils
-                 (getCursorInBlockRange editor))
-         code (.getTextInBufferRange editor range)]
-     (eval-and-present editor
-                       (ns-for editor)
-                       (.getFileName editor)
-                       (.. range -end -row) (.. range -end -column) code))))
+                 (getCursorInBlockRange editor))]
+     (some->> range
+              (.getTextInBufferRange editor)
+              (eval-and-present editor
+                                (ns-for editor)
+                                (.getFileName editor)
+                                (.. range -end -row)
+                                (.. range -end -column))))))
 
 (defn evaluate-selection!
   ([] (evaluate-selection! (current-editor)))
