@@ -12,7 +12,7 @@
 
 (defn- subscribe-editor-events [^js editor]
   (when (-> editor .getGrammar .-scopeName (= "source.clojure"))
-    (.add ^js @aux/subscriptions (.onDidSave editor #(refresh/run-refresh!)))))
+    (.add ^js @aux/subscriptions (.onDidSave editor #(refresh/run-editor-refresh!)))))
 
 (defn- observe-editors []
   (.add @aux/subscriptions
@@ -34,7 +34,10 @@
   (aux/command-for "evaluate-top-block" #(repl/evaluate-top-block!))
   (aux/command-for "evaluate-selection" #(repl/evaluate-selection!))
   (aux/command-for "doc-for-var" doc/doc)
-  (aux/command-for "clear-console" console/clear))
+  (aux/command-for "clear-console" console/clear)
+
+  (aux/command-for "refresh-namespaces" refresh/run-refresh!)
+  (aux/command-for "toggle-refresh-mode" refresh/toggle-refresh))
 
 (defn deactivate [s]
   (.dispose ^js @aux/subscriptions))
