@@ -26,6 +26,7 @@
         :exports {:config chlorine.core/config
                   :activate chlorine.core/activate
                   :deactivate chlorine.core/deactivate
+                  :repl chlorine.repl/exports
 
                   :everything-provider
                   chlorine.providers-consumers.everything/activate

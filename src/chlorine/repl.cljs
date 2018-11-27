@@ -29,6 +29,8 @@
 
   (when-let [out (:out output)]
     (some-> ^js @console/console (.stdout out)))
+  (when-let [out (:err output)]
+    (some-> ^js @console/console (.stderr out)))
   (when (:result output)
     (let [[div res] (-> output :result inline/view-for-result)]
       (some-> ^js @console/console (.result div)))))
@@ -169,3 +171,15 @@
                        (ns-for editor)
                        (.getFileName editor)
                        row col code))))
+
+(def exports
+  #js {:eval_and_present eval-and-present
+       :eval_and_present_at_pos (fn [code]
+                                  (let [editor ^js (current-editor)
+                                        end (.. editor getSelectedBufferRange -end)
+                                        row (.-row end)
+                                        col (.-column end)]
+                                    (eval-and-present editor
+                                                      (ns-for editor)
+                                                      (.getFileName editor)
+                                                      row col code)))})
