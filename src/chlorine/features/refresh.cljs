@@ -3,18 +3,25 @@
             [chlorine.ui.atom :as atom]
             [chlorine.repl :as repl]))
 
-(defn clear-and-refresh [])
-
 (defn full-command []
   (if (-> @state :refresh :needs-clear?)
-    '(try
-       (require '[clojure.tools.namespace.repl])
-       (alter-var-root #'clojure.test/*load-tests* (constantly false))
-       (clojure.tools.namespace.repl/clear)
-       (clojure.tools.namespace.repl/refresh-all)
-       (finally
-         (alter-var-root #'clojure.test/*test-out* (constantly *out*))
-         (alter-var-root #'clojure.test/*load-tests* (constantly true))))))
+    '(do
+       (clojure.core/require '[clojure.tools.namespace.repl])
+       (try
+         (clojure.core/alter-var-root #'clojure.test/*load-tests* (clojure.core/constantly false))
+         (clojure.tools.namespace.repl/clear)
+         (clojure.tools.namespace.repl/refresh-all)
+         (finally
+           (clojure.core/alter-var-root #'clojure.test/*test-out* (clojure.core/constantly *out*))
+           (clojure.core/alter-var-root #'clojure.test/*load-tests* (clojure.core/constantly true)))))
+    '(do
+       (clojure.core/require '[clojure.tools.namespace.repl])
+       (try
+         (clojure.core/alter-var-root #'clojure.test/*load-tests* (clojure.core/constantly false))
+         (clojure.tools.namespace.repl/refresh)
+         (finally
+           (clojure.core/alter-var-root #'clojure.test/*test-out* (clojure.core/constantly *out*))
+           (clojure.core/alter-var-root #'clojure.test/*load-tests* (clojure.core/constantly true)))))))
 
 (defn- refresh-editor [editor mode]
   (when-not (repl/need-cljs? editor)
@@ -22,11 +29,14 @@
           code (if (= :simple mode)
                  (str "(do (require '[" ns-name " :reload :all]) :ok)")
                  (full-command))]
-      (prn code)
       (repl/evaluate-aux editor ns-name nil nil nil code
                          #(if (-> % :result (= :ok))
-                            (atom/info "Refresh Successful" "")
-                            (atom/warn "Failed to refresh" (:error %)))))))
+                            (do
+                              (swap! state assoc-in [:refresh :needs-clear?] false)
+                              (atom/info "Refresh Successful" ""))
+                            (do
+                              (swap! state assoc-in [:refresh :needs-clear?] true)
+                              (atom/warn "Failed to refresh" (:error %))))))))
 
 (defn run-refresh! []
   (refresh-editor (.. js/atom -workspace getActiveTextEditor)
