@@ -41,18 +41,20 @@
   (let [aux (clj-repl/repl :clj-aux host port #(@callback-fn %))
         primary (clj-repl/repl :clj-eval host port #(@callback-fn %))]
 
-    (eval/evaluate aux ":done" {} #(swap! state assoc-in [:repls :clj-aux] aux))
-    (eval/evaluate primary ":ok2" {} (fn []
-                                       (atom/info "Clojure REPL connected" "")
-                                       (.. js/atom
-                                           -workspace
-                                           (open "atom://chlorine/console"
-                                                 #js {:split "right"}))
-                                       (swap! state
-                                              #(-> %
-                                                   (assoc-in [:repls :clj-eval] primary)
-                                                   (assoc :connection {:host host
-                                                                       :port port})))))))
+    (eval/evaluate aux ":aux-connected" {}
+                   #(swap! state assoc-in [:repls :clj-aux] aux))
+    (eval/evaluate primary ":primary-connected" {}
+                   (fn []
+                     (atom/info "Clojure REPL connected" "")
+                     (.. js/atom
+                         -workspace
+                         (open "atom://chlorine/console"
+                               #js {:split "right"}))
+                     (swap! state
+                            #(-> %
+                                 (assoc-in [:repls :clj-eval] primary)
+                                 (assoc :connection {:host host
+                                                     :port port})))))))
 
 (defn connect-cljs! [host port]
   (let [repl (cljs/repl :clj-eval host port #(@callback-fn %))]
