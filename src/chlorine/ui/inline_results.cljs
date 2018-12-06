@@ -135,7 +135,7 @@
     (cond
       (instance? editor-helpers/IncompleteStr contents)
       [:span.multiline
-       (str/replace (pr-str contents) #"\.{3}\"$" "")
+       [:span (str/replace (pr-str contents) #"\.{3}\"$" "")]
        [:a {:on-click #(-> contents meta :get-more more-str)} "..."]
        "\""]
 
