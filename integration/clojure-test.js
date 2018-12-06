@@ -84,11 +84,12 @@ describe('Atom should open and evaluate code', function () {
     })
 
     it('allows big strings to be represented', async () => {
+      await sendCommand('inline-results:clear-all')
       await evalCommand("(str (range 200))")
       assert.ok(await haveText("29..."))
       await app.client.click("a*=...")
       assert.ok(await haveText("52 53 54"))
-      await evalCommand('inline-results:clear-all')
+      await sendCommand('inline-results:clear-all')
     })
   })
 
