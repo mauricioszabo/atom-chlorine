@@ -1,8 +1,19 @@
-## NEXT Version
+## Planned/TODO
+* Connect to Figwheel
+* Connect to Shadow-CLJS but allows to select build ID
+* Connect to ClojureScript using an arbitrary command
+* Before/After refresh
+* Higlight current form
+* GOTO definition
+* Auto-import
+* Clean unused imports
+
+## 0.0.4
 * Fixes #9 (Error while evaluating block, top-level block, and we're not on a form)
 * Configuration for refresh-mode, save on refresh
 * Better refreshable architecture
 * More info on statusbar (about refresh)
+* Connect embedded ClojureScript now tries to find a build from `shadow-cljs.edn`, if present
 
 ## 0.0.3 - Clojure's Autocomplete FIX
 * Fixed autocomplete on Clojure (incorrect predictions, more... string, require, and other issues)
