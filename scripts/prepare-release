@@ -1,9 +1,0 @@
-#!/bin/bash
-
-lein run -m shadow.cljs.devtools.cli --npm release dev
-git rm -r src
-git rm -r integration
-git rm -r scripts
-git add -f lib/main.js
-
-echo "Done. Now, prepare the tag, and publish with apm publish --tag"
