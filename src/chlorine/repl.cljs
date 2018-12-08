@@ -9,6 +9,7 @@
             [reagent.core :as r]
             [chlorine.ui.console :as console]
             [repl-tooling.repl-client :as repl-client]
+            [repl-tooling.integrations.connection :as conn]
             [chlorine.ui.atom :as atom]))
 
 (defn- handle-disconnect! []
@@ -70,17 +71,21 @@
                                                (assoc :connection {:host host
                                                                    :port port})))))))
 
+(def trs {:no-shadow-file "File shadow-cljs.edn not found"
+          :unknown "Unknown error"})
 
 (defn connect-self-hosted []
-  (let [code `(do (clojure.core/require '[shadow.cljs.devtools.api])
-                (shadow.cljs.devtools.api/repl :dev))
-        {:keys [host port]} (:connection @state)
-        repl (clj-repl/repl :clj-aux host port #(prn [:CLJS-REL %]))]
-
-    (. (clj-repl/self-host repl code)
-      (then #(do
-               (swap! state assoc-in [:repls :cljs-eval] %)
-               (atom/info "ClojureScript REPL connected" ""))))))
+  (let [{:keys [host port]} (:connection @state)
+        dirs (->> js/atom .-project .getDirectories (map #(.getPath ^js %)))]
+    (.. (conn/auto-connect-embedded! host port dirs)
+        (then #(if-let [error (:error %)]
+                 (do
+                   (prn error)
+                   (atom/error "Error connecting to ClojureScript"
+                               (get trs error error)))
+                 (do
+                   (swap! state assoc-in [:repls :cljs-eval] %)
+                   (atom/info "ClojureScript REPL connected" "")))))))
 
 (defn set-inline-result [inline-result eval-result]
   (if-let [res (:result eval-result)]
