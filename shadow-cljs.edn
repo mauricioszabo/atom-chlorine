@@ -20,10 +20,13 @@
 
  :builds
  {:dev {:target :node-library
+        :dev {:closure-defines {chlorine.aux/TESTS true}}
+
         :compiler-options {:infer-externs :auto}
         :exports {:config chlorine.core/config
                   :activate chlorine.core/activate
                   :deactivate chlorine.core/deactivate
+                  :repl chlorine.repl/exports
 
                   :everything-provider
                   chlorine.providers-consumers.everything/activate

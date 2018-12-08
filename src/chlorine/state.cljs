@@ -1,12 +1,29 @@
 (ns chlorine.state
   (:require [reagent.core :as r]))
 
-; Eval-mode is: discover, clj, cljs
+(def configs {:eval-mode
+              {:description "Should we evaluate Clojure or ClojureScript?"
+               :type [:discover :clj :cljs]
+               :default :discover}
+
+              :refresh-mode
+              {:description "Should we use clojure.tools.namespace to refresh, or a simple require?"
+               :type [:full :simple]
+               :default :full}
+
+              :refresh-on-save
+              {:description "Should we refresh namespaces when we save a file (Clojure Only)?"
+               :type :boolean
+               :default true}})
+
+(defn- seed-configs []
+  (->> configs
+       (map (fn [[k v]] [k (:default v)]))
+       (into {})))
+
 (defonce state
   (r/atom {:repls {:clj-eval nil
                    :cljs-eval nil
                    :clj-aux nil}
-           :eval-mode :discover
-           :refresh {:mode :full
-                     :needs-clear? false
-                     :on-save? true}}))
+           :refresh {:needs-clear? true}
+           :config (seed-configs)}))

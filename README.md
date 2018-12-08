@@ -18,25 +18,23 @@ This package is still in ALPHA! Expect breakages!
 1. Doc for vars (Clojure and ClojureScript)
 1. Auto complete with Compliment
 1. Simple auto complete for ClojureScript
-1. Refresh (crude!) for Clojure code with clojure.tools.namespace
+1. Refresh for Clojure code with clojure.tools.namespace
 
 **What is still crude:**
-1. There are no configurations yet.
+1. There are no configurations for what to run before and after refresh
 1. Debug information is being dumped in console
 1. There are still some rough edges when parsing Java classes because of the way
   unrepl works
 1. Console does not show exceptions when an error occurs
-1. Console does not treat any input (it's just being used as a pipe for stdout)
-1. There are still some problems when parsing exceptions (ClojureScript does not
-  show then, Clojure sometimes misses stacktrace)
+1. There are still some problems when parsing exceptions (Clojure sometimes misses stacktrace)
 1. There's no "goto definition", no "refactoring" yet
 1. The option to connect to a self-hosted ClojureScript socket REPL does nothing for now
 1. No support for Figwheel, Sidecar, etc (yet)
-1. No config for refreshing (for now, everytime you save a Clojure file, it refreshes)
+1. We only connect on shadow-cljs if there a `dev` named build
 1. No way to toggle between Clojure and ClojureScript (for now, when you eval a CLJS file,
   it'll evaluate as ClojureScript, and every other file it'll evaluate as Clojure)
 1. There are APIs for AutoComplete with ClojureScript (emacs uses then!), but they are
-  not yet supported (in fact, Shadow-CLJS does not support then)
+  not yet supported (in fact, Shadow-CLJS does support then but it's still not wired correctly)
 1. There are no tests! Most of the tests are in REPL-Tooling library, but they are
   outdated
 
@@ -50,10 +48,11 @@ to send and receive commands.
 
 ## TODO
 * [x] Auto-complete on Clojure with Compliment
-* [ ] Auto-complete on ClojureScript with Simple-Complete
-* [ ] Auto-complete on Lumo
-* [ ] Refresh with Clojure (require :reload)
-* [ ] Refresh with Clojure tools.nrepl
+* [x] Auto-complete on ClojureScript with Simple-Complete (somewhat)
+* [ ] Auto-complette on ClojureScript with cljs-tooling
+* [x] Auto-complete on Lumo
+* [x] Refresh with Clojure (require :reload)
+* [x] Refresh with Clojure tools.nrepl
 * [ ] Debugger
 * [ ] Auto-import?
 * [ ] Remove unused NS

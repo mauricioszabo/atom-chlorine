@@ -9,6 +9,7 @@
             [reagent.core :as r]
             [chlorine.ui.console :as console]
             [repl-tooling.repl-client :as repl-client]
+            [repl-tooling.integrations.connection :as conn]
             [chlorine.ui.atom :as atom]))
 
 (defn- handle-disconnect! []
@@ -29,6 +30,8 @@
 
   (when-let [out (:out output)]
     (some-> ^js @console/console (.stdout out)))
+  (when-let [out (:err output)]
+    (some-> ^js @console/console (.stderr out)))
   (when (:result output)
     (let [[div res] (-> output :result inline/view-for-result)]
       (some-> ^js @console/console (.result div)))))
@@ -39,18 +42,20 @@
   (let [aux (clj-repl/repl :clj-aux host port #(@callback-fn %))
         primary (clj-repl/repl :clj-eval host port #(@callback-fn %))]
 
-    (eval/evaluate aux ":done" {} #(swap! state assoc-in [:repls :clj-aux] aux))
-    (eval/evaluate primary ":ok2" {} (fn []
-                                       (atom/info "Clojure REPL connected" "")
-                                       (.. js/atom
-                                           -workspace
-                                           (open "atom://chlorine/console"
-                                                 #js {:split "right"}))
-                                       (swap! state
-                                              #(-> %
-                                                   (assoc-in [:repls :clj-eval] primary)
-                                                   (assoc :connection {:host host
-                                                                       :port port})))))))
+    (eval/evaluate aux ":aux-connected" {}
+                   #(swap! state assoc-in [:repls :clj-aux] aux))
+    (eval/evaluate primary ":primary-connected" {}
+                   (fn []
+                     (atom/info "Clojure REPL connected" "")
+                     (.. js/atom
+                         -workspace
+                         (open "atom://chlorine/console"
+                               #js {:split "right"}))
+                     (swap! state
+                            #(-> %
+                                 (assoc-in [:repls :clj-eval] primary)
+                                 (assoc :connection {:host host
+                                                     :port port})))))))
 
 (defn connect-cljs! [host port]
   (let [repl (cljs/repl :clj-eval host port #(@callback-fn %))]
@@ -66,17 +71,21 @@
                                                (assoc :connection {:host host
                                                                    :port port})))))))
 
+(def trs {:no-shadow-file "File shadow-cljs.edn not found"
+          :unknown "Unknown error"})
 
 (defn connect-self-hosted []
-  (let [code `(do (clojure.core/require '[shadow.cljs.devtools.api])
-                (shadow.cljs.devtools.api/repl :dev))
-        {:keys [host port]} (:connection @state)
-        repl (clj-repl/repl :clj-aux host port #(prn [:CLJS-REL %]))]
-
-    (. (clj-repl/self-host repl code)
-      (then #(do
-               (swap! state assoc-in [:repls :cljs-eval] %)
-               (atom/info "ClojureScript REPL connected" ""))))))
+  (let [{:keys [host port]} (:connection @state)
+        dirs (->> js/atom .-project .getDirectories (map #(.getPath ^js %)))]
+    (.. (conn/auto-connect-embedded! host port dirs)
+        (then #(if-let [error (:error %)]
+                 (do
+                   (prn error)
+                   (atom/error "Error connecting to ClojureScript"
+                               (get trs error error)))
+                 (do
+                   (swap! state assoc-in [:repls :cljs-eval] %)
+                   (atom/info "ClojureScript REPL connected" "")))))))
 
 (defn set-inline-result [inline-result eval-result]
   (if-let [res (:result eval-result)]
@@ -85,8 +94,8 @@
 
 (defn need-cljs? [editor]
   (or
-   (= (:eval-mode @state) :cljs)
-   (and (= (:eval-mode @state) :discover)
+   (-> @state :config :eval-mode (= :cljs))
+   (and (-> @state :config :eval-mode (= :discover))
         (str/ends-with? (.getFileName editor) ".cljs"))))
 
 (defn- eval-cljs [editor ns-name filename row col code ^js result callback]
@@ -136,23 +145,27 @@
   ([] (evaluate-top-block! (current-editor)))
   ([^js editor]
    (let [range (. EditorUtils
-                 (getCursorInBlockRange editor #js {:topLevel true}))
-         code (.getTextInBufferRange editor range)]
-     (eval-and-present editor
-                       (ns-for editor)
-                       (.getFileName editor)
-                       (.. range -end -row) (.. range -end -column) code))))
+                 (getCursorInBlockRange editor #js {:topLevel true}))]
+     (some->> range
+              (.getTextInBufferRange editor)
+              (eval-and-present editor
+                                (ns-for editor)
+                                (.getFileName editor)
+                                (.. range -end -row)
+                                (.. range -end -column))))))
 
 (defn evaluate-block!
   ([] (evaluate-block! (current-editor)))
   ([^js editor]
    (let [range (. EditorUtils
-                 (getCursorInBlockRange editor))
-         code (.getTextInBufferRange editor range)]
-     (eval-and-present editor
-                       (ns-for editor)
-                       (.getFileName editor)
-                       (.. range -end -row) (.. range -end -column) code))))
+                 (getCursorInBlockRange editor))]
+     (some->> range
+              (.getTextInBufferRange editor)
+              (eval-and-present editor
+                                (ns-for editor)
+                                (.getFileName editor)
+                                (.. range -end -row)
+                                (.. range -end -column))))))
 
 (defn evaluate-selection!
   ([] (evaluate-selection! (current-editor)))
@@ -165,3 +178,15 @@
                        (ns-for editor)
                        (.getFileName editor)
                        row col code))))
+
+(def exports
+  #js {:eval_and_present eval-and-present
+       :eval_and_present_at_pos (fn [code]
+                                  (let [editor ^js (current-editor)
+                                        end (.. editor getSelectedBufferRange -end)
+                                        row (.-row end)
+                                        col (.-column end)]
+                                    (eval-and-present editor
+                                                      (ns-for editor)
+                                                      (.getFileName editor)
+                                                      row col code)))})

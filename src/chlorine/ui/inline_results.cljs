@@ -135,9 +135,9 @@
     (cond
       (instance? editor-helpers/IncompleteStr contents)
       [:span.multiline
-       (str/replace (pr-str contents) #"\.{3}\"$" "")
+       [:span (str/replace (pr-str contents) #"\.{3}\"$" "")]
        [:a {:on-click #(-> contents meta :get-more more-str)} "..."]
-       "\""]
+       [:span "\""]]
 
       (instance? editor-helpers/LiteralRender contents)
       [:span.multiline (to-str contents)]
@@ -180,7 +180,9 @@
 (defn view-for-result [eval-result]
   (let [div (. js/document (createElement "div"))
         res (r/atom [{:contents (editor-helpers/read-result eval-result)}])]
-    (r/render [result-view res [0]] div)
+    (r/render [:div
+               [:span "\033[0m"]
+               [result-view res [0]]] div)
     [div res]))
 
 (defn render-result! [^js result eval-result]
@@ -212,8 +214,10 @@
                     (filter identity))]
     [:div
      [:strong {:class "error-description"}
-      [:div ex-type
-       ": "
+      [:div
+       [:span "\033[0m"]
+       [:span ex-type]
+       [:span ": "]
        [string-row (r/atom {:contents ex-msg})]]]
      [:div {:class "stacktrace"}
       (map stack-line (range) stacks)]]))

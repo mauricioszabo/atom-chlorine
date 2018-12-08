@@ -82,6 +82,15 @@ describe('Atom should open and evaluate code', function () {
       await evalCommand(`(ex-info "Error Number 2", {})`)
       assert.ok(await haveText(`#error {:cause "Error Number 2"`))
     })
+
+    it('allows big strings to be represented', async () => {
+      await sendCommand('inline-results:clear-all')
+      await evalCommand("(str (range 200))")
+      assert.ok(await haveText("29..."))
+      await app.client.click("a*=...")
+      assert.ok(await haveText("52 53 54"))
+      await sendCommand('inline-results:clear-all')
+    })
   })
 
   describe('when connecting to ClojureScript inside Clojure', () => {

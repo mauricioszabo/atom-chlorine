@@ -11,7 +11,9 @@
      [:span
       " "
       [:img {:src (str "file://" js/__dirname "/clj.png") :width 18}]
-      " CLJ connected"])
+      (cond-> " CLJ connected"
+              (-> @state :config :refresh-mode (= :simple)) (str " (simple refresh)")
+              (-> @state :config :refresh-mode (not= :simple)) (str " (full refresh)"))])
 
    (when (-> @state :repls :cljs-eval)
      [:span {:style {:margin-left "13px"}}
