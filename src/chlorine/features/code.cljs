@@ -11,9 +11,11 @@
   (let [editor (atom/current-editor)
         var (atom/current-var editor)
         namespace (repl/ns-for editor)]
-    (.. (some-> @state/state :repls :clj-aux
-                (definition/find-var-definition namespace var))
-        (then (fn [info]
-                (if info
-                  (open-editor info)
-                  (atom/error "Could not find definition for var" "")))))))
+    (if (repl/need-cljs? editor)
+      (atom/warn "Can't go to definition on a CLJS file" "")
+      (.. (some-> @state/state :repls :clj-aux
+                  (definition/find-var-definition namespace var))
+          (then (fn [info]
+                  (if info
+                    (open-editor info)
+                    (atom/error "Could not find definition for var" ""))))))))
