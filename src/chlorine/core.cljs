@@ -36,6 +36,9 @@
   (aux/command-for "doc-for-var" doc/doc)
   (aux/command-for "clear-console" console/clear)
 
+  (aux/command-for "run-tests-in-ns" #(repl/run-tests-in-ns!))
+  (aux/command-for "run-test-for-var" #(repl/run-test-at-cursor!))
+
   (aux/command-for "refresh-namespaces" refresh/run-refresh!)
   (aux/command-for "toggle-refresh-mode" refresh/toggle-refresh))
 
