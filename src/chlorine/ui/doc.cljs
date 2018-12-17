@@ -3,7 +3,7 @@
             [repl-tooling.editor-helpers :as editor-helpers]
             [chlorine.ui.atom :as atom]))
 
-(defn doc-for [editor row var-name]
+(defn doc-for [editor range var-name]
   (let [ns-name (repl/ns-for editor)
         var-name (symbol (str "#'" var-name))
         code `(clojure.core/let [m# (clojure.core/meta ~var-name)]
@@ -14,12 +14,9 @@
                         (:ns m#) "/" (:name m#) "\n"
                         (:arglists m#) "\n  "
                         (:doc m#))))))]
-    (repl/eval-and-present editor ns-name (.getFileName editor) row 0 code)))
+    (repl/eval-and-present editor ns-name (.getFileName editor) range code)))
 
 (defn doc []
-  (let [editor (atom/current-editor)
-        [row] (atom/current-pos editor)]
-    (doc-for editor row (atom/current-var editor))))
-
-; (-> js/atom .-workspace .getActiveTextEditor
-;     (doc-for 11 "defrecord"))
+  (let [editor ^js (atom/current-editor)
+        pos (.getCursorBufferPosition editor)]
+    (doc-for editor #js {:start pos :end pos} (atom/current-var editor))))

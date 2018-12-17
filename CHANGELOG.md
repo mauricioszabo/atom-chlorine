@@ -11,6 +11,7 @@
 
 ## 0.0.5
 * Goto definition for Clojure files outside JAR
+* Fix wrong file and line number when evaluating
 
 ## 0.0.4
 * Fixes #9 (Error while evaluating block, top-level block, and we're not on a form)

@@ -123,8 +123,11 @@
                            #(-> % helpers/parse-result callback)))))
 
 
-(defn eval-and-present [^js editor ns-name filename row col code]
-  (let [result (inline/new-result editor row)]
+(defn eval-and-present [^js editor ns-name filename ^js range code]
+  (let [result (inline/new-result editor (.. range -end -row))
+        row (.. range -start -row)
+        col (.. range -start -column)]
+
     (if (need-cljs? editor)
       (eval-cljs editor ns-name filename row col code result #(set-inline-result result %))
       (some-> @state :repls :clj-eval
@@ -151,8 +154,7 @@
               (eval-and-present editor
                                 (ns-for editor)
                                 (.getPath editor)
-                                (.. range -start -row)
-                                (.. range -start -column))))))
+                                range)))))
 
 (defn evaluate-block!
   ([] (evaluate-block! (atom/current-editor)))
@@ -164,29 +166,23 @@
               (eval-and-present editor
                                 (ns-for editor)
                                 (.getPath editor)
-                                (.. range -start -row)
-                                (.. range -start -column))))))
+                                range)))))
 
 (defn evaluate-selection!
   ([] (evaluate-selection! (atom/current-editor)))
   ([^js editor]
-   (let [end (.. editor getSelectedBufferRange -end)
-         row (.-row end)
-         col (.-column end)
-         code (.getSelectedText editor)]
-     (eval-and-present editor
-                       (ns-for editor)
-                       (.getPath editor)
-                       row col code))))
+   (eval-and-present editor
+                     (ns-for editor)
+                     (.getPath editor)
+                     (. editor getSelectedBufferRange)
+                     (.getSelectedText editor))))
 
 (def exports
   #js {:eval_and_present eval-and-present
        :eval_and_present_at_pos (fn [code]
-                                  (let [editor ^js (atom/current-editor)
-                                        end (.. editor getSelectedBufferRange -end)
-                                        row (.-row end)
-                                        col (.-column end)]
+                                  (let [editor ^js (atom/current-editor)]
                                     (eval-and-present editor
                                                       (ns-for editor)
                                                       (.getPath editor)
-                                                      row col code)))})
+                                                      (. editor getSelectedBufferRange)
+                                                      code)))})
