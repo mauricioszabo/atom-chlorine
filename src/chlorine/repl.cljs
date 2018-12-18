@@ -189,7 +189,17 @@
                    (.. pos -row)
                    (.. pos -column)
                    "(clojure.test/run-tests)"
-                   identity))))
+                   #(let [{:keys [test pass fail error]} (:result %)]
+                      (atom/info "(clojure.test/run-tests)"
+                                 (str "Ran " test " test"
+                                      (when-not (= 1 test) "s")
+                                      (when-not (zero? pass)
+                                        (str ", " pass " passed"))
+                                      (when-not (zero? fail)
+                                        (str ", " fail " failed"))
+                                      (when-not (zero? error)
+                                        (str ", " error " errored"))
+                                      ".")))))))
 
 (defn run-test-at-cursor!
   ([] (run-test-at-cursor! (current-editor)))
@@ -205,7 +215,8 @@
                    (.. pos -row)
                    (.. pos -column)
                    code
-                   identity))))
+                   #(atom/info (str "Tested " s)
+                               "See REPL for any failures.")))))
 
 (def exports
   #js {:eval_and_present eval-and-present
