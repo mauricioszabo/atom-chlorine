@@ -183,26 +183,29 @@
   ([] (run-tests-in-ns! (current-editor)))
   ([^js editor]
    (let [pos (.getCursorBufferPosition editor)]
-     (some->> "(clojure.test/run-tests)"
-              (eval-and-present editor
+     (evaluate-aux editor
                                 (ns-for editor)
                                 (.getFileName editor)
                                 (.. pos -row)
-                                (.. pos -column))))))
+                   (.. pos -column)
+                   "(clojure.test/run-tests)"
+                   identity))))
 
 (defn run-test-at-cursor!
   ([] (run-test-at-cursor! (current-editor)))
   ([^js editor]
    (let [pos (.getCursorBufferPosition editor)
-         s   (atom/current-var editor)]
-     (some->> (str "(do"
+         s    (atom/current-var editor)
+         code (str "(do"
                    "  (clojure.test/test-vars [#'" s "])"
-                   "  (println \"Tested\" '" s "))")
-              (eval-and-present editor
+                   "  (println \"Tested\" '" s "))")]
+     (evaluate-aux editor
                                 (ns-for editor)
                                 (.getFileName editor)
                                 (.. pos -row)
-                                (.. pos -column))))))
+                   (.. pos -column)
+                   code
+                   identity))))
 
 (def exports
   #js {:eval_and_present eval-and-present
