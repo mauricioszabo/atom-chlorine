@@ -36,3 +36,10 @@ Also, you probably don't want then running in production builds, so there's a de
   (testing "this needs to fail"
     (is (= 1 2))))
 ```
+
+### Real "user interations" tests
+There are some integration tests right now on `integration` folder. These tests fire up a _real atom editor_ and then run commands inside the editor. This is as close you can get to your user interacting with Chlorine.
+
+Also, there are some docker images so that these tests will be run on Travis CI (or any other CI that supports docker). You can test to see if your code can run inside a CI using `./scripts/ci` command (it'll run all the integration tests inside docker, the same as it runs on Travis today).
+
+Please, notice that for the code to run on CI, it'll download the plug-in, update repl-tooling submodule, then it'll compile the code in `release` form: this means that dead code elimination and other optimizations will be applied. So, if you can't make the build pass on CI, probably you need to test on release.
