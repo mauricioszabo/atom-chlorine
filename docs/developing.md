@@ -17,4 +17,22 @@ npx shadow-cljs watch dev
 
 This will fire up a compiler for ClojureScript. If you symlink your directory on `~/.atom/packages`, you can use it while developing itself!
 
-Please notice that Chlorine only activates if you run any of the "connect" commands. You don't **need** to connect into a Clojure REPL, just fire the command and then you'll probably
+Please notice that Chlorine only activates if you run any of the "connect" commands. You don't **need** to connect into a Clojure REPL, just fire the command and then you'll see `JS runtime connected.` on shadow.
+
+## Testing
+
+Probably all simpler tests will be on REPL-Tooling. For Chlorine, there are two approaches:
+
+### Simple inline tests
+Because of some Atom limitations, is kinda difficult to write tests on ClojureScript (or any other language besides JS or CoffeeScript). On other packages I wrote, I tried multiple approaches and they all got me multiple false positives/negatives, so for ClojureScript you can write tests inline, together with implementation. They will show on Atom's dev console when you save the file, so it's a fast feedback.
+
+Also, you probably don't want then running in production builds, so there's a development variable that toggles when to compile or not this code: `chlorine.aux/TESTS`. If you want to write some tests, you can use the following template:
+
+```clojure
+(ns chlorine.some-ns
+  (:require [chlorine.aux :as aux]))
+
+(when aux/TESTS
+  (testing "this needs to fail"
+    (is (= 1 2))))
+```
