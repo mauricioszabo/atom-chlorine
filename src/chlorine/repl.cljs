@@ -184,9 +184,9 @@
   ([^js editor]
    (let [pos (.getCursorBufferPosition editor)]
      (evaluate-aux editor
-                                (ns-for editor)
-                                (.getFileName editor)
-                                (.. pos -row)
+                   (ns-for editor)
+                   (.getFileName editor)
+                   (.. pos -row)
                    (.. pos -column)
                    "(clojure.test/run-tests)"
                    identity))))
@@ -194,15 +194,15 @@
 (defn run-test-at-cursor!
   ([] (run-test-at-cursor! (current-editor)))
   ([^js editor]
-   (let [pos (.getCursorBufferPosition editor)
+   (let [pos  (.getCursorBufferPosition editor)
          s    (atom/current-var editor)
          code (str "(do"
                    "  (clojure.test/test-vars [#'" s "])"
                    "  (println \"Tested\" '" s "))")]
      (evaluate-aux editor
-                                (ns-for editor)
-                                (.getFileName editor)
-                                (.. pos -row)
+                   (ns-for editor)
+                   (.getFileName editor)
+                   (.. pos -row)
                    (.. pos -column)
                    code
                    identity))))
