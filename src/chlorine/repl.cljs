@@ -216,6 +216,22 @@
                    #(atom/info (str "Tested " s)
                                "See REPL for any failures.")))))
 
+(defn load-file!
+  ([] (load-file! (atom/current-editor)))
+  ([^js editor]
+   (let [file-name (.getPath editor)
+         ;; needs file system fixing
+         code (str "(do"
+                   " (println \"Loading\" \"" file-name "\")"
+                   " (load-file \"" file-name "\"))")]
+     (evaluate-aux editor
+                   (ns-for editor)
+                   (.getFileName editor)
+                   1
+                   0
+                   code
+                   #(atom/info "Loaded file" file-name)))))
+
 (def exports
   #js {:eval_and_present eval-and-present
        :eval_and_present_at_pos (fn [code]
