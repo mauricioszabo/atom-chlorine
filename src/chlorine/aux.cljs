@@ -17,7 +17,7 @@
 (defn save-focus! [elem]
   (when (-> @state :last-focus nil?)
     (swap! state assoc :last-focus
-           (some-> js/atom .-workspace .getActiveTextEditor .-editorElement)))
+           (some-> js/atom .-workspace .getActiveTextEditor .-element)))
   (js/setTimeout #(.focus (.querySelector elem "input")) 100))
 
 (defn refocus! []
