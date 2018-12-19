@@ -177,6 +177,45 @@
                      (. editor getSelectedBufferRange)
                      (.getSelectedText editor))))
 
+(defn run-tests-in-ns!
+  ([] (run-tests-in-ns! (current-editor)))
+  ([^js editor]
+   (let [pos (.getCursorBufferPosition editor)]
+     (evaluate-aux editor
+                   (ns-for editor)
+                   (.getFileName editor)
+                   (.. pos -row)
+                   (.. pos -column)
+                   "(clojure.test/run-tests)"
+                   #(let [{:keys [test pass fail error]} (:result %)]
+                      (atom/info "(clojure.test/run-tests)"
+                                 (str "Ran " test " test"
+                                      (when-not (= 1 test) "s")
+                                      (when-not (zero? pass)
+                                        (str ", " pass " passed"))
+                                      (when-not (zero? fail)
+                                        (str ", " fail " failed"))
+                                      (when-not (zero? error)
+                                        (str ", " error " errored"))
+                                      ".")))))))
+
+(defn run-test-at-cursor!
+  ([] (run-test-at-cursor! (current-editor)))
+  ([^js editor]
+   (let [pos  (.getCursorBufferPosition editor)
+         s    (atom/current-var editor)
+         code (str "(do"
+                   "  (clojure.test/test-vars [#'" s "])"
+                   "  (println \"Tested\" '" s "))")]
+     (evaluate-aux editor
+                   (ns-for editor)
+                   (.getFileName editor)
+                   (.. pos -row)
+                   (.. pos -column)
+                   code
+                   #(atom/info (str "Tested " s)
+                               "See REPL for any failures.")))))
+
 (def exports
   #js {:eval_and_present eval-and-present
        :eval_and_present_at_pos (fn [code]
