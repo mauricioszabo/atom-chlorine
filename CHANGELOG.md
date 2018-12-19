@@ -4,9 +4,14 @@
 * Connect to ClojureScript using an arbitrary command
 * Before/After refresh
 * Higlight current form
-* GOTO definition
+* GOTO definition for Clojure (inside JARs)
+* GOTO definition for ClojureScript (as far as we can)
 * Auto-import
 * Clean unused imports
+
+## 0.0.5
+* Goto definition for Clojure files outside JAR
+* Fix wrong file and line number when evaluating
 
 ## 0.0.4
 * Fixes #9 (Error while evaluating block, top-level block, and we're not on a form)
