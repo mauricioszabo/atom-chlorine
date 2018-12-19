@@ -178,7 +178,7 @@
                      (.getSelectedText editor))))
 
 (defn run-tests-in-ns!
-  ([] (run-tests-in-ns! (current-editor)))
+  ([] (run-tests-in-ns! (atom/current-editor)))
   ([^js editor]
    (let [pos (.getCursorBufferPosition editor)]
      (evaluate-aux editor
@@ -200,7 +200,7 @@
                                       ".")))))))
 
 (defn run-test-at-cursor!
-  ([] (run-test-at-cursor! (current-editor)))
+  ([] (run-test-at-cursor! (atom/current-editor)))
   ([^js editor]
    (let [pos  (.getCursorBufferPosition editor)
          s    (atom/current-var editor)
