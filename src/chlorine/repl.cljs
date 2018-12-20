@@ -192,7 +192,9 @@
                                  (str "Ran " test " test"
                                       (when-not (= 1 test) "s")
                                       (when-not (zero? pass)
-                                        (str ", " pass " passed"))
+                                        (str ", " pass " assertion"
+                                             (when-not (= 1 pass) "s")
+                                             " passed"))
                                       (when-not (zero? fail)
                                         (str ", " fail " failed"))
                                       (when-not (zero? error)
