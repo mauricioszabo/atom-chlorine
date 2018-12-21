@@ -12,6 +12,9 @@
 ## 0.0.5
 * Goto definition for Clojure files outside JAR
 * Fix wrong file and line number when evaluating
+* Add commands `chlorine:load-file` to load full file in REPL, `chlorine:source-for-var` to show source (by @seancorfield)
+* Add commands to run tests (by @seancorfield)
+* Fixed auto-complete on Clojure when NS form is undetermined (by @seancorfield)
 
 ## 0.0.4
 * Fixes #9 (Error while evaluating block, top-level block, and we're not on a form)
