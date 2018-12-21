@@ -1,5 +1,7 @@
 #!/bin/bash
 
+read -p "Remember to tag a version with the current source code (git tag vX.X.X-source)"
+
 lein run -m shadow.cljs.devtools.cli --npm release dev
 git rm -r src
 git rm -r integration
