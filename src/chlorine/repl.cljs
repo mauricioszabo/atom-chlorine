@@ -225,7 +225,11 @@
          ;; needs file system fixing
          code (str "(do"
                    " (println \"Loading\" \"" file-name "\")"
-                   " (load-file \"" file-name "\"))")]
+                   " (try "
+                   "  (load-file \"" file-name "\")"
+                   "  (catch Throwable t"
+                   "   (doseq [e (:via (Throwable->map t))]"
+                   "    (println (:message e))))))")]
      (evaluate-aux editor
                    (ns-for editor)
                    (.getFileName editor)
