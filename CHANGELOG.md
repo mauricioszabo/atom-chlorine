@@ -9,6 +9,9 @@
 * Auto-import
 * Clean unused imports
 
+## 0.0.6
+* Fix https://github.com/mauricioszabo/atom-chlorine/issues/22
+
 ## 0.0.5
 * Goto definition for Clojure files outside JAR
 * Fix wrong file and line number when evaluating

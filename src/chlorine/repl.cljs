@@ -99,7 +99,7 @@
   (or
    (-> @state :config :eval-mode (= :cljs))
    (and (-> @state :config :eval-mode (= :discover))
-        (str/ends-with? (.getFileName editor) ".cljs"))))
+        (str/ends-with? (str (.getFileName editor)) ".cljs"))))
 
 (defn- eval-cljs [editor ns-name filename row col code ^js result callback]
   (if-let [repl (-> @state :repls :cljs-eval)]
