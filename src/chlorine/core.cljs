@@ -38,6 +38,8 @@
   (aux/command-for "source-for-var" #(repl/source-for-var!))
   (aux/command-for "clear-console" console/clear)
 
+  (aux/command-for "load-file" #(repl/load-file!))
+
   (aux/command-for "run-tests-in-ns" #(repl/run-tests-in-ns!))
   (aux/command-for "run-test-for-var" #(repl/run-test-at-cursor!))
 

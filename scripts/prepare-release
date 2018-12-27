@@ -1,9 +1,13 @@
 #!/bin/bash
 
+read -p "Remember to tag a version with the current source code (git tag vX.X.X-source)"
+
 lein run -m shadow.cljs.devtools.cli --npm release dev
+git checkout -b release-prepare-DELETE-THIS
 git rm -r src
 git rm -r integration
 git rm -r scripts
 git add -f lib/main.js
+git commit -m 'Compiled version for release'
 
 echo "Done. Now, prepare the tag, and publish with apm publish --tag"
