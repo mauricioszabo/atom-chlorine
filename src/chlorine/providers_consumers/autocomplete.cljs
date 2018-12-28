@@ -34,7 +34,7 @@
                                         :type "function"
                                         :replacementPrefix prefix}))
                         clj->js)))
-      (.then @clj-completions clj->js))))
+      (some-> @clj-completions (.then clj->js)))))
 
 
 (def sug (atom suggestions))
