@@ -11,7 +11,8 @@
             [repl-tooling.repl-client :as repl-client]
             [repl-tooling.integrations.connection :as conn]
             [repl-tooling.editor-integration.connection :as connection]
-            [chlorine.ui.atom :as atom]))
+            [chlorine.ui.atom :as atom]
+            [clojure.core.async :as async :include-macros true]))
 
 (defn- handle-disconnect! []
   (swap! state assoc
@@ -22,8 +23,12 @@
   (atom/info "Disconnected from REPLs" ""))
 
 (defn- register-destroy [^js console]
-  (-> console .currentPane
-      (.onDidDestroy #(connection/disconnect!))))
+  (async/go-loop []
+    (if (.currentPane console)
+      (-> console .currentPane (.onDidDestroy #(connection/disconnect!)))
+      (do
+        (async/<! (async/timeout 500))
+        (recur)))))
 
 (defn connect! [host port]
   (let [p (connection/connect-unrepl!
