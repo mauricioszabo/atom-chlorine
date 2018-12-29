@@ -6,7 +6,8 @@
             [chlorine.ui.atom :as atom]
             [repl-tooling.repl-client :as repl-client]
             [repl-tooling.repl-client.clojure :as clj-repl]
-            [chlorine.aux :as aux]))
+            [chlorine.aux :as aux]
+            [repl-tooling.editor-integration.connection :as connection]))
 
 (defonce local-state
   (r/atom {:hostname "localhost"
@@ -80,6 +81,4 @@
     :else (already-connected)))
 
 (defn disconnect! []
-  (repl-client/disconnect! :clj-eval)
-  (repl-client/disconnect! :clj-aux)
-  (repl-client/disconnect! :cljs-eval))
+  (connection/disconnect!))

@@ -177,13 +177,14 @@
        [:div {:class "children"}
         (doall (map #(result-view result [:children %]) (keys-of)))])]))
 
-(defn view-for-result [eval-result]
-  (let [div (. js/document (createElement "div"))
-        res (r/atom [{:contents (editor-helpers/read-result eval-result)}])]
-    (r/render [:div
-               [:span "\033[0m"]
-               [result-view res [0]]] div)
-    [div res]))
+(defn view-for-result
+  ([eval-result] (view-for-result eval-result true))
+  ([eval-result parse?]
+   (let [div (. js/document (createElement "div"))
+         res (r/atom [{:contents (cond-> eval-result parse? editor-helpers/read-result)}])]
+     (r/render [:div
+                [result-view res [0]]] div)
+     [div res])))
 
 (defn render-result! [^js result eval-result]
   (let [[div res] (view-for-result eval-result)]

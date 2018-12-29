@@ -8,6 +8,12 @@
 * GOTO definition for ClojureScript (as far as we can)
 * Auto-import
 * Clean unused imports
+* Problems when we stack multiple evaluations (see FIXME on repl-tooling)
+
+## 0.0.7
+* Fixes autocomplete error: https://github.com/mauricioszabo/atom-chlorine/issues/26
+* Fixes backpressure error: https://github.com/mauricioszabo/repl-tooling/issues/7
+* When we close the REPL console, we now disconnect from Socket REPLs
 
 ## 0.0.6
 * Fix https://github.com/mauricioszabo/atom-chlorine/issues/22

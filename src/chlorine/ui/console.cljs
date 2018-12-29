@@ -4,8 +4,6 @@
 
 (def console-uri "atom://chlorine/console")
 
-; Just don't ask, Google Closure Compiler issues...
-
 (defn- from-console-id [^js ink]
   (-> ink .-Console
       (.fromId "chlorine")
