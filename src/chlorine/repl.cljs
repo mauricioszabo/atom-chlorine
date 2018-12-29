@@ -10,19 +10,41 @@
             [chlorine.ui.console :as console]
             [repl-tooling.repl-client :as repl-client]
             [repl-tooling.integrations.connection :as conn]
+            [repl-tooling.editor-integration.connection :as connection]
             [chlorine.ui.atom :as atom]))
 
 (defn- handle-disconnect! []
-  ; Just to be sure...
-  (repl-client/disconnect! :clj-eval)
-  (repl-client/disconnect! :clj-aux)
-  (repl-client/disconnect! :cljs-eval)
   (swap! state assoc
          :repls {:clj-eval nil
                  :cljs-eval nil
                  :clj-aux nil}
          :connection nil)
   (atom/info "Disconnected from REPLs" ""))
+
+(defn- register-destroy [^js console]
+  (-> console .currentPane
+      (.onDidDestroy #(connection/disconnect!))))
+
+(defn connect! [host port]
+  (let [p (connection/connect-unrepl!
+           host port
+           #(some-> ^js @console/console (.stdout %))
+           #(some-> ^js @console/console (.stderr %))
+           #(cond
+              (:result %) (let [[div res] (-> %
+                                              :result
+                                              (inline/view-for-result false))]
+                            (some-> ^js @console/console (.result div))))
+           #(handle-disconnect!))]
+    (.then p (fn [repls]
+               (atom/info "Clojure REPL connected" "")
+               (.. js/atom -workspace (open "atom://chlorine/console" #js {:split "right"
+                                                                           :searchAllPanes true}))
+               (some-> @console/console (register-destroy))
+               (swap! state #(-> %
+                                 (assoc-in [:repls :clj-eval] (:clj/repl repls))
+                                 (assoc-in [:repls :clj-aux] (:clj/aux repls))
+                                 (assoc :connection {:host host :port port})))))))
 
 (defn callback [output]
   (when (nil? output)
@@ -37,28 +59,6 @@
       (some-> ^js @console/console (.result div)))))
 
 (def callback-fn (atom callback))
-
-(defn connect! [host port]
-  (let [aux (clj-repl/repl :clj-aux host port #(@callback-fn %))
-        primary (delay (clj-repl/repl :clj-eval host port #(@callback-fn %)))
-        connect-primary (fn []
-                          (eval/evaluate @primary ":primary-connected" {}
-                                         (fn []
-                                           (atom/info "Clojure REPL connected" "")
-                                           (.. js/atom
-                                               -workspace
-                                               (open "atom://chlorine/console"
-                                                     #js {:split "right"}))
-                                           (swap! state
-                                                  #(-> %
-                                                       (assoc-in [:repls :clj-eval] @primary)
-                                                       (assoc :connection {:host host
-                                                                           :port port}))))))]
-
-    (eval/evaluate aux ":aux-connected" {}
-                   #(do
-                      (swap! state assoc-in [:repls :clj-aux] aux)
-                      (connect-primary)))))
 
 (defn connect-cljs! [host port]
   (let [repl (cljs/repl :clj-eval host port #(@callback-fn %))]
