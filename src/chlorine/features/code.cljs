@@ -4,8 +4,18 @@
             [chlorine.state :as state]
             [repl-tooling.features.definition :as definition]))
 
+(defn- open-ro-editor [file-name line contents]
+  (.. js/atom
+      -workspace
+      (open file-name #js {:initialLine line})
+      (then #(doto ^js %
+                   (.setText contents)
+                   (.setCursorBufferPosition #js [line 0])))))
+
 (defn- open-editor [{:keys [file-name line contents]}]
-  (.. js/atom -workspace (open file-name #js {:initialLine line})))
+  (if contents
+    (open-ro-editor file-name line contents)
+    (.. js/atom -workspace (open file-name #js {:initialLine line}))))
 
 (defn goto-var []
   (let [editor (atom/current-editor)
