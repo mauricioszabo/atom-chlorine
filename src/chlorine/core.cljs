@@ -43,6 +43,9 @@
   (aux/command-for "run-tests-in-ns" #(repl/run-tests-in-ns!))
   (aux/command-for "run-test-for-var" #(repl/run-test-at-cursor!))
 
+  (aux/command-for "inspect-block" #(repl/inspect-block!))
+  (aux/command-for "inspect-top-block" #(repl/inspect-top-block!))
+
   (aux/command-for "refresh-namespaces" refresh/run-refresh!)
   (aux/command-for "toggle-refresh-mode" refresh/toggle-refresh)
 
