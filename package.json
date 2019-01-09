@@ -9,6 +9,9 @@
   "engines": {
     "atom": ">=1.0.0 <2.0.0"
   },
+  "package-dependencies": {
+    "ink": ">=0.9.14"
+  },
   "dependencies": {
     "create-react-class": "^15.6.3",
     "react": "^16.4.2",
