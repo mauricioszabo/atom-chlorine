@@ -13,6 +13,8 @@
 ## 0.0.8
 * GOTO definition for Clojure (inside JARs)
 * Add support for REBL
+* Fixes https://github.com/mauricioszabo/repl-tooling/issues/14 (unreadable keywords and symbols)
+* Fixes some edge-cases with clojure/tools.namespace refresh
 
 ## 0.0.7
 * Fixes autocomplete error: https://github.com/mauricioszabo/atom-chlorine/issues/26
