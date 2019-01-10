@@ -7,6 +7,7 @@
   (if (-> @state :refresh :needs-clear?)
     '(do
        (clojure.core/require '[clojure.tools.namespace.repl])
+       (clojure.core/require '[clojure.test])
        (try
          (clojure.core/alter-var-root #'clojure.test/*load-tests* (clojure.core/constantly false))
          (clojure.tools.namespace.repl/clear)
