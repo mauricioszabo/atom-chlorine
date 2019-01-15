@@ -98,8 +98,8 @@
 (defn set-inline-result [inline-result eval-result]
   (let [parsed (helpers/parse-result eval-result)]
     (prn [:set-inline inline-result])
-    (if-let [res (:result parsed)]
-      (inline/render-result! inline-result res)
+    (if (contains? parsed :result)
+      (inline/render-result! inline-result (:result parsed))
       (do
         (some-> @state :repls :clj-eval
                 (eval/evaluate "(clojure.repl/pst)" {} identity))
