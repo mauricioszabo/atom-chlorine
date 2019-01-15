@@ -38,7 +38,7 @@
            #(cond
               (:result %) (let [[div res] (-> %
                                               :result
-                                              (inline/view-for-result false))]
+                                              inline/view-for-result)]
                             (some-> ^js @console/console (.result div))))
            #(handle-disconnect!))]
     (.then p (fn [repls]
@@ -96,9 +96,14 @@
                    (atom/info "ClojureScript REPL connected" "")))))))
 
 (defn set-inline-result [inline-result eval-result]
-  (if-let [res (:result eval-result)]
-    (inline/render-result! inline-result res)
-    (inline/render-error! inline-result (:error eval-result))))
+  (let [parsed (helpers/parse-result eval-result)]
+    (prn [:set-inline inline-result])
+    (if-let [res (:result parsed)]
+      (inline/render-result! inline-result res)
+      (do
+        (some-> @state :repls :clj-eval
+                (eval/evaluate "(clojure.repl/pst)" {} identity))
+        (inline/render-error! inline-result (:error parsed))))))
 
 (defn need-cljs? [editor]
   (or
@@ -106,11 +111,12 @@
    (and (-> @state :config :eval-mode (= :discover))
         (str/ends-with? (str (.getFileName editor)) ".cljs"))))
 
-(defn- eval-cljs [editor ns-name filename row col code ^js result callback]
+(defn- eval-cljs [editor ns-name filename row col code ^js result opts callback]
   (if-let [repl (-> @state :repls :cljs-eval)]
     (eval/evaluate repl code
-                   {:namespace ns-name :row row :col col :filename filename}
-                   #(set-inline-result result %))
+                   {:namespace ns-name :row row :col col :filename filename
+                    :pass opts}
+                   callback)
     (do
       (some-> result .destroy)
       (atom/error "REPL not connected"
@@ -119,26 +125,33 @@
                        "'Connect ClojureScript Socket REPL' command,"
                        "or 'Connect a self-hosted ClojureScript' command")))))
 
-(defn evaluate-aux [^js editor ns-name filename row col code callback]
-  (if (need-cljs? editor)
-    (eval-cljs editor ns-name filename row col code nil #(-> % helpers/parse-result callback))
-    (some-> @state :repls :clj-aux
-            (eval/evaluate code
-                           {:namespace ns-name :row row :col col :filename filename}
-                           #(-> % helpers/parse-result callback)))))
+(defn evaluate-aux
+  ([^js editor ns-name filename row col code callback]
+   (evaluate-aux editor ns-name filename row col code {} callback))
+  ([^js editor ns-name filename row col code opts callback]
+   (if (need-cljs? editor)
+     (eval-cljs editor ns-name filename row col code nil opts #(-> % helpers/parse-result callback))
+     (some-> @state :repls :clj-aux
+             (eval/evaluate code
+                            {:namespace ns-name :row row :col col :filename filename
+                             :pass opts}
+                            #(-> % helpers/parse-result callback))))))
 
+(defn eval-and-present
+  ([^js editor ns-name filename ^js range code]
+   (eval-and-present editor ns-name filename range code {}))
+  ([^js editor ns-name filename ^js range code opts]
+   (let [result (inline/new-result editor (.. range -end -row))
+         row (.. range -start -row)
+         col (.. range -start -column)]
 
-(defn eval-and-present [^js editor ns-name filename ^js range code]
-  (let [result (inline/new-result editor (.. range -end -row))
-        row (.. range -start -row)
-        col (.. range -start -column)]
-
-    (if (need-cljs? editor)
-      (eval-cljs editor ns-name filename row col code result #(set-inline-result result %))
-      (some-> @state :repls :clj-eval
-              (eval/evaluate code
-                             {:namespace ns-name :row row :col col :filename filename}
-                             #(set-inline-result result %))))))
+     (if (need-cljs? editor)
+       (eval-cljs editor ns-name filename row col code result opts #(set-inline-result result %))
+       (some-> @state :repls :clj-eval
+               (eval/evaluate code
+                              {:namespace ns-name :row row :col col :filename filename
+                               :pass opts}
+                              #(set-inline-result result %)))))))
 
 (def ^:private EditorUtils (js/require "./editor-utils"))
 (defn top-level-code [^js editor ^js range]
