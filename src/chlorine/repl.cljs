@@ -195,6 +195,42 @@
                      (. editor getSelectedBufferRange)
                      (.getSelectedText editor))))
 
+(defn wrap-in-rebl-submit
+  "Clojure 1.10 only, require REBL on the classpath (and UI open)."
+  [code]
+  (str "(let [value " code "]"
+       " (try"
+       "  (when-let [d-val ((requiring-resolve 'clojure.datafy/datafy) value)]"
+       "   ((requiring-resolve 'cognitect.rebl/submit) '" code " d-val))"
+       "  (catch Throwable _))"
+       " value)"))
+
+(defn inspect-top-block!
+  ([] (inspect-top-block! (atom/current-editor)))
+  ([^js editor]
+   (let [range (. EditorUtils
+                 (getCursorInBlockRange editor #js {:topLevel true}))]
+     (some->> range
+              (.getTextInBufferRange editor)
+              (wrap-in-rebl-submit)
+              (eval-and-present editor
+                                (ns-for editor)
+                                (.getPath editor)
+                                range)))))
+
+(defn inspect-block!
+  ([] (inspect-block! (atom/current-editor)))
+  ([^js editor]
+   (let [range (. EditorUtils
+                 (getCursorInBlockRange editor))]
+     (some->> range
+              (.getTextInBufferRange editor)
+              (wrap-in-rebl-submit)
+              (eval-and-present editor
+                                (ns-for editor)
+                                (.getPath editor)
+                                range)))))
+
 (defn run-tests-in-ns!
   ([] (run-tests-in-ns! (atom/current-editor)))
   ([^js editor]
@@ -225,8 +261,8 @@
    (let [pos  (.getCursorBufferPosition editor)
          s    (atom/current-var editor)
          code (str "(do"
-                   "  (clojure.test/test-vars [#'" s "])"
-                   "  (println \"Tested\" '" s "))")]
+                   " (clojure.test/test-vars [#'" s "])"
+                   " (println \"Tested\" '" s "))")]
      (evaluate-aux editor
                    (ns-for editor)
                    (.getFileName editor)
