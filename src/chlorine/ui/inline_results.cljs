@@ -132,6 +132,7 @@
         more-str (fn [command]
                    (some-> @state :repls :clj-eval
                            (eval/evaluate command {:ignore true} with-res)))]
+
     (cond
       (instance? editor-helpers/IncompleteStr contents)
       [:span.multiline
@@ -177,14 +178,11 @@
        [:div {:class "children"}
         (doall (map #(result-view result [:children %]) (keys-of)))])]))
 
-(defn view-for-result
-  ([eval-result] (view-for-result eval-result true))
-  ([eval-result parse?]
-   (let [div (. js/document (createElement "div"))
-         res (r/atom [{:contents (cond-> eval-result parse? editor-helpers/read-result)}])]
-     (r/render [:div
-                [result-view res [0]]] div)
-     [div res])))
+(defn view-for-result [eval-result]
+  (let [div (. js/document (createElement "div"))
+        res (r/atom [{:contents eval-result}])]
+    (r/render [:div [result-view res [0]]] div)
+    [div res]))
 
 (defn render-result! [^js result eval-result]
   (let [[div res] (view-for-result eval-result)]
@@ -225,7 +223,7 @@
 
 (defn render-error! [^js result error]
   (let [div (. js/document (createElement "div"))
-        res (r/atom (editor-helpers/read-result error))]
+        res (r/atom error)]
     (r/render [error-view res] div)
     (.. div -classList (add "error" "chlorine"))
     (.setContent result div #js {:error true})))
