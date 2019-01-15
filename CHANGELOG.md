@@ -4,11 +4,17 @@
 * Connect to ClojureScript using an arbitrary command
 * Before/After refresh
 * Higlight current form
-* GOTO definition for Clojure (inside JARs)
 * GOTO definition for ClojureScript (as far as we can)
 * Auto-import
 * Clean unused imports
 * Problems when we stack multiple evaluations (see FIXME on repl-tooling)
+* Fix problems with unreadable forms
+
+## 0.0.8
+* GOTO definition for Clojure (inside JARs)
+* Add support for REBL
+* Fixes https://github.com/mauricioszabo/repl-tooling/issues/14 (unreadable keywords and symbols)
+* Fixes some edge-cases with clojure/tools.namespace refresh
 
 ## 0.0.7
 * Fixes autocomplete error: https://github.com/mauricioszabo/atom-chlorine/issues/26
