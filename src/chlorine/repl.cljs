@@ -59,7 +59,7 @@
     (some-> ^js @console/console (.stdout out)))
   (when-let [out (:err output)]
     (some-> ^js @console/console (.stderr out)))
-  (when (:result output)
+  (when (contains? output :result)
     (let [[div res] (-> output :result inline/view-for-result)]
       (some-> ^js @console/console (.result div)))))
 
