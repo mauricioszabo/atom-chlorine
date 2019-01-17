@@ -5,11 +5,17 @@
             [repl-tooling.editor-helpers :as editor-helpers]
             [chlorine.ui.atom :as atom]))
 
-(defn doc-for [editor ^js range var-name]
+(defn doc-for [editor ^js range str-var-name]
   (let [ns-name (repl/ns-for editor)
-        var-name (symbol (str "#'" var-name))
+        var-name (symbol (str "(clojure.core/resolve '" str-var-name ")"))
         in-result (inline/new-result editor (.. range -end -row))
-        code `(clojure.core/let [m# (clojure.core/meta ~var-name)]
+        code `(clojure.core/let [v# (clojure.core/or ~var-name
+                                                     (throw
+                                                       (clojure.core/ex-info
+                                                        (clojure.core/str "Unable to resolve var: " ~str-var-name
+                                                                          " in this context in file " ~(.getFileName editor))
+                                                        {})))
+                                 m# (clojure.core/meta v#)]
                 (clojure.core/str "-------------------------\n"
                                   (:ns m#) "/" (:name m#) "\n"
                                   (:arglists m#) "\n  "
