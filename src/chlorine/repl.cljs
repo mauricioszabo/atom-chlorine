@@ -276,11 +276,23 @@
   ([] (load-file! (atom/current-editor)))
   ([^js editor]
    (let [file-name (.getPath editor)
-         ;; needs file system fixing
+         ;; canonicalize path separator for Java -- this avoids problems
+         ;; with \ causing 'bad escape characters' in the strings below
+         file-name (str/replace file-name "\\" "/")
          code (str "(do"
+                   " (require 'clojure.string)"
                    " (println \"Loading\" \"" file-name "\")"
                    " (try "
-                   "  (load-file \"" file-name "\")"
+                   "  (let [path \"" file-name "\""
+                   ;; if target REPL is running on *nix-like O/S...
+                   "        nix? (clojure.string/starts-with? (System/getProperty \"user.dir\") \"/\")"
+                   ;; ...and the file path looks like Windows...
+                   "        win? (clojure.string/starts-with? (subs path 1) \":/\")"
+                   ;; ...extract the driver letter...
+                   "        drv  (clojure.string/lower-case (subs path 0 1))"
+                   ;; ...and map to a Windows Subsystem for Linux mount path:
+                   "        path (if (and nix? win?) (str \"/mnt/\" drv (subs path 2)) path)]"
+                   "   (load-file path))"
                    "  (catch Throwable t"
                    "   (doseq [e (:via (Throwable->map t))]"
                    "    (println (:message e))))))")]
