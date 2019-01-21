@@ -8,13 +8,22 @@ Socket-REPL integration with Clojure and ClojureScript with Atom.
 This package requires `Ink` to work. Install it on Atom package manager
 
 ## Usage:
-Fire up a clojure REPL with Socket REPL support. With `shadow-cljs`, when you `watch` some build ID it'll give you a port for nREPL and Socket REPL. With `lein`, you can use `JVM_OPTS` environment variable like:
+Fire up a clojure REPL with Socket REPL support. With `shadow-cljs`, when you `watch` some build ID it'll give you a port for nREPL and Socket REPL. With `lein`, invoke it in a folder where you have `project.clj` and you can use `JVM_OPTS` environment variable like:
 
 ```bash
 JVM_OPTS='-Dclojure.server.myrepl={:port,5555,:accept,clojure.core.server/repl}' lein trampoline repl
 ```
 
 You can use `lein trampoline repl` or `lein repl`: both work (but I found that using `trampoline` uses less memory. Notice that `trampoline` **will not work** with nREPL).
+
+With `clj`, you can run the following from any folder:
+
+```bash
+clj -J'-Dclojure.server.repl={:port,5555,:accept,clojure.core.server/repl}'
+```
+
+Or have it in `:aliases` in `deps.edn`. (For an example with port 50505 see https://github.com/seancorfield/dot-clojure/blob/master/deps.edn, then you can run `clj -A:socket`.)
+
 
 Then, you connect Chlorine with the port using the command _Connect Clojure Socket REPL_. This package works with lumo too, but you'll need to run _Connect ClojureScript Socket REPL_.
 
