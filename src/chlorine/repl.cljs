@@ -97,7 +97,6 @@
 
 (defn set-inline-result [inline-result eval-result]
   (let [parsed (helpers/parse-result eval-result)]
-    (prn [:set-inline inline-result])
     (if (contains? parsed :result)
       (inline/render-result! inline-result (:result parsed))
       (do
