@@ -52,7 +52,7 @@ This package does not register any keybinding for you. You can define whatever y
 
 **If you don't use vim bindings:**
 ```cson
-'atom-text-editor.vim-mode-plus.normal-mode[data-grammar="source clojure"]':
+'atom-text-editor[data-grammar="source clojure"]':
   'ctrl-, y':       'chlorine:connect-clojure-socket-repl'
   'ctrl-, e':       'chlorine:disconnect'
   'ctrl-, k':       'chlorine:clear-console'
