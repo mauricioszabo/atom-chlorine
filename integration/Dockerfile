@@ -10,10 +10,10 @@ RUN apt install -y nodejs netcat
 #RUN curl https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein > /usr/bin/lein
 #RUN chmod +x /usr/bin/lein
 
-ENV DISPLAY=:0
+ENV DISPLAY=:99
 
 RUN mkdir /root/.atom
 RUN echo "'*':\n  welcome:\n    showOnStartup: false\n  core:\n    telemetryConsent: \"no\"\n    disabledPackages: [\"github\"]\n  \"autocomplete-plus\":\n    enableAutoActivation: false" > /root/.atom/config.cson
 
 WORKDIR /work
-CMD sh -c 'Xvfb & ./scripts/test'
+CMD sh -c 'Xvfb :99 & ./scripts/test'
