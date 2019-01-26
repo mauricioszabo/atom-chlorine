@@ -11,7 +11,7 @@ cd atom-chlorine # or the name you gave when cloning
 git submodule init
 git submodule update
 npm install
-cp repl-tooling/resources .
+cp repl-tooling/resources . -a
 npx shadow-cljs watch dev
 ```
 
