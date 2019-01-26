@@ -74,6 +74,13 @@ describe('Atom should open and evaluate code', function () {
       assert.ok(await haveSelector(`//div[contains(., '"210"')]`))
     })
 
+    it('shows function doc', async () => {
+      await sendCommand('inline-results:clear-all')
+      await app.client.keys("\n\nstr")
+      await sendCommand("chlorine:doc-for-var")
+      assert.ok(await haveText("With no args, returns the empty string. With one arg x, returns\n"))
+    })
+
     it('captures exceptions', async () => {
       await evalCommand(`(throw (ex-info "Error Number 1", {}))`)
       assert.ok(await haveSelector(`div.error`))
@@ -113,6 +120,13 @@ describe('Atom should open and evaluate code', function () {
 
       await evalCommand("(/ 10 0)")
       assert.ok(await haveText("##Inf"))
+    })
+
+    it('shows function doc', async () => {
+      await sendCommand('inline-results:clear-all')
+      await app.client.keys("\n\nstr")
+      await sendCommand("chlorine:doc-for-var")
+      assert.ok(await haveText("With no args, returns the empty string"))
     })
 
     it('captures exceptions', async () => {
