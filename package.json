@@ -1,7 +1,7 @@
 {
   "name": "chlorine",
   "main": "./lib/main",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Socket REPL client for Clojure and ClojureScript",
   "keywords": [],
   "repository": "https://github.com/mauricioszabo/atom-chlorine",
@@ -9,9 +9,9 @@
   "engines": {
     "atom": ">=1.0.0 <2.0.0"
   },
-  "package-dependencies": {
-    "ink": ">=0.9.14"
-  },
+  "package-deps": [
+    "ink"
+  ],
   "dependencies": {
     "create-react-class": "^15.6.3",
     "react": "^16.4.2",
