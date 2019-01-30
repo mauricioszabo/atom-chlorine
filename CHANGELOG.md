@@ -10,6 +10,13 @@
 * Problems when we stack multiple evaluations (see FIXME on repl-tooling)
 * Fix problems with unreadable forms
 
+## 0.0.9
+* Evaluate of `10M` and `10N` is rendered correctly
+* Rendering Java Objects that implement `print-method`
+* Better rendering of Java objects that have no `print-method` implemented
+* Better rendering of Java classes / methods
+* Using a custom UNREPL blob
+
 ## 0.0.8
 * GOTO definition for Clojure (inside JARs)
 * Add support for REBL
