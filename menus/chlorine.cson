@@ -1,0 +1,44 @@
+# See https://atom.io/docs/latest/hacking-atom-package-word-count#menus for more details
+'context-menu':
+  'atom-text-editor': [
+    {
+      'label': 'Chlorine'
+      'submenu': [
+        {'label': 'Connect Clojure Socket REPL', 'command': 'chlorine:connect-clojure-socket-repl'}
+        {'label': 'Connect Clojurescript Socket REPL', 'command': 'chlorine:connect-clojurescript-socket-repl'}
+        {'label': 'Connect Embedded CLJS Socket REPL', 'command': 'chlorine:connect-embedded-clojurescript-socket-repl'}
+        {'label': 'Disconnect REPL', 'command': 'chlorine:disconnect'}
+        {'label': 'Evaluate Block', 'command': 'chlorine:evaluate-block'}
+        {'label': 'Evaluate Top Block', 'command': 'chlorine:evaluate-top-block'}        
+        {'label': 'Evaluate Selection', 'command': 'chlorine:evaluate-selection'}
+        {'label': 'Doc for Var', 'command': 'chlorine:doc-for-var'}
+        {'label': 'Source for Var', 'command': 'chlorine:source-for-var'}
+        {'label': 'Clear Console', 'command': 'chlorine:clear-console'}
+        {'label': 'Load File', 'command': 'chlorine:load-file'}
+        {'label': 'Run Tests in NS', 'command': 'chlorine:run-tests-in-ns'}
+        {'label': 'Run Test for Var', 'command': 'chlorine:run-test-for-var'}
+        {'label': 'Inspect Block', 'command': 'chlorine:inspect-block'}
+        {'label': 'Inspect Top Block', 'command': 'chlorine:inspect-top-block'}
+        {'label': 'Refresh Namespaces', 'command': 'chlorine:refresh-namespaces'}
+        {'label': 'Toggle Refresh Mode', 'command': 'chlorine:toggle-refresh-mode'}
+        {'label': 'Go to Var Definition', 'command': 'chlorine:go-to-var-definition'}
+      ]
+    }
+  ]
+'menu': [
+  {
+    'label': 'Packages'
+    'submenu': [
+      'label': 'Chlorine'
+      'submenu': [
+        {'label': 'Connect Clojure Socket REPL', 'command': 'chlorine:connect-clojure-socket-repl'}
+        {'label': 'Connect Clojurescript Socket REPL', 'command': 'chlorine:connect-clojurescript-socket-repl'}
+        {'label': 'Connect Embedded CLJS Socket REPL', 'command': 'chlorine:connect-embedded-clojurescript-socket-repl'}
+        {'label': 'Disconnect REPL', 'command': 'chlorine:disconnect'}
+        {'label': 'Clear Console', 'command': 'chlorine:clear-console'}
+        {'label': 'Refresh Namespaces', 'command': 'chlorine:refresh-namespaces'}
+        {'label': 'Toggle Refresh Mode', 'command': 'chlorine:toggle-refresh-mode'}
+      ]
+    ]
+  }
+]
