@@ -20,7 +20,12 @@
         (.. js/atom -workspace
             (observeTextEditors subscribe-editor-events))))
 
+(defn- install-dependencies-maybe []
+  (-> (.install (js/require "atom-package-deps") "chlorine")
+      (.then #(.log js/console "All dependencies installed."))))
+
 (defn activate [s]
+  (install-dependencies-maybe)
   (aux/reload-subscriptions!)
   (observe-editors)
   (console/register-console)
