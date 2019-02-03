@@ -6,6 +6,7 @@
             [chlorine.features.refresh :as refresh]
             [chlorine.ui.doc :as doc]
             [chlorine.configs :as configs]
+            [chlorine.ui.atom :as atom]
             [chlorine.ui.console :as console]
             [chlorine.features.code :as code]))
 
@@ -22,7 +23,7 @@
 
 (defn- install-dependencies-maybe []
   (-> (.install (js/require "atom-package-deps") "chlorine")
-      (.then #(.log js/console "All dependencies installed."))))
+      (.then #(atom/info "All dependencies installed." ""))))
 
 (defn activate [s]
   (install-dependencies-maybe)
