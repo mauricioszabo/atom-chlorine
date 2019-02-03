@@ -87,7 +87,8 @@ describe('Atom should open and evaluate code', function () {
       assert.ok(await haveSelector(`div*=Error Number 1`))
 
       await evalCommand(`(ex-info "Error Number 2", {})`)
-      assert.ok(await haveText(`#error {:cause "Error Number 2"`))
+      assert.ok(await haveText(`#error`))
+      assert.ok(await haveText(`:cause "Error Number 2"`))
     })
 
     it('allows big strings to be represented', async () => {
