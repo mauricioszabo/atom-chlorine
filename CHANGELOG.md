@@ -10,6 +10,9 @@
 * Problems when we stack multiple evaluations (see FIXME on repl-tooling)
 * Fix problems with unreadable forms
 
+## 0.0.10
+* Update of UNREPL broke objects that implements `nav` (all objects, really). Temporary fix so things keep working until it's solved for once.
+
 ## 0.0.9
 * Evaluate of `10M` and `10N` is rendered correctly
 * Rendering Java Objects that implement `print-method`
