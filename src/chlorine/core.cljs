@@ -6,6 +6,7 @@
             [chlorine.features.refresh :as refresh]
             [chlorine.ui.doc :as doc]
             [chlorine.configs :as configs]
+            [chlorine.ui.atom :as atom]
             [chlorine.ui.console :as console]
             [chlorine.features.code :as code]))
 
@@ -20,7 +21,12 @@
         (.. js/atom -workspace
             (observeTextEditors subscribe-editor-events))))
 
+(defn- install-dependencies-maybe []
+  (-> (.install (js/require "atom-package-deps") "chlorine")
+      (.then #(atom/info "All dependencies installed." ""))))
+
 (defn activate [s]
+  (install-dependencies-maybe)
   (aux/reload-subscriptions!)
   (observe-editors)
   (console/register-console)

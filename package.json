@@ -15,7 +15,8 @@
   "dependencies": {
     "create-react-class": "^15.6.3",
     "react": "^16.4.2",
-    "react-dom": "^16.4.2"
+    "react-dom": "^16.4.2",
+    "atom-package-deps": "^5.0.0"
   },
   "activationCommands": {
     "atom-workspace": [
