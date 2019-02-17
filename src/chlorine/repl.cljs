@@ -33,14 +33,18 @@
 (defn connect! [host port]
   (let [p (connection/connect-unrepl!
            host port
-           #(some-> ^js @console/console (.stdout %))
-           #(some-> ^js @console/console (.stderr %))
-           #(cond
-              (:result %) (let [[div res] (-> %
-                                              :result
-                                              inline/view-for-result)]
-                            (some-> ^js @console/console (.result div))))
-           #(handle-disconnect!))]
+           {:on-stdout
+            #(some-> ^js @console/console (.stdout %))
+            :on-stderr
+            #(some-> ^js @console/console (.stderr %))
+            :on-result
+            #(cond
+               (:result %) (let [[div res] (-> %
+                                               :result
+                                               inline/view-for-result)]
+                             (some-> ^js @console/console (.result div))))
+            :on-disconnect
+            #(handle-disconnect!)})]
     (.then p (fn [repls]
                (atom/info "Clojure REPL connected" "")
                (.. js/atom -workspace (open "atom://chlorine/console" #js {:split "right"
