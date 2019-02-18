@@ -230,6 +230,25 @@
                                 (.getPath editor)
                                 range)))))
 
+(defn wrap-in-tap
+  "Clojure 1.10 only, as tap> is required"
+  [code]
+  (str "(let [value " code "]"
+       "  (try"
+       "     (tap> value)"
+       "  (catch Throwable _))"
+       "  value)"))
+
+(defn tap-selection!
+  ([] (tap-selection! (atom/current-editor)))
+  ([^js editor]
+   (some->> (.getSelectedText editor)
+            (wrap-in-tap)
+            (eval-and-present editor
+                              (ns-for editor)
+                              (.getPath editor)
+                              (. editor getSelectedBufferRange)))))
+
 (defn run-tests-in-ns!
   ([] (run-tests-in-ns! (atom/current-editor)))
   ([^js editor]

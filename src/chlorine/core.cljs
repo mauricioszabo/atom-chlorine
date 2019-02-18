@@ -52,6 +52,8 @@
   (aux/command-for "inspect-block" #(repl/inspect-block!))
   (aux/command-for "inspect-top-block" #(repl/inspect-top-block!))
 
+  (aux/command-for "tap-selection" #(repl/tap-selection!))
+
   (aux/command-for "refresh-namespaces" refresh/run-refresh!)
   (aux/command-for "toggle-refresh-mode" refresh/toggle-refresh)
 
