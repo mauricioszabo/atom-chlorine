@@ -20,13 +20,15 @@
     [:label "Host: "]
     [:input.input-text {:type "text"
                         :value (:hostname @local-state)
-                        :on-change #(swap! local-state assoc :hostname (-> % .-target .-value))}]]
+                        :on-change #(swap! local-state assoc :hostname (-> % .-target .-value))
+                        :on-focus #(-> % .-target .select)}]]
    [:div.block
     [:label "Port: "]
     [:input.input-text {:type "text"
                         :placeholder "port"
                         :value (:port @local-state)
-                        :on-change #(swap! local-state assoc :port (-> % .-target .-value int))}]]])
+                        :on-change #(swap! local-state assoc :port (-> % .-target .-value int))
+                        :on-focus #(-> % .-target .select)}]]])
 
 (defn destroy! [^js panel]
   (.destroy panel)
