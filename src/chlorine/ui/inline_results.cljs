@@ -2,6 +2,7 @@
   (:require [cljs.reader :as reader]
             [clojure.string :as str]
             [reagent.core :as r]
+            [repl-tooling.editor-integration.renderer :as render]
             [clojure.walk :as walk]
             [repl-tooling.eval :as eval]
             [repl-tooling.editor-helpers :as editor-helpers]
@@ -12,6 +13,22 @@
 (defn ^js new-result [^js editor row]
   (when-let [InkResult (some-> ^js @ink .-Result)]
     (InkResult. editor #js [row row] #js {:type "block"})))
+
+(defn- create-div! [parsed-ratom]
+  (let [div (. js/document createElement "div")]
+    (.. div -classList (add "result" "chlorine"))
+    (r/render [render/view-for-result parsed-ratom nil] div)
+    div))
+
+(defn render-on-console! [^js console parsed-result]
+  (let [parsed (render/parse-result parsed-result (-> @state :repls :clj-eval))
+        div (create-div! parsed)]
+    (some-> console (.result div))))
+
+(defn render-inline! [^js inline-result parsed-result]
+  (let [parsed-ratom (render/parse-result parsed-result (-> @state :repls :clj-eval))
+        div (create-div! parsed-ratom)]
+    (.setContent inline-result div #js {:error false})))
 
 (defn- to-str [edn]
   (let [tag (when (instance? editor-helpers/WithTag edn) (editor-helpers/tag edn))
@@ -24,43 +41,6 @@
     (-> start
         (str/replace #"\{:repl-tooling/\.\.\. .+?\}" "...")
         (->> (str tag)))))
-
-(declare to-tree)
-(defn- as-map [[key val]]
-  (let [k-str (str "[" (to-str key))
-        v-str (str (to-str val) "]")]
-    [:row [[k-str [(to-tree key)]]
-           [v-str [(to-tree val)]]]]))
-
-(defn- to-tree [edn]
-  (let [txt (to-str edn)
-        edn (cond-> edn (instance? editor-helpers/WithTag edn) editor-helpers/obj)]
-    (cond
-      (map? edn) [txt (mapv as-map edn)]
-      (coll? edn) [txt (mapv to-tree edn)]
-      :else [txt])))
-
-(defn- as-obj [unrepl-obj]
-  (let [tag? (and unrepl-obj (vector? unrepl-obj) (->> unrepl-obj first (instance? editor-helpers/WithTag)))]
-    (if (and tag? (-> unrepl-obj first editor-helpers/tag (= "#class ")))
-      (let [[f s] unrepl-obj]
-        (symbol (str (editor-helpers/obj f) "@" s)))
-      unrepl-obj)))
-
-(defn- leaf [text]
-  (doto (.createElement js/document "div")
-    (aset "innerText" text)))
-
-(declare to-html)
-(defn- html-row [children]
-  (let [div (.createElement js/document "div")]
-    (doseq [child children]
-      (.appendChild div (to-html child)))
-    div))
-
-(defn set-content! [^js result result-tree]
-  (let [contents (to-html result-tree)]
-    (.setContent result contents #js {:error false})))
 
 (defn put-more-to-end [contents]
   (if-let [get-more (get contents {:repl-tooling/... nil})]
@@ -98,31 +78,6 @@
      [:a {:on-click fun} (:contents piece)]
      (:contents piece))])
 
-(defn expand [parent]
-  (if (contains? @parent :children)
-    (swap! parent dissoc :children)
-    (let [contents (:contents @parent)
-          tag? (instance? editor-helpers/WithTag contents)
-          tag-or-map? (or (map? contents) (and tag? (-> contents editor-helpers/obj map?)))
-          to-get (cond-> contents (instance? editor-helpers/WithTag contents) editor-helpers/obj)
-          children (mapv (fn [c] {:contents c}) (put-more-to-end to-get))]
-      (swap! parent assoc :children children))))
-
-(defn- as-tree-element [edn result]
-  (let [tag (when (instance? editor-helpers/WithTag edn) (editor-helpers/tag edn))
-        edn (cond-> edn (instance? editor-helpers/WithTag edn) editor-helpers/obj)]
-    (-> edn
-        pr-str
-        (str/replace #"\{:repl-tooling/\.\.\. .+?\}" "...")
-        (->> (str tag)))))
-
-(defn- coll-views [result]
-  [:span
-   [:a {:on-click #(expand result)}
-    [:span {:class ["icon" (if (contains? @result :children)
-                               "icon-chevron-down"
-                               "icon-chevron-right")]}]]])
-
 (defn- string-row [result]
   (let [contents (:contents @result)
         with-res (fn [res]
@@ -148,46 +103,6 @@
 
       :else
       [:span.single-line (to-str contents)])))
-
-(defn- result-row [is-more? parent result]
-  (if is-more?
-    [:a {:on-click #(get-more (r/cursor parent [:children])
-                              (-> @result :contents :repl-tooling/...)
-                              true)}
-     (to-str (:contents @result))]
-    [string-row result]))
-
-(defn- result-view [parent key]
-  (let [result (r/cursor parent key)
-        r @result
-        contents (:contents r)
-        is-more? (and (map? contents) (-> contents keys (= [:repl-tooling/...])))
-        keys-of #(if (-> r :children map?)
-                   (-> r :children keys)
-                   (-> r :children keys count range))]
-
-    [:div {:key (str key)}
-     [:div {:style {:display "flex"}}
-      (when (and (not is-more?)
-                 (or (instance? editor-helpers/WithTag contents) (coll? contents)))
-        [coll-views result])
-
-      [result-row is-more? parent result]]
-
-     (when (contains? r :children)
-       [:div {:class "children"}
-        (doall (map #(result-view result [:children %]) (keys-of)))])]))
-
-(defn view-for-result [eval-result]
-  (let [div (. js/document (createElement "div"))
-        res (r/atom [{:contents eval-result}])]
-    (r/render [:div [result-view res [0]]] div)
-    [div res]))
-
-(defn render-result! [^js result eval-result]
-  (let [[div res] (view-for-result eval-result)]
-    (.. div -classList (add "result" "chlorine"))
-    (.setContent result div #js {:error false})))
 
 (defn- deconstruct-stack
   "Returns a [type message trace-atom] for exception"
