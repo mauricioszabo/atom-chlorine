@@ -42,3 +42,45 @@ status-bar div.chlorine {
     }
   }
 }
+
+.chlorine.result {
+  white-space: pre;
+
+  a.chevron {
+    &:focus {
+      text-decoration: none;
+    }
+
+    font-family: 'Octicons Regular';
+    font-weight: bold;
+    font-size: 16px;
+    width: 15px;
+    height: 15px;
+
+    &.closed::before {
+      content: "\f078";
+    }
+
+    &.opened::before {
+      content: "\f0a3";
+    }
+  }
+
+  div {
+    display: flex;
+    flex-direction: row;
+  }
+
+  div.browseable {
+    flex-direction: column;
+  }
+
+  div.row {
+    flex-direction: column;
+  }
+
+  div .children {
+    flex-direction: column;
+    margin-left: 1em;
+  }
+}
