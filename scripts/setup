@@ -1,0 +1,8 @@
+#!/bin/bash
+
+mkdir resources
+
+npm install &&
+git submodule init &&
+git submodule update &&
+cp repl-tooling/resources/unrepl.clj resources/unrepl.clj
