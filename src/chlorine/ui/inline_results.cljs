@@ -17,7 +17,7 @@
 (defn- create-div! [parsed-ratom]
   (let [div (. js/document createElement "div")]
     (.. div -classList (add "result" "chlorine"))
-    (r/render [render/view-for-result parsed-ratom nil] div)
+    (r/render [render/view-for-result parsed-ratom] div)
     div))
 
 (defn render-on-console! [^js console parsed-result]
