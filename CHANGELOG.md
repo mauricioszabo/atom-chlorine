@@ -10,6 +10,11 @@
 * Problems when we stack multiple evaluations (see FIXME on repl-tooling)
 * Fix problems with unreadable forms
 
+## Next Version
+- New renderer for results
+- Fixed "leaking internal implementation" on some exceptions
+- New renderer for errors
+
 ## 0.0.10
 * Update of UNREPL broke objects that implements `nav` (all objects, really). Temporary fix so things keep working until it's solved for once.
 

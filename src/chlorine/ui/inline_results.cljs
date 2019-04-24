@@ -17,7 +17,7 @@
 (defn- create-div! [parsed-ratom]
   (let [div (. js/document createElement "div")]
     (.. div -classList (add "result" "chlorine"))
-    (r/render [render/view-for-result parsed-ratom nil] div)
+    (r/render [render/view-for-result parsed-ratom] div)
     div))
 
 (defn render-on-console! [^js console parsed-result]
@@ -136,9 +136,12 @@
      [:div {:class "stacktrace"}
       (map stack-line (range) stacks)]]))
 
-(defn render-error! [^js result error]
-  (let [div (. js/document (createElement "div"))
-        res (r/atom error)]
-    (r/render [error-view res] div)
+(defn render-error! [^js inline-result parsed-result]
+  (let [parsed-ratom (render/parse-result parsed-result (-> @state :repls :clj-eval))
+        div (create-div! parsed-ratom)]
+  ; (let [div (. js/document (createElement "div"))
+  ;       res (r/atom error)]
+    ; (r/render [error-view res] div)
     (.. div -classList (add "error" "chlorine"))
-    (.setContent result div #js {:error true})))
+    (.setContent inline-result div #js {:error true})))
+    ; (.setContent result div #js {:error true})))

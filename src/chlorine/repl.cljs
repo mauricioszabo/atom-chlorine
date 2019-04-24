@@ -95,12 +95,13 @@
                    (atom/info "ClojureScript REPL connected" "")))))))
 
 (defn set-inline-result [inline-result eval-result]
+  (prn eval-result)
   (if (contains? eval-result :result)
     (inline/render-inline! inline-result eval-result)
     (do
       (some-> @state :repls :clj-eval
               (eval/evaluate "(clojure.repl/pst)" {} identity))
-      (inline/render-error! inline-result (:error (helpers/parse-result eval-result))))))
+      (inline/render-error! inline-result eval-result))))
 
 (defn need-cljs? [editor]
   (or
