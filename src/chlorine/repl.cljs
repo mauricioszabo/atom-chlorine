@@ -95,7 +95,6 @@
                    (atom/info "ClojureScript REPL connected" "")))))))
 
 (defn set-inline-result [inline-result eval-result]
-  (prn eval-result)
   (if (contains? eval-result :result)
     (inline/render-inline! inline-result eval-result)
     (do
