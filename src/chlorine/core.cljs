@@ -23,7 +23,7 @@
 
 (defn- install-dependencies-maybe []
   (-> (.install (js/require "atom-package-deps") "chlorine")
-      (.then #(atom/info "All dependencies installed." ""))))
+      #_(.then #(atom/info "All dependencies installed." ""))))
 
 (defn activate [s]
   (install-dependencies-maybe)
