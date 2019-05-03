@@ -199,8 +199,7 @@
   [code]
   (str "(let [value " code "]"
        " (try"
-       "  (when-let [d-val ((requiring-resolve 'clojure.datafy/datafy) value)]"
-       "   ((requiring-resolve 'cognitect.rebl/submit) '" code " d-val))"
+       "  ((requiring-resolve 'cognitect.rebl/submit) '" code " value)"
        "  (catch Throwable _))"
        " value)"))
 
