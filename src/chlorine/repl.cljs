@@ -33,14 +33,14 @@
 (defn connect! [host port]
   (let [p (connection/connect-unrepl!
            host port
-           #(some-> ^js @console/console (.stdout %))
-           #(some-> ^js @console/console (.stderr %))
-           #(cond
-              (:result %) (let [[div res] (-> %
-                                              :result
-                                              inline/view-for-result)]
-                            (some-> ^js @console/console (.result div))))
-           #(handle-disconnect!))]
+           {:on-stdout
+            #(some-> ^js @console/console (.stdout %))
+            :on-stderr
+            #(some-> ^js @console/console (.stderr %))
+            :on-result
+            #(when (:result %) (inline/render-on-console! @console/console %))
+            :on-disconnect
+            #(handle-disconnect!)})]
     (.then p (fn [repls]
                (atom/info "Clojure REPL connected" "")
                (.. js/atom -workspace (open "atom://chlorine/console" #js {:split "right"
@@ -60,8 +60,7 @@
   (when-let [out (:err output)]
     (some-> ^js @console/console (.stderr out)))
   (when (contains? output :result)
-    (let [[div res] (-> output :result inline/view-for-result)]
-      (some-> ^js @console/console (.result div)))))
+    (inline/render-on-console! @console/console output)))
 
 (def callback-fn (atom callback))
 
@@ -96,13 +95,12 @@
                    (atom/info "ClojureScript REPL connected" "")))))))
 
 (defn set-inline-result [inline-result eval-result]
-  (let [parsed (helpers/parse-result eval-result)]
-    (if (contains? parsed :result)
-      (inline/render-result! inline-result (:result parsed))
-      (do
-        (some-> @state :repls :clj-eval
-                (eval/evaluate "(clojure.repl/pst)" {} identity))
-        (inline/render-error! inline-result (:error parsed))))))
+  (if (contains? eval-result :result)
+    (inline/render-inline! inline-result eval-result)
+    (do
+      (some-> @state :repls :clj-eval
+              (eval/evaluate "(clojure.repl/pst)" {} identity))
+      (inline/render-error! inline-result eval-result))))
 
 (defn need-cljs? [editor]
   (or

@@ -1,0 +1,102 @@
+atom-text-editor {
+  .selection .region, :host .selection .region {
+    background-color: rgba(100, 100, 100, 0.7);
+  }
+
+  .clojure-watch-expr {
+    .region { border-bottom: 1px red dotted; }
+    &.watch .region { background-color: rgba(0, 200, 100, 0.3); }
+  }
+
+  .clojure-sexp .region {
+    background-color: rgba(255, 255, 255, 0.15);
+  }
+}
+
+.ink div.chlorine.error {
+  strong.error-description {
+    font-weight: 900;
+  }
+
+  div.stacktrace {
+    margin-left: 1em;
+  }
+}
+
+.ink.tree.line {
+  display: block;
+}
+
+status-bar div.chlorine {
+  font-style: italic;
+}
+
+.ink div.chlorine {
+  .children {
+    margin-left: 1em;
+  }
+
+  .ink div.chlorine {
+    span.single-line {
+      white-space: nowrap;
+    }
+  }
+}
+
+.chlorine.result {
+  white-space: pre;
+
+  a.chevron {
+    &:focus {
+      text-decoration: none;
+    }
+
+    font-family: 'Octicons Regular';
+    font-weight: bold;
+    font-size: 16px;
+    width: 15px;
+    height: 15px;
+
+    &.closed::before {
+      content: "\f078";
+    }
+
+    &.opened::before {
+      content: "\f0a3";
+    }
+  }
+
+  div {
+    display: flex;
+    flex-direction: row;
+  }
+
+  div.browseable {
+    flex-direction: column;
+  }
+
+  div.row {
+    flex-direction: column;
+  }
+
+  div .children {
+    flex-direction: column;
+  }
+}
+
+div.chlorine {
+  div.exception {
+    div.description {
+      font-weight: bold;
+      text-shadow: 1px 1px 3px black;
+    }
+
+    div.additional {
+      margin-left: 0;
+    }
+  }
+
+  div.stack {
+    opacity: 0.6;
+  }
+}

@@ -1,0 +1,9 @@
+#!/bin/bash
+
+rm -R target/ .shadow-cljs/ lib/js/cljs-runtime/ lib/main.js
+mkdir resources
+
+npm install &&
+git submodule init &&
+git submodule update &&
+cp repl-tooling/resources/unrepl.clj resources/unrepl.clj
