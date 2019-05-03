@@ -1,0 +1,11 @@
+version: 2
+defaults: &defaults
+  machine:
+    image: circleci/classic:edge
+
+jobs:
+  test:
+    <<: *defaults
+    steps:
+      - checkout
+      - run: ./scripts/ci
