@@ -9,3 +9,10 @@ jobs:
     steps:
       - checkout
       - run: ./scripts/ci
+
+workflows:
+  version: 2
+  default-workflow:
+    jobs:
+      - test:
+          context: org-global
