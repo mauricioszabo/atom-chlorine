@@ -1,5 +1,5 @@
 # Chlorine
-[![Build Status](https://travis-ci.org/mauricioszabo/atom-chlorine.svg?branch=master)](https://travis-ci.org/mauricioszabo/atom-chlorine)
+[![CircleCI](https://circleci.com/gh/mauricioszabo/atom-chlorine.svg?style=svg)](https://circleci.com/gh/mauricioszabo/atom-chlorine)
 
 Cl + Atom = Chlorine
 
