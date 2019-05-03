@@ -17,6 +17,9 @@
 - Fixed error when trying to expand tagged literals
 - De-emphasis on Java's stacktrace lines
 - Fixes stacktrace not appearing on big exceptions (https://github.com/mauricioszabo/atom-chlorine/issues/50)
+- Fixes REBL integration (https://github.com/mauricioszabo/atom-chlorine/pull/51)
+- Focus on fields when connecting to Socket REPL (https://github.com/mauricioszabo/atom-chlorine/pull/47)
+- Install dependencies (https://github.com/mauricioszabo/atom-chlorine/pull/45)
 
 ## 0.0.10
 * Update of UNREPL broke objects that implements `nav` (all objects, really). Temporary fix so things keep working until it's solved for once.
