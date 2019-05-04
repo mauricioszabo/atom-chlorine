@@ -1,4 +1,4 @@
-version: 2
+version: 2.1
 defaults: &defaults
   machine:
     image: circleci/classic:edge
@@ -14,7 +14,7 @@ jobs:
     <<: *defaults
     steps:
       - checkout
-      - run: ./scripts/ci-publish.sh
+      - run: ./scripts/ci-prepare-release
 
 workflows:
   version: 2
@@ -27,6 +27,6 @@ workflows:
             - test
           filters:
             tags:
-              only: /^v.*source/
+              only: /-source$/
             branches:
               ignore: /.*/
