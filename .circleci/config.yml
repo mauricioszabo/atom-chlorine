@@ -10,6 +10,7 @@ jobs:
       - checkout
       - run: ./scripts/ci
 
+  publish:
     steps:
       - checkout
       - run: ./scripts/ci-publish.sh
@@ -26,3 +27,5 @@ workflows:
           filters:
             tags:
               only: /^v.*source/
+            branches:
+              ignore: /.*/
