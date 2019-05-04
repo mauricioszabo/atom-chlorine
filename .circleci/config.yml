@@ -11,6 +11,7 @@ jobs:
       - run: ./scripts/ci
 
   publish:
+    <<: *defaults
     steps:
       - checkout
       - run: ./scripts/ci-publish.sh
