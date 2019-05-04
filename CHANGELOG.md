@@ -10,7 +10,7 @@
 * Problems when we stack multiple evaluations (see FIXME on repl-tooling)
 * Fix problems with unreadable forms
 
-## Next Version
+## 0.1.0
 - New renderer for results
 - Fixed "leaking internal implementation" on some exceptions
 - New renderer for errors
