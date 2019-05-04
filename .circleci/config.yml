@@ -21,15 +21,10 @@ workflows:
   default-workflow:
     jobs:
       - test
-          filters:
-            tags:
-              only: /.*/
 
       - publish:
           requires:
             - test
           filters:
-            tags:
-              only: /.*/
             branches:
-              ignore: /.*/
+              only: /^release-.*/
