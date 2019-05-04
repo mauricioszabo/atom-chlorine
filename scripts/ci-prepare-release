@@ -1,0 +1,14 @@
+#!/bin/bash
+
+sed 's/git.github.com:mauricioszabo.repl-tooling/https:\/\/github.com\/mauricioszabo\/repl-tooling.git/' /tmp/config > .git/config
+git submodule update
+
+lein run -m shadow.cljs.devtools.cli --npm release dev
+git checkout -b release-prepare-DELETE-THIS
+git rm -r src
+git rm -r integration
+git rm -r scripts
+git add -f lib/main.js
+git commit -m 'Compiled version for release'
+git tag `echo $CIRCLE_TAG | sed s/\-source//`
+git push --tags

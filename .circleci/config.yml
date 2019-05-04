@@ -10,8 +10,19 @@ jobs:
       - checkout
       - run: ./scripts/ci
 
+    steps:
+      - checkout
+      - run: ./scripts/ci-publish.sh
+
 workflows:
   version: 2
   default-workflow:
     jobs:
       - test
+
+      - publish:
+          requires:
+            - test
+          filters:
+            tags:
+              only: /^v.*source/
