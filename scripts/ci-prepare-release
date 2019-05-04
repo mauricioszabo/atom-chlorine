@@ -2,6 +2,7 @@
 
 sed 's/git.github.com:mauricioszabo.repl-tooling/https:\/\/github.com\/mauricioszabo\/repl-tooling.git/' /tmp/config > .git/config
 git submodule update
+npm install
 git tag `echo "$CIRCLE_BRANCH-source" | sed s/release-//`
 
 lein run -m shadow.cljs.devtools.cli --npm release dev
