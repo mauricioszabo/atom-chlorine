@@ -23,13 +23,13 @@ workflows:
       - test
           filters:
             tags:
-              only: /v.*-source/
+              only: /.*/
 
       - publish:
           requires:
             - test
           filters:
             tags:
-              only: /v.*-source/
+              only: /.*/
             branches:
               ignore: /.*/
