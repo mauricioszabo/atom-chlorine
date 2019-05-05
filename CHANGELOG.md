@@ -10,6 +10,13 @@
 * Problems when we stack multiple evaluations (see FIXME on repl-tooling)
 * Fix problems with unreadable forms
 
+## 0.1.1
+- Fix `#js` tagged literal
+- Shadow-CLJS can now evaluate multiple forms
+- Fix stacktraces on ClojureScript
+- Removed "shadow" on exception on CLJS (conflicts with light theme)
+- Fixed link spacing on renderer
+
 ## 0.1.0
 - New renderer for results
 - Fixed "leaking internal implementation" on some exceptions
