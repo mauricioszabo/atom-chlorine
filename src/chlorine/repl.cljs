@@ -79,17 +79,22 @@
                                                                    :port port})))))))
 
 (def trs {:no-shadow-file "File shadow-cljs.edn not found"
+          :no-worker "No worker for first build ID"
           :unknown "Unknown error"})
 
 (defn connect-self-hosted []
   (let [{:keys [host port]} (:connection @state)
         dirs (->> js/atom .-project .getDirectories (map #(.getPath ^js %)))]
-    (.. (conn/auto-connect-embedded! host port dirs)
+    (.. (conn/auto-connect-embedded! host port dirs
+                                     {:on-stdout
+                                      #(some-> ^js @console/console (.stdout %))
+                                      :on-result
+                                      #(when (:result %)
+                                         (inline/render-on-console! @console/console %))})
+
         (then #(if-let [error (:error %)]
-                 (do
-                   (prn error)
-                   (atom/error "Error connecting to ClojureScript"
-                               (get trs error error)))
+                 (atom/error "Error connecting to ClojureScript"
+                             (get trs error error))
                  (do
                    (swap! state assoc-in [:repls :cljs-eval] %)
                    (atom/info "ClojureScript REPL connected" "")))))))
