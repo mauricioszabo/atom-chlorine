@@ -11,6 +11,7 @@
 * Fix problems with unreadable forms
 
 ## 0.1.1
+- Fixed console errors (https://github.com/mauricioszabo/atom-chlorine/issues/33) and (https://github.com/mauricioszabo/atom-chlorine/issues/32)
 - Fix `#js` tagged literal
 - Shadow-CLJS can now evaluate multiple forms
 - Fix stacktraces on ClojureScript
