@@ -35,7 +35,8 @@
             #(handle-disconnect!)})]
     (.then p (fn [repls]
                (atom/info "Clojure REPL connected" "")
-               (console/open-console "right" #(connection/disconnect!))
+               (console/open-console (-> @state :config :console-pos)
+                                     #(connection/disconnect!))
                (swap! state #(-> %
                                  (assoc-in [:repls :clj-eval] (:clj/repl repls))
                                  (assoc-in [:repls :clj-aux] (:clj/aux repls))
