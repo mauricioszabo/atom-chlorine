@@ -1,15 +1,13 @@
 (ns chlorine.ui.console
   (:require [chlorine.ui.inline-results :as inline]
-            [chlorine.aux :as aux]))
-
-(def console-uri "atom://chlorine/console")
+            [chlorine.aux :as aux]
+            [clojure.core.async :as async :include-macros true]))
 
 (defn- from-console-id [^js ink]
   (-> ink .-Console
-      (.fromId "chlorine")
+      (.fromId "chlorine-console")
       (doto
-       (.getTitle (fn [] "Clojure REPL"))
-       (.activate)
+       (.setTitle "Chlorine REPL")
        (.onEval (fn [ed] (prn [:INSERTED ed])))
        (.setModes (clj->js [{:name "chlorine"
                              :default true
@@ -17,11 +15,11 @@
 
 (def console (delay (some-> @inline/ink from-console-id)))
 
-(defn register-console []
-  (.add @aux/subscriptions
-        (.. js/atom -workspace (addOpener (fn [uri]
-                                            (when (= uri console-uri)
-                                              @console))))))
-
 (defn clear []
   (some-> @console .reset))
+
+(defn open-console [split destroy-fn]
+  (.. @console
+      (open #js {:split split :searchAllPanes true :activatePane false
+                 :activateItem false})
+      (then #(aset % "destroy" destroy-fn))))

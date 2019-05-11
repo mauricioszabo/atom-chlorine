@@ -22,14 +22,6 @@
          :connection nil)
   (atom/info "Disconnected from REPLs" ""))
 
-(defn- register-destroy [^js console]
-  (async/go-loop []
-    (if (.currentPane console)
-      (-> console .currentPane (.onDidDestroy #(connection/disconnect!)))
-      (do
-        (async/<! (async/timeout 500))
-        (recur)))))
-
 (defn connect! [host port]
   (let [p (connection/connect-unrepl!
            host port
@@ -43,9 +35,8 @@
             #(handle-disconnect!)})]
     (.then p (fn [repls]
                (atom/info "Clojure REPL connected" "")
-               (.. js/atom -workspace (open "atom://chlorine/console" #js {:split "right"
-                                                                           :searchAllPanes true}))
-               (some-> @console/console (register-destroy))
+               (console/open-console (-> @state :config :console-pos)
+                                     #(connection/disconnect!))
                (swap! state #(-> %
                                  (assoc-in [:repls :clj-eval] (:clj/repl repls))
                                  (assoc-in [:repls :clj-aux] (:clj/aux repls))

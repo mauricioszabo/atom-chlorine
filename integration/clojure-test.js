@@ -54,7 +54,7 @@ describe('Atom should open and evaluate code', function () {
     await app.client.keys("Tab")
     await app.client.keys("3333")
     await app.client.keys("Enter")
-    assert.ok(await haveSelector("div*=Console"))
+    assert.ok(await haveSelector("ink-console"))
     await sendCommand("window:focus-next-pane")
     assert.ok(await gotoTab('test.clj'))
   })

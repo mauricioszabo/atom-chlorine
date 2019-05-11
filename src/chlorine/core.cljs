@@ -29,7 +29,6 @@
   (install-dependencies-maybe)
   (aux/reload-subscriptions!)
   (observe-editors)
-  (console/register-console)
   (configs/observe-configs!)
 
   (aux/command-for "connect-clojure-socket-repl" conn/connect!)

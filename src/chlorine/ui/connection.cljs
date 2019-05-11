@@ -7,7 +7,8 @@
             [repl-tooling.repl-client :as repl-client]
             [repl-tooling.repl-client.clojure :as clj-repl]
             [chlorine.aux :as aux]
-            [repl-tooling.editor-integration.connection :as connection]))
+            [repl-tooling.editor-integration.connection :as connection]
+            ["fs" :refer [existsSync readFileSync]]))
 
 (defonce local-state
   (r/atom {:hostname "localhost"
@@ -49,7 +50,11 @@
 
 (defn conn-view [cmd]
   (let [div (. js/document (createElement "div"))
-        panel (.. js/atom -workspace (addModalPanel #js {:item div}))]
+        panel (.. js/atom -workspace (addModalPanel #js {:item div}))
+        port-file (-> js/atom .-project .getPaths first
+                      (str "/.shadow-cljs/socket-repl.port"))]
+    (when (existsSync port-file)
+      (swap! local-state assoc :port (-> port-file readFileSync str int)))
     (r/render [view] div)
     (aux/save-focus! div)
     (doseq [elem (-> div (.querySelectorAll "input") as-clj)]

@@ -40,7 +40,13 @@
          => {:bar {:type :boolean :default false :title "BAR"}}))
 
 (defn get-configs []
-  (-> configs transform-config clj->js))
+  (-> configs
+      transform-config
+      (merge {:console-pos {:type "string"
+                            :title "Position of console when connecting REPL"
+                            :enum ["right" "down"]
+                            :default "right"}})
+      clj->js))
 
 (defn observe-configs! []
   (.add @aux/subscriptions
