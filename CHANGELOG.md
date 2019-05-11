@@ -11,6 +11,7 @@
 * Fix problems with unreadable forms
 
 ## 0.1.2
+- Auto-adding port number if the project file is a shadow-cljs build project
 - Config to open console on bottom
 - Fixed console errors (https://github.com/mauricioszabo/atom-chlorine/issues/33) and (https://github.com/mauricioszabo/atom-chlorine/issues/32)
 
