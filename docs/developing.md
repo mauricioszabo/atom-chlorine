@@ -30,6 +30,8 @@ This project parses the result of UNREPL and shows then on JS side. The way Cloj
 
 The additions were to change the way we parse big numbers (with reader tags) and also to add more functionality to Java classes (show methods, constructors, and enumerators).
 
+As there's no UNREPL for ClojureScript, there's a "blob-like" to allow some customization to readers (for example, right now it is used to add stacktraces to exceptions and normalized Reagent's Atoms so it will not break the parsing on the editor's side). This "design decisions" is _not final_ and I'm still trying to find better ways to configure the printer (it doesn't work _that well_ and disallows customizations from the user side).
+
 ## Testing
 
 Probably all simpler tests will be on REPL-Tooling. For Chlorine, there are two approaches:
