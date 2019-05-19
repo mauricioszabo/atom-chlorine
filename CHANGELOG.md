@@ -13,7 +13,7 @@
 ## 0.1.3
 - Break on Clojure (https://github.com/mauricioszabo/repl-tooling/issues/6)
 - Fixed "burst commands" (https://github.com/mauricioszabo/repl-tooling/issues/24)
-- Fix Lumo error
+- Fix Lumo's console error (https://github.com/mauricioszabo/atom-chlorine/issues/60)
 
 ## 0.1.2
 - Auto-adding port number if the project file is a shadow-cljs build project
