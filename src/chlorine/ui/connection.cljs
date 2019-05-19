@@ -54,7 +54,7 @@
         port-file (-> js/atom .-project .getPaths first
                       (str "/.shadow-cljs/socket-repl.port"))]
     (when (existsSync port-file)
-      (swap! local-state assoc :port (-> port-file readFileSync str int)))
+      (swap! local-state assoc :port (-> port-file readFileSync .toString int)))
     (r/render [view] div)
     (aux/save-focus! div)
     (doseq [elem (-> div (.querySelectorAll "input") as-clj)]

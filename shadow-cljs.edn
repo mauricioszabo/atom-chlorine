@@ -1,5 +1,10 @@
 ;; shadow-cljs configuration
-{:lein true
+{:source-paths ["lib" "src" "repl-tooling/src" "repl-tooling/test"
+                "repl-tooling/resources"]
+
+ :dependencies [[org.clojure/core.async "0.4.474"]
+                [reagent "0.8.1"]
+                [check "0.0.2-SNAPSHOT"]]
 
  :builds
  {:dev {:target :node-library
