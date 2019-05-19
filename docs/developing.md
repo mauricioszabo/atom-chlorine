@@ -9,7 +9,6 @@ Clone this repo and run the following commands:
 ```bash
 cd atom-chlorine # or the name you gave when cloning
 ./scripts/setup
-cp repl-tooling/resources . -a
 npx shadow-cljs watch dev
 ```
 
@@ -30,6 +29,8 @@ There's also a overview of ideas, new features, roadmap on REPL Tooling projects
 This project parses the result of UNREPL and shows then on JS side. The way ClojureScript works today is to parse big numbers (`10N` and `10M`) into Javascript Numbers, and this will obviously not work when rendering data. So, we use a custom-made UNREPL blob: https://github.com/mauricioszabo/unrepl.
 
 The additions were to change the way we parse big numbers (with reader tags) and also to add more functionality to Java classes (show methods, constructors, and enumerators).
+
+As there's no UNREPL for ClojureScript, there's a "blob-like" to allow some customization to readers (for example, right now it is used to add stacktraces to exceptions and normalized Reagent's Atoms so it will not break the parsing on the editor's side). This "design decisions" is _not final_ and I'm still trying to find better ways to configure the printer (it doesn't work _that well_ and disallows customizations from the user side).
 
 ## Testing
 
@@ -55,3 +56,8 @@ There are some integration tests right now on `integration` folder. These tests 
 Also, there are some docker images so that these tests will be run on Travis CI (or any other CI that supports docker). You can test to see if your code can run inside a CI using `./scripts/ci` command (it'll run all the integration tests inside docker, the same as it runs on Travis today).
 
 Please, notice that for the code to run on CI, it'll download the plug-in, update repl-tooling submodule, then it'll compile the code in `release` form: this means that dead code elimination and other optimizations will be applied. So, if you can't make the build pass on CI, probably you need to test on release.
+
+## Releases
+All releases are done automatically on the CI side. This means that if you can't make the integration builds pass, it'll be impossible to make a release. This is intentional: The first releases got some strange bugs, and multiple times the local code I was shipping was dirty (or the submodule was not updated) so I released some versions and other people were unable to replicate possible bugs or features in the latest versions.
+
+The publishing is done on two tags: one is suffixed `-source`. For example, the version `0.1.1` have two tags: `v0.1.1` and `v0.1.1-source`. The `v0.1.1` is basically the other tag compiled on release mode (with `npx shadow-cljs release dev`) and with all source code removed. That way, the Atom package is smaller.

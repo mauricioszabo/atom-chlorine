@@ -42,6 +42,7 @@ This package does not register any keybinding for you. You can define whatever y
   'space l':      'chlorine:clear-console'
   'shift-enter':  'chlorine:evaluate-block'
   'ctrl-enter':   'chlorine:evaluate-top-block'
+  'ctrl-c':       'chlorine:break-evaluation'
   'space space':  'inline-results:clear-all'
   'space x':      'chlorine:run-tests-in-ns'
   'space t':      'chlorine:run-test-for-var'
@@ -63,6 +64,7 @@ This package does not register any keybinding for you. You can define whatever y
   'ctrl-, i':       'chlorine:inspect-block'
   'ctrl-, I':       'chlorine:inspect-top-block'
   'ctrl-, s':       'chlorine:evaluate-selection'
+  'ctrl-, c':       'chlorine:break-evaluation'
   'ctrl-, c':       'chlorine:source-for-var'
   'ctrl-, d':       'chlorine:doc-for-var'
   'ctrl-, x':       'chlorine:run-tests-in-ns'
@@ -75,3 +77,12 @@ For now, it only works with Shadow-CLJS or Lumo.
 With Lumo, you fire up lumo with `lumo -n 3322` to start a socket REPL on port `3322` (or any other port), then connect Chlorine with "Connect ClojureScript Socket REPL".
 
 With Shadow-CLJS, after watching (or after starting a server, or anything that starts a socket REPL) you connect with "Connect Clojure Socket REPL", then run the command "Connect Embedded ClojureScript REPL". Then you can run code on .cljs files too.
+
+## How to contribute?
+As Chlorine is in active development, it was starting to become tedious to publish a newer version of repl-tooling for every experiment, so for now, the library is registered as a submodule. To contribute, you clone this repository and run:
+
+```
+./scripts/setup
+```
+
+To register the submodule. More info on [Developing](docs/developing.md) document.
