@@ -56,13 +56,11 @@
 (def callback-fn (atom callback))
 
 (defn connect-cljs! [host port]
-  (let [repl (cljs/repl :clj-eval host port #(@callback-fn %))]
+  (let [repl (cljs/repl :cljs-eval host port #(@callback-fn %))]
     (eval/evaluate repl ":ok" {} (fn []
                                    (atom/info "ClojureScript REPL connected" "")
-                                   (.. js/atom
-                                       -workspace
-                                       (open "atom://chlorine/console"
-                                             #js {:split "right"}))
+                                   (console/open-console (-> @state :config :console-pos)
+                                                         #(connection/disconnect!))
                                    (swap! state
                                           #(-> %
                                                (assoc-in [:repls :cljs-eval] repl)
