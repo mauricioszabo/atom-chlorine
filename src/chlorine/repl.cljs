@@ -12,7 +12,10 @@
             [repl-tooling.integrations.connection :as conn]
             [repl-tooling.editor-integration.connection :as connection]
             [chlorine.ui.atom :as atom]
-            [clojure.core.async :as async :include-macros true]))
+            [clojure.core.async :as async :include-macros true]
+            ["atom" :refer [CompositeDisposable]]))
+
+(def ^:private commands-subs (atom (CompositeDisposable.)))
 
 (defn- handle-disconnect! []
   (swap! state assoc
@@ -20,7 +23,16 @@
                  :cljs-eval nil
                  :clj-aux nil}
          :connection nil)
+  (.dispose ^js @commands-subs)
+  (reset! commands-subs (CompositeDisposable.))
   (atom/info "Disconnected from REPLs" ""))
+
+(defn- register-commands! [commands]
+  (let [f (-> commands :break-evaluation :command)
+        disp (-> js/atom .-commands (.add "atom-text-editor"
+                                          "chlorine:break-evaluation"
+                                          f))]
+    (.add ^js @commands-subs disp)))
 
 (defn connect! [host port]
   (let [p (connection/connect-unrepl!
@@ -40,7 +52,8 @@
                (swap! state #(-> %
                                  (assoc-in [:repls :clj-eval] (:clj/repl repls))
                                  (assoc-in [:repls :clj-aux] (:clj/aux repls))
-                                 (assoc :connection {:host host :port port})))))))
+                                 (assoc :connection {:host host :port port})))
+               (-> repls :editor/commands register-commands!)))))
 
 (defn callback [output]
   (when (nil? output)
