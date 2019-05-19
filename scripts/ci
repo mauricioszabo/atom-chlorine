@@ -6,8 +6,7 @@ sed 's/git.github.com:mauricioszabo.repl-tooling/https:\/\/github.com\/mauricios
 git submodule update
 cp -R repl-tooling/resources resources
 
-docker run --rm -it -u root -v`pwd`:/work node sh -c 'cd /work && npm install'
-docker run --rm -it -u root -v`pwd`:/work clojure sh -c 'cd /work && lein run -m shadow.cljs.devtools.cli --npm release dev'
+docker run --rm -it -u root -v`pwd`:/work node:alpine sh -c 'apk add --no-cache openjdk8 && cd /work && npm install && npx shadow-cljs release dev'
 
 ./scripts/run-test-server
 docker build -f integration/Dockerfile -t atom .
