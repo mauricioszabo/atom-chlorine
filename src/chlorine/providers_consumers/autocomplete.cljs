@@ -7,9 +7,12 @@
             [chlorine.ui.inline-results :as inline]
             [repl-tooling.features.autocomplete :as compl]))
 
-(def clj-var-regex #"[a-zA-Z0-9\-.$!?\/><*=_:]+")
+(def clj-var-regex #"[a-zA-Z0-9\-.$!?\/><*=\?_:]+")
 
-(defn suggestions [{:keys [^js editor ^js bufferPosition scopeDescriptor prefix activatedManually]}]
+(defn- min-word-size []
+  (.. js/atom -config (get "autocomplete-plus.minimumWordLength")))
+
+(defn suggestions [{:keys [^js editor ^js bufferPosition]}]
   (let [prefix (.. editor (getWordUnderCursor #js {:wordRegex clj-var-regex}))
         [range text] (repl/top-level-code editor bufferPosition)
         [row col] (if range
@@ -26,22 +29,20 @@
                                                       :type type
                                                       :replacementPrefix prefix}))))))]
 
-    (if (repl/need-cljs? editor)
-      (some-> @state :repls :cljs-eval
-              (compl/complete ns-name (str text) prefix row col)
-              (.then #(->> %
-                        (map (fn [res] {:text res
-                                        :type "function"
-                                        :replacementPrefix prefix}))
-                        clj->js)))
-      (some-> @clj-completions (.then clj->js)))))
-
-
-(def sug (atom suggestions))
+    (when (-> prefix count (>= (min-word-size)))
+      (prn :completing)
+      (if (repl/need-cljs? editor)
+        (some-> @state :repls :cljs-eval
+                (compl/complete ns-name (str text) prefix row col)
+                (.then #(->> %
+                             (map (fn [res] {:text res
+                                             :type "function"
+                                             :replacementPrefix prefix}))
+                             clj->js)))
+        (some-> @clj-completions (.then clj->js))))))
 
 (def provider
   (fn []
-    (prn [:PROVIDER-CALLED!])
     #js {:selector ".source.clojure"
          :disableForSelector ".source.clojure .comment"
 
@@ -53,7 +54,7 @@
          :filterSuggestions true
 
          :getSuggestions (fn [data]
-                           (-> data js->clj walk/keywordize-keys (@sug) clj->js))}))
+                           (-> data js->clj walk/keywordize-keys suggestions clj->js))}))
 
    ; # (optional): (*experimental*) called when user the user selects a suggestion for the purpose of loading additional information about the suggestion.
    ; getSuggestionDetailsOnSelect: (suggestion) ->
