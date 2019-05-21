@@ -10,6 +10,9 @@
 * Problems when we stack multiple evaluations (see FIXME on repl-tooling)
 * Fix problems with unreadable forms
 
+## 0.1.4
+- Autocomplete now honors config _Minimum Word Length_ from Atom's config
+
 ## 0.1.3
 - Break on Clojure (https://github.com/mauricioszabo/repl-tooling/issues/6)
 - Fixed "burst commands" (https://github.com/mauricioszabo/repl-tooling/issues/24)
