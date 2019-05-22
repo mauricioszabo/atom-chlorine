@@ -1,22 +1,25 @@
 #!/bin/bash
 
-git submodule init
-cp .git/config /tmp/config
-sed 's/git.github.com:mauricioszabo.repl-tooling/https:\/\/github.com\/mauricioszabo\/repl-tooling.git/' /tmp/config > .git/config
-git submodule update
-npm install
-git tag `echo "$CIRCLE_BRANCH-source" | sed s/release-//`
+git submodule init &&
+cp .git/config /tmp/config &&
+sed 's/git.github.com:mauricioszabo.repl-tooling/https:\/\/github.com\/mauricioszabo\/repl-tooling.git/' /tmp/config > .git/config &&
+git submodule update &&
+npm install &&
+git tag `echo "$CIRCLE_BRANCH-source" | sed s/release-//` &&
 
 lein run -m shadow.cljs.devtools.cli --npm release dev
 
-git config --global user.email "circleci@chlorine.plugin"
-git config --global user.name "CircleCI Automated Build"
+if [ "$?" != "0" ]; then
+  exit 1
+fi
+        
 
-git checkout -b release-prepare-DELETE-THIS
-git rm -r src
-git rm -r integration
-git rm -r scripts
-git add -f lib/main.js
+git config --global user.email "circleci@chlorine.plugin" &&
+git config --global user.name "CircleCI Automated Build" &&
+
+git checkout -b release-prepare-DELETE-THIS &&
+git rm -r src integration scripts &&
+git add -f lib/main.js &&
 git commit -m 'Compiled version for release' &&
 git tag `echo $CIRCLE_BRANCH | sed s/release-//` &&
 git push --tags
