@@ -7,4 +7,4 @@ git submodule init &&
 cp .git/config .git/temp-config &&
 sed 's/git.github.com:mauricioszabo.repl-tooling/https:\/\/github.com\/mauricioszabo\/repl-tooling.git/' .git/temp-config > .git/config &&
 rm .git/temp-config &&
-git submodule update &&
+git submodule update
