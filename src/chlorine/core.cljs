@@ -25,6 +25,32 @@
   (-> (.install (js/require "atom-package-deps") "chlorine")
       #_(.then #(atom/info "All dependencies installed." ""))))
 
+(def commands
+  (clj->js {:connect-clojure-socket-repl conn/connect!
+            :connect-clojurescript-socket-repl conn/connect-cljs!
+            :connect-embeded-clojurescript-repl conn/connect-self-hosted!
+            :disconnect conn/disconnect!
+
+            :evaluate-block #(repl/evaluate-block!)
+            :evaluate-top-block #(repl/evaluate-top-block!)
+            :evaluate-selection #(repl/evaluate-selection!)
+            :doc-for-var doc/doc
+            :source-for-var #(repl/source-for-var!)
+            :clear-console console/clear
+
+            :load-file #(repl/load-file!)
+
+            :run-tests-in-ns #(repl/run-tests-in-ns!)
+            :run-test-for-var #(repl/run-test-at-cursor!)
+
+            :inspect-block #(repl/inspect-block!)
+            :inspect-top-block #(repl/inspect-top-block!)
+
+            :refresh-namespaces refresh/run-refresh!
+            :toggle-refresh-mode refresh/toggle-refresh
+
+            :go-to-var-definition code/goto-var}))
+
 (defn activate [s]
   (install-dependencies-maybe)
   (aux/reload-subscriptions!)
@@ -60,9 +86,9 @@
   (.dispose ^js @aux/subscriptions))
   ; (some-> @sbar/status-bar-tile .destroy))
 
-(defn before [done]
-  (deactivate nil)
-  (done)
-  (activate nil)
-  (.. js/atom -notifications (addSuccess "Reloaded Chlorine"))
-  (println "Reloaded"))
+(defn before [done])
+  ; (deactivate nil)
+  ; (done)
+  ; (activate nil)
+  ; (.. js/atom -notifications (addSuccess "Reloaded Chlorine"))
+  ; (println "Reloaded"))

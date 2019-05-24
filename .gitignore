@@ -9,6 +9,6 @@ target
 figwheel*
 lib/js
 .shadow-cljs
-lib/main.js
+lib/cmds.js*
 
 integration/fixture-app/target/
