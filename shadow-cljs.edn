@@ -32,4 +32,5 @@
 
         :output-dir "lib/js"
         :output-to "lib/cmds.js"
-        :devtools {:before-load-async chlorine.core/before}}}}
+        :devtools {:before-load-async chlorine.core/before
+                   :after-load chlorine.core/after}}}}
