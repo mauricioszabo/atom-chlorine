@@ -13,8 +13,9 @@
         :compiler-options {:infer-externs :auto}
         :exports {:config chlorine.core/config
                   :commands chlorine.core/commands
-                  :activate chlorine.core/activate
-                  :deactivate chlorine.core/deactivate
+                  :aux chlorine.core/aux
+                  ; :activate chlorine.core/activate
+                  ; :deactivate chlorine.core/deactivate
                   :repl chlorine.repl/exports
 
                   :everything-provider
