@@ -59,7 +59,6 @@
 
 (defn before [done]
   (let [main (.. js/atom -packages (getActivePackage "chlorine") -mainModule)]
-    (.log js/console main)
     (.deactivate main)
     (done)))
 
