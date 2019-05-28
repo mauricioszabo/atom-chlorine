@@ -10,7 +10,13 @@
 * Problems when we stack multiple evaluations (see FIXME on repl-tooling)
 * Fix problems with unreadable forms
 
-## 0.1.4
+## 0.1.6
+- Fixes Chlorine not activating on MacOSX (https://github.com/mauricioszabo/atom-chlorine/issues/67)
+
+## 0.1.5
+- Fixes compilation problems
+
+## 0.1.4 (unpublished)
 - Autocomplete now honors config _Minimum Word Length_ from Atom's config
 
 ## 0.1.3
