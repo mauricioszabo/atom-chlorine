@@ -166,38 +166,35 @@
 (defn ns-for [^js editor]
   (.. EditorUtils (findNsDeclaration editor)))
 
-(defn evaluate-top-block!
-  ([] (evaluate-top-block! (atom/current-editor)))
-  ([^js editor]
-   (let [range (. EditorUtils
-                 (getCursorInBlockRange editor #js {:topLevel true}))]
-     (some->> range
-              (.getTextInBufferRange editor)
-              (eval-and-present editor
-                                (ns-for editor)
-                                (.getPath editor)
-                                range)))))
+(defn evaluate-top-block! []
+  (let [editor (atom/current-editor)
+        range (. EditorUtils
+                (getCursorInBlockRange editor #js {:topLevel true}))]
+    (some->> range
+             (.getTextInBufferRange editor)
+             (eval-and-present editor
+                               (ns-for editor)
+                               (.getPath editor)
+                               range))))
 
-(defn evaluate-block!
-  ([] (evaluate-block! (atom/current-editor)))
-  ([^js editor]
-   (let [range (. EditorUtils
-                 (getCursorInBlockRange editor))]
-     (some->> range
-              (.getTextInBufferRange editor)
-              (eval-and-present editor
-                                (ns-for editor)
-                                (.getPath editor)
-                                range)))))
+(defn evaluate-block! []
+  (let [editor (atom/current-editor)
+        range (. EditorUtils
+                (getCursorInBlockRange editor))]
+    (some->> range
+             (.getTextInBufferRange editor)
+             (eval-and-present editor
+                               (ns-for editor)
+                               (.getPath editor)
+                               range))))
 
-(defn evaluate-selection!
-  ([] (evaluate-selection! (atom/current-editor)))
-  ([^js editor]
-   (eval-and-present editor
-                     (ns-for editor)
-                     (.getPath editor)
-                     (. editor getSelectedBufferRange)
-                     (.getSelectedText editor))))
+(defn evaluate-selection! []
+  (let [editor (atom/current-editor)]
+    (eval-and-present editor
+                      (ns-for editor)
+                      (.getPath editor)
+                      (. editor getSelectedBufferRange)
+                      (.getSelectedText editor))))
 
 (defn wrap-in-rebl-submit
   "Clojure 1.10 only, require REBL on the classpath (and UI open)."
@@ -208,127 +205,121 @@
        "  (catch Throwable _))"
        " value)"))
 
-(defn inspect-top-block!
-  ([] (inspect-top-block! (atom/current-editor)))
-  ([^js editor]
-   (let [range (. EditorUtils
-                 (getCursorInBlockRange editor #js {:topLevel true}))]
-     (some->> range
-              (.getTextInBufferRange editor)
-              (wrap-in-rebl-submit)
-              (eval-and-present editor
-                                (ns-for editor)
-                                (.getPath editor)
-                                range)))))
+(defn inspect-top-block! []
+  (let [editor (atom/current-editor)
+        range (. EditorUtils
+                (getCursorInBlockRange editor #js {:topLevel true}))]
+    (some->> range
+             (.getTextInBufferRange editor)
+             (wrap-in-rebl-submit)
+             (eval-and-present editor
+                               (ns-for editor)
+                               (.getPath editor)
+                               range))))
 
-(defn inspect-block!
-  ([] (inspect-block! (atom/current-editor)))
-  ([^js editor]
-   (let [range (. EditorUtils
-                 (getCursorInBlockRange editor))]
-     (some->> range
-              (.getTextInBufferRange editor)
-              (wrap-in-rebl-submit)
-              (eval-and-present editor
-                                (ns-for editor)
-                                (.getPath editor)
-                                range)))))
+(defn inspect-block! []
+  (let [editor (atom/current-editor)
+        range (. EditorUtils
+                (getCursorInBlockRange editor))]
+    (some->> range
+             (.getTextInBufferRange editor)
+             (wrap-in-rebl-submit)
+             (eval-and-present editor
+                               (ns-for editor)
+                               (.getPath editor)
+                               range))))
 
-(defn run-tests-in-ns!
-  ([] (run-tests-in-ns! (atom/current-editor)))
-  ([^js editor]
-   (let [pos (.getCursorBufferPosition editor)]
-     (evaluate-aux editor
-                   (ns-for editor)
-                   (.getFileName editor)
-                   (.. pos -row)
-                   (.. pos -column)
-                   "(clojure.test/run-tests)"
-                   #(let [{:keys [test pass fail error]} (:result %)]
-                      (atom/info "(clojure.test/run-tests)"
-                                 (str "Ran " test " test"
-                                      (when-not (= 1 test) "s")
-                                      (when-not (zero? pass)
-                                        (str ", " pass " assertion"
-                                             (when-not (= 1 pass) "s")
-                                             " passed"))
-                                      (when-not (zero? fail)
-                                        (str ", " fail " failed"))
-                                      (when-not (zero? error)
-                                        (str ", " error " errored"))
-                                      ".")))))))
+(defn run-tests-in-ns! []
+  (let [editor (atom/current-editor)
+        pos (.getCursorBufferPosition editor)]
+    (evaluate-aux editor
+                  (ns-for editor)
+                  (.getFileName editor)
+                  (.. pos -row)
+                  (.. pos -column)
+                  "(clojure.test/run-tests)"
+                  #(let [{:keys [test pass fail error]} (:result %)]
+                     (atom/info "(clojure.test/run-tests)"
+                                (str "Ran " test " test"
+                                     (when-not (= 1 test) "s")
+                                     (when-not (zero? pass)
+                                       (str ", " pass " assertion"
+                                            (when-not (= 1 pass) "s")
+                                            " passed"))
+                                     (when-not (zero? fail)
+                                       (str ", " fail " failed"))
+                                     (when-not (zero? error)
+                                       (str ", " error " errored"))
+                                     "."))))))
 
-(defn run-test-at-cursor!
-  ([] (run-test-at-cursor! (atom/current-editor)))
-  ([^js editor]
-   (let [pos  (.getCursorBufferPosition editor)
-         s    (atom/current-var editor)
-         code (str "(do"
-                   " (clojure.test/test-vars [#'" s "])"
-                   " (println \"Tested\" '" s "))")]
-     (evaluate-aux editor
-                   (ns-for editor)
-                   (.getFileName editor)
-                   (.. pos -row)
-                   (.. pos -column)
-                   code
-                   #(atom/info (str "Tested " s)
-                               "See REPL for any failures.")))))
+(defn run-test-at-cursor! []
+  (let [editor (atom/current-editor)
+        pos  (.getCursorBufferPosition editor)
+        s    (atom/current-var editor)
+        code (str "(do"
+                  " (clojure.test/test-vars [#'" s "])"
+                  " (println \"Tested\" '" s "))")]
+    (evaluate-aux editor
+                  (ns-for editor)
+                  (.getFileName editor)
+                  (.. pos -row)
+                  (.. pos -column)
+                  code
+                  #(atom/info (str "Tested " s)
+                              "See REPL for any failures."))))
 
-(defn load-file!
-  ([] (load-file! (atom/current-editor)))
-  ([^js editor]
-   (let [file-name (.getPath editor)
-         ;; canonicalize path separator for Java -- this avoids problems
-         ;; with \ causing 'bad escape characters' in the strings below
-         file-name (str/replace file-name "\\" "/")
-         code (str "(do"
-                   " (require 'clojure.string)"
-                   " (println \"Loading\" \"" file-name "\")"
-                   " (try "
-                   "  (let [path \"" file-name "\""
-                   ;; if target REPL is running on *nix-like O/S...
-                   "        nix? (clojure.string/starts-with? (System/getProperty \"user.dir\") \"/\")"
-                   ;; ...and the file path looks like Windows...
-                   "        win? (clojure.string/starts-with? (subs path 1) \":/\")"
-                   ;; ...extract the driver letter...
-                   "        drv  (clojure.string/lower-case (subs path 0 1))"
-                   ;; ...and map to a Windows Subsystem for Linux mount path:
-                   "        path (if (and nix? win?) (str \"/mnt/\" drv (subs path 2)) path)]"
-                   "   (load-file path))"
-                   "  (catch Throwable t"
-                   "   (doseq [e (:via (Throwable->map t))]"
-                   "    (println (:message e))))))")]
-     (evaluate-aux editor
-                   (ns-for editor)
-                   (.getFileName editor)
-                   1
-                   0
-                   code
-                   #(atom/info "Loaded file" file-name)))))
+(defn load-file! []
+  (let [editor (atom/current-editor)
+        file-name (.getPath editor)
+        ;; canonicalize path separator for Java -- this avoids problems
+        ;; with \ causing 'bad escape characters' in the strings below
+        file-name (str/replace file-name "\\" "/")
+        code (str "(do"
+                  " (require 'clojure.string)"
+                  " (println \"Loading\" \"" file-name "\")"
+                  " (try "
+                  "  (let [path \"" file-name "\""
+                  ;; if target REPL is running on *nix-like O/S...
+                  "        nix? (clojure.string/starts-with? (System/getProperty \"user.dir\") \"/\")"
+                  ;; ...and the file path looks like Windows...
+                  "        win? (clojure.string/starts-with? (subs path 1) \":/\")"
+                  ;; ...extract the driver letter...
+                  "        drv  (clojure.string/lower-case (subs path 0 1))"
+                  ;; ...and map to a Windows Subsystem for Linux mount path:
+                  "        path (if (and nix? win?) (str \"/mnt/\" drv (subs path 2)) path)]"
+                  "   (load-file path))"
+                  "  (catch Throwable t"
+                  "   (doseq [e (:via (Throwable->map t))]"
+                  "    (println (:message e))))))")]
+    (evaluate-aux editor
+                  (ns-for editor)
+                  (.getFileName editor)
+                  1
+                  0
+                  code
+                  #(atom/info "Loaded file" file-name))))
 
-(defn source-for-var!
-  ([] (source-for-var! (atom/current-editor)))
-  ([^js editor]
-   (let [pos  (.getCursorBufferPosition editor)
-         s    (atom/current-var editor)
-         code (str "(do"
-                   " (require 'clojure.repl)"
-                   " (clojure.repl/source " s "))")]
-     (if (need-cljs? editor)
-       (atom/warn "Source For Var is only supported for Clojure" "")
-       (evaluate-aux editor
-                     (ns-for editor)
-                     (.getFileName editor)
-                     (.. pos -row)
-                     (.. pos -column)
-                     code
-                     identity)))))
+(defn source-for-var! []
+  (let [editor (atom/current-editor)
+        pos  (.getCursorBufferPosition editor)
+        s    (atom/current-var editor)
+        code (str "(do"
+                  " (require 'clojure.repl)"
+                  " (clojure.repl/source " s "))")]
+    (if (need-cljs? editor)
+      (atom/warn "Source For Var is only supported for Clojure" "")
+      (evaluate-aux editor
+                    (ns-for editor)
+                    (.getFileName editor)
+                    (.. pos -row)
+                    (.. pos -column)
+                    code
+                    identity))))
 
 (def exports
   #js {:eval_and_present eval-and-present
        :eval_and_present_at_pos (fn [code]
-                                  (let [editor ^js (atom/current-editor)]
+                                  (let [editor (atom/current-editor)]
                                     (eval-and-present editor
                                                       (ns-for editor)
                                                       (.getPath editor)

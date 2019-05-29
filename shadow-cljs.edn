@@ -12,8 +12,10 @@
 
         :compiler-options {:infer-externs :auto}
         :exports {:config chlorine.core/config
-                  :activate chlorine.core/activate
-                  :deactivate chlorine.core/deactivate
+                  :commands chlorine.core/commands
+                  :aux chlorine.core/aux
+                  ; :activate chlorine.core/activate
+                  ; :deactivate chlorine.core/deactivate
                   :repl chlorine.repl/exports
 
                   :everything-provider
@@ -29,5 +31,6 @@
                   chlorine.providers-consumers.ink/activate}
 
         :output-dir "lib/js"
-        :output-to "lib/main.js"
-        :devtools {:before-load-async chlorine.core/before}}}}
+        :output-to "lib/cmds.js"
+        :devtools {:before-load-async chlorine.core/before
+                   :after-load chlorine.core/after}}}}
