@@ -10,7 +10,7 @@
 * Problems when we stack multiple evaluations (see FIXME on repl-tooling)
 * Fix problems with unreadable forms
 
-## 0.1.6
+## 0.1.7
 - Fixes Chlorine not activating on MacOSX (https://github.com/mauricioszabo/atom-chlorine/issues/67)
 
 ## 0.1.5
