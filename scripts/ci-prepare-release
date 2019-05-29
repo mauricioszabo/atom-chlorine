@@ -17,7 +17,7 @@ git config --global user.name "CircleCI Automated Build" &&
 
 git checkout -b release-prepare-DELETE-THIS &&
 git rm -r src integration scripts &&
-git add -f lib/main.js &&
+git add -f lib/cmds.js lib/main.js &&
 git commit -m 'Compiled version for release' &&
 git tag `echo $CIRCLE_BRANCH | sed s/release-//` &&
 git push --tags
