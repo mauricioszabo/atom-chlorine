@@ -10,6 +10,10 @@
 * Problems when we stack multiple evaluations (see FIXME on repl-tooling)
 * Fix problems with unreadable forms
 
+## 0.1.8
+- Fix GOTO definition
+- Takes up less space on status bar
+
 ## 0.1.7
 - Fixes Chlorine not activating on MacOSX (https://github.com/mauricioszabo/atom-chlorine/issues/67)
 
