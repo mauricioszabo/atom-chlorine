@@ -11,14 +11,14 @@
      [:span
       " "
       [:img {:src (str "file://" js/__dirname "/clj.png") :width 18}]
-      (cond-> " CLJ connected"
-              (-> @state :config :refresh-mode (= :simple)) (str " (simple refresh)")
-              (-> @state :config :refresh-mode (not= :simple)) (str " (full refresh)"))])
+      (cond-> " CLJ"
+              (-> @state :config :refresh-mode (= :simple)) (str " (simple)")
+              (-> @state :config :refresh-mode (not= :simple)) (str " (full)"))])
 
    (when (-> @state :repls :cljs-eval)
      [:span {:style {:margin-left "13px"}}
       [:img {:src (str "file://" js/__dirname "/cljs.png") :width 18}]
-      " CLJS connected"])])
+      " CLJS"])])
 
 (defn activate [s]
   (swap! status-bar #(or % s))
