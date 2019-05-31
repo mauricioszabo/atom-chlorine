@@ -27,7 +27,14 @@ const gotoTab = async (fileName) => {
   for(i=0; i < 10; i++) {
     await sendCommand("pane:show-next-item")
     const title = await app.browserWindow.getTitle()
-    if(title.match(fileName)) return true
+    if(title.match(fileName)) {
+      return true
+    } else {
+      await sendCommand("window:focus-next-pane")
+      if(title.match(fileName)) {
+        return true
+      }
+    }
   }
   return false
 }
@@ -55,7 +62,6 @@ describe('Atom should open and evaluate code', function () {
     await app.client.keys("3333")
     await app.client.keys("Enter")
     assert.ok(await haveSelector("ink-console"))
-    await sendCommand("window:focus-next-pane")
     assert.ok(await gotoTab('test.clj'))
   })
 
@@ -71,6 +77,21 @@ describe('Atom should open and evaluate code', function () {
       await app.client.keys("\n\n(str (+ 90 120))")
       await sendCommand("chlorine:evaluate-block")
       assert.ok(await haveSelector(`//div[contains(., '"210"')]`))
+    })
+
+    it('goes to definition of var', async () => {
+      await app.client.keys("\ndefn")
+      await sendCommand("chlorine:go-to-var-definition")
+      await time(100)
+      await gotoTab('core.clj')
+      assert.ok(await haveSelector(`//div[contains(., ':arglists')]`))
+      await sendCommand('core:close')
+    })
+
+    it('shows definition of var', async () => {
+      await gotoTab('test.clj')
+      await sendCommand('chlorine:source-for-var')
+      assert.ok(await haveSelector(`//div[contains(., 'fdecl')]`))
     })
 
     it('breaks evaluation', async () => {
