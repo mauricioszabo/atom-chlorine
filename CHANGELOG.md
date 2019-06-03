@@ -10,6 +10,9 @@
 * Problems when we stack multiple evaluations (see FIXME on repl-tooling)
 * Fix problems with unreadable forms
 
+## 0.1.10
+- Fixed autocomplete on Clojure
+
 ## 0.1.9
 - Fix goto var definition failing when the var was defined evaluating blocks, or with load-file
 
