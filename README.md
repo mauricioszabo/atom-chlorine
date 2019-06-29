@@ -65,7 +65,7 @@ This package does not register any keybinding for you. You can define whatever y
   'ctrl-, I':       'chlorine:inspect-top-block'
   'ctrl-, s':       'chlorine:evaluate-selection'
   'ctrl-, c':       'chlorine:break-evaluation'
-  'ctrl-, c':       'chlorine:source-for-var'
+  'ctrl-, S':       'chlorine:source-for-var'
   'ctrl-, d':       'chlorine:doc-for-var'
   'ctrl-, x':       'chlorine:run-tests-in-ns'
   'ctrl-, t':       'chlorine:run-test-for-var'
