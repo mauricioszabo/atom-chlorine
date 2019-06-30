@@ -9,12 +9,12 @@
               :refresh-mode
               {:description "Should we use clojure.tools.namespace to refresh, or a simple require?"
                :type [:full :simple]
-               :default :full}
+               :default :simple}
 
               :refresh-on-save
               {:description "Should we refresh namespaces when we save a file (Clojure Only)?"
                :type :boolean
-               :default true}})
+               :default false}})
 
 (defn- seed-configs []
   (->> configs
