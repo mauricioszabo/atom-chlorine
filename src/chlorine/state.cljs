@@ -3,7 +3,7 @@
 
 (def configs {:eval-mode
               {:description "Should we evaluate Clojure or ClojureScript?"
-               :type [:discover :clj :cljs]
+               :type [:discover :prefer-cljs :clj :cljs]
                :default :discover}
 
               :refresh-mode
