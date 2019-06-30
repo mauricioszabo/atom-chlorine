@@ -15,7 +15,7 @@
             [clojure.core.async :as async :include-macros true]
             ["atom" :refer [CompositeDisposable]]))
 
-(def ^:private commands-subs (atom (CompositeDisposable.)))
+(defonce ^:private commands-subs (atom (CompositeDisposable.)))
 
 (defn- handle-disconnect! []
   (swap! state assoc
@@ -28,23 +28,40 @@
   (atom/info "Disconnected from REPLs" ""))
 
 (defn- register-commands! [commands]
-  (let [f (-> commands :break-evaluation :command)
-        disp (-> js/atom .-commands (.add "atom-text-editor"
-                                          "chlorine:break-evaluation"
-                                          f))]
+  (doseq [[k command] (dissoc commands :evaluate-block)
+          :let [disp (-> js/atom
+                         .-commands
+                         (.add "atom-text-editor"
+                               (str "chlorine:" (name k))
+                               (:command command)))]]
+    (prn :setting k (:command command))
     (.add ^js @commands-subs disp)))
+
+(defn- get-editor-data []
+  (when-let [editor (atom/current-editor)]
+    (let [range (.getSelectedBufferRange editor)
+          start (.-start range)
+          end (.-end range)]
+      {:contents (.getText editor)
+       :filename (.getPath editor)
+       :range [[(.-row start) (.-column start)]
+               [(.-row end) (.-column end)]]})))
+
+(defn- notify! [{:keys [type title message]}]
+  (case type
+    :info (atom/info title message)
+    :warn (atom/warn title message)
+    (atom/error title message)))
 
 (defn connect! [host port]
   (let [p (connection/connect-unrepl!
            host port
-           {:on-stdout
-            #(some-> ^js @console/console (.stdout %))
-            :on-stderr
-            #(some-> ^js @console/console (.stderr %))
-            :on-result
-            #(when (:result %) (inline/render-on-console! @console/console %))
-            :on-disconnect
-            #(handle-disconnect!)})]
+           {:on-stdout #(some-> ^js @console/console (.stdout %))
+            :on-stderr #(some-> ^js @console/console (.stderr %))
+            :on-result #(when (:result %) (inline/render-on-console! @console/console %))
+            :on-disconnect #(handle-disconnect!)
+            :editor-data get-editor-data
+            :notify notify!})]
     (.then p (fn [repls]
                (atom/info "Clojure REPL connected" "")
                (console/open-console (-> @state :config :console-pos)
