@@ -13,6 +13,7 @@
             [repl-tooling.editor-integration.connection :as connection]
             [chlorine.ui.atom :as atom]
             [clojure.core.async :as async :include-macros true]
+            [repl-tooling.editor-integration.evaluation :as e-eval]
             ["atom" :refer [CompositeDisposable]]))
 
 (defonce ^:private commands-subs (atom (CompositeDisposable.)))
@@ -34,7 +35,6 @@
                          (.add "atom-text-editor"
                                (str "chlorine:" (name k))
                                (:command command)))]]
-    (prn :setting k (:command command))
     (.add ^js @commands-subs disp)))
 
 (defn- get-editor-data []
@@ -61,6 +61,7 @@
             :on-result #(when (:result %) (inline/render-on-console! @console/console %))
             :on-disconnect #(handle-disconnect!)
             :editor-data get-editor-data
+            :get-config #(:config @state)
             :notify notify!})]
     (.then p (fn [repls]
                (atom/info "Clojure REPL connected" "")
@@ -127,10 +128,7 @@
       (inline/render-error! inline-result eval-result))))
 
 (defn need-cljs? [editor]
-  (or
-   (-> @state :config :eval-mode (= :cljs))
-   (and (-> @state :config :eval-mode (= :discover))
-        (str/ends-with? (str (.getFileName editor)) ".cljs"))))
+  (e-eval/need-cljs? (:config @state) (.getFileName editor)))
 
 (defn- eval-cljs [editor ns-name filename row col code ^js result opts callback]
   (if-let [repl (-> @state :repls :cljs-eval)]
