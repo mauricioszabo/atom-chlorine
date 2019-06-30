@@ -42,16 +42,26 @@
     (let [range (.getSelectedBufferRange editor)
           start (.-start range)
           end (.-end range)]
-      {:contents (.getText editor)
+      {:editor editor
+       :contents (.getText editor)
        :filename (.getPath editor)
        :range [[(.-row start) (.-column start)]
-               [(.-row end) (.-column end)]]})))
+               [(.-row end) (cond-> (.-column end)
+                                    (not= (.-column start) (.-column end)) dec)]]})))
 
 (defn- notify! [{:keys [type title message]}]
   (case type
     :info (atom/info title message)
     :warn (atom/warn title message)
     (atom/error title message)))
+
+(defn- create-inline-result! [{:keys [range editor-data]}]
+  (when-let [editor (:editor editor-data)]
+    (inline/new-result editor (-> range last first))))
+
+(defn- update-inline-result! [{:keys [range editor-data result]}]
+  (when-let [editor (:editor editor-data)]
+    (inline/inline-result editor (-> range last first) result)))
 
 (defn connect! [host port]
   (let [p (connection/connect-unrepl!
@@ -60,6 +70,8 @@
             :on-stderr #(some-> ^js @console/console (.stderr %))
             :on-result #(when (:result %) (inline/render-on-console! @console/console %))
             :on-disconnect #(handle-disconnect!)
+            :on-start-eval create-inline-result!
+            :on-eval update-inline-result!
             :editor-data get-editor-data
             :get-config #(:config @state)
             :notify notify!})]

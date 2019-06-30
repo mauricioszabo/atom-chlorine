@@ -29,16 +29,16 @@
     (clj->js {:connect-clojure-socket-repl conn/connect!
               :connect-clojurescript-socket-repl conn/connect-cljs!
               :connect-embeded-clojurescript-repl conn/connect-self-hosted!
-              :disconnect conn/disconnect!
+              ; :disconnect conn/disconnect!
 
               :evaluate-block repl/evaluate-block!
-              :evaluate-top-block repl/evaluate-top-block!
-              :evaluate-selection repl/evaluate-selection!
+              ; :evaluate-top-block repl/evaluate-top-block!
+              ; :evaluate-selection repl/evaluate-selection!
               :doc-for-var doc/doc
               :source-for-var repl/source-for-var!
               :clear-console console/clear
 
-              :load-file repl/load-file!
+              ; :load-file repl/load-file!
 
               :run-tests-in-ns repl/run-tests-in-ns!
               :run-test-for-var repl/run-test-at-cursor!
