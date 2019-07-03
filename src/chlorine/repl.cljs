@@ -75,15 +75,18 @@
             :editor-data get-editor-data
             :get-config #(:config @state)
             :notify notify!})]
-    (.then p (fn [repls]
+    (.then p (fn [st]
                (atom/info "Clojure REPL connected" "")
                (console/open-console (-> @state :config :console-pos)
                                      #(connection/disconnect!))
                (swap! state #(-> %
-                                 (assoc-in [:repls :clj-eval] (:clj/repl repls))
-                                 (assoc-in [:repls :clj-aux] (:clj/aux repls))
-                                 (assoc :connection {:host host :port port})))
-               (-> repls :editor/commands register-commands!)))))
+                                 (assoc-in [:repls :clj-eval] (:clj/repl @st))
+                                 (assoc-in [:repls :clj-aux] (:clj/aux @st))
+                                 (assoc :connection {:host host :port port}
+                                        ; FIXME: This is just here so we can migrate
+                                        ; code to REPL-Tooling little by little
+                                        :tooling-state st)))
+               (-> @st :editor/commands register-commands!)))))
 
 (defn callback [output]
   (when (nil? output)
@@ -129,6 +132,7 @@
                              (get trs error error))
                  (do
                    (swap! state assoc-in [:repls :cljs-eval] %)
+                   (swap! (:tooling-state @state) assoc :cljs/repl %)
                    (atom/info "ClojureScript REPL connected" "")))))))
 
 (defn set-inline-result [inline-result eval-result]
