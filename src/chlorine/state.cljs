@@ -14,6 +14,11 @@
               :refresh-on-save
               {:description "Should we refresh namespaces when we save a file (Clojure Only)?"
                :type :boolean
+               :default false}
+
+              :experimental-features
+              {:description "Enable experimental (and possibly unstable) features?"
+               :type :boolean
                :default false}})
 
 (defn- seed-configs []
