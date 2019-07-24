@@ -28,13 +28,27 @@
   (reset! commands-subs (CompositeDisposable.))
   (atom/info "Disconnected from REPLs" ""))
 
+(declare evaluate-top-block! evaluate-selection!)
+(def ^:private old-commands
+  {:disconnect connection/disconnect!
+   :evaluate-top-block evaluate-top-block!
+   :evaluate-selection evaluate-selection!})
+
+(defn- decide-command [cmd-name command]
+  (let [old-cmd (old-commands cmd-name)
+        new-cmd (:command command)]
+    (fn []
+      (if (and old-cmd (-> @state :config :experimental-features (= false)))
+        (old-cmd)
+        (new-cmd)))))
+
 (defn- register-commands! [commands]
   (doseq [[k command] (dissoc commands :evaluate-block)
           :let [disp (-> js/atom
                          .-commands
                          (.add "atom-text-editor"
                                (str "chlorine:" (name k))
-                               (:command command)))]]
+                               (decide-command k command)))]]
     (.add ^js @commands-subs disp)))
 
 (defn- get-editor-data []
