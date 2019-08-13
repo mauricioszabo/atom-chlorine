@@ -11,6 +11,7 @@
 * Fix problems with unreadable forms
 
 ## NEXT
+- Disabled editing on Console tab (https://github.com/mauricioszabo/atom-chlorine/issues/79)
 - Changed defaults for auto-reload projects
 - Fixed load-file on non-saved or non-editor tabs (https://github.com/mauricioszabo/atom-chlorine/issues/75)
 
