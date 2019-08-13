@@ -18,8 +18,13 @@
 (defn clear []
   (some-> @console .reset))
 
+(defn- delete [selector]
+  (let [element (.. @console -element (querySelector selector))]
+    (some-> element .-parentElement (.removeChild element))))
+
 (defn open-console [split destroy-fn]
   (.. @console
       (open #js {:split split :searchAllPanes true :activatePane false
                  :activateItem false})
-      (then #(aset % "destroy" destroy-fn))))
+      (then #(aset % "destroy" destroy-fn))
+      (then #(delete ".content"))))
