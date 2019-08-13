@@ -13,9 +13,10 @@
             [repl-tooling.editor-integration.connection :as connection]
             [chlorine.ui.atom :as atom]
             [clojure.core.async :as async :include-macros true]
+            [repl-tooling.editor-integration.evaluation :as e-eval]
             ["atom" :refer [CompositeDisposable]]))
 
-(def ^:private commands-subs (atom (CompositeDisposable.)))
+(defonce ^:private commands-subs (atom (CompositeDisposable.)))
 
 (defn- handle-disconnect! []
   (swap! state assoc
@@ -27,33 +28,79 @@
   (reset! commands-subs (CompositeDisposable.))
   (atom/info "Disconnected from REPLs" ""))
 
+(declare evaluate-top-block! evaluate-selection!)
+(def ^:private old-commands
+  {:disconnect connection/disconnect!
+   :evaluate-top-block evaluate-top-block!
+   :evaluate-selection evaluate-selection!})
+
+(defn- decide-command [cmd-name command]
+  (let [old-cmd (old-commands cmd-name)
+        new-cmd (:command command)]
+    (fn []
+      (if (and old-cmd (-> @state :config :experimental-features (= false)))
+        (old-cmd)
+        (new-cmd)))))
+
 (defn- register-commands! [commands]
-  (let [f (-> commands :break-evaluation :command)
-        disp (-> js/atom .-commands (.add "atom-text-editor"
-                                          "chlorine:break-evaluation"
-                                          f))]
+  (doseq [[k command] (dissoc commands :evaluate-block)
+          :let [disp (-> js/atom
+                         .-commands
+                         (.add "atom-text-editor"
+                               (str "chlorine:" (name k))
+                               (decide-command k command)))]]
     (.add ^js @commands-subs disp)))
+
+(defn- get-editor-data []
+  (when-let [editor (atom/current-editor)]
+    (let [range (.getSelectedBufferRange editor)
+          start (.-start range)
+          end (.-end range)]
+      {:editor editor
+       :contents (.getText editor)
+       :filename (.getPath editor)
+       :range [[(.-row start) (.-column start)]
+               [(.-row end) (cond-> (.-column end)
+                                    (not= (.-column start) (.-column end)) dec)]]})))
+
+(defn- notify! [{:keys [type title message]}]
+  (case type
+    :info (atom/info title message)
+    :warn (atom/warn title message)
+    (atom/error title message)))
+
+(defn- create-inline-result! [{:keys [range editor-data]}]
+  (when-let [editor (:editor editor-data)]
+    (inline/new-result editor (-> range last first))))
+
+(defn- update-inline-result! [{:keys [range editor-data result]}]
+  (when-let [editor (:editor editor-data)]
+    (inline/inline-result editor (-> range last first) result)))
 
 (defn connect! [host port]
   (let [p (connection/connect-unrepl!
            host port
-           {:on-stdout
-            #(some-> ^js @console/console (.stdout %))
-            :on-stderr
-            #(some-> ^js @console/console (.stderr %))
-            :on-result
-            #(when (:result %) (inline/render-on-console! @console/console %))
-            :on-disconnect
-            #(handle-disconnect!)})]
-    (.then p (fn [repls]
+           {:on-stdout #(some-> ^js @console/console (.stdout %))
+            :on-stderr #(some-> ^js @console/console (.stderr %))
+            :on-result #(when (:result %) (inline/render-on-console! @console/console %))
+            :on-disconnect #(handle-disconnect!)
+            :on-start-eval create-inline-result!
+            :on-eval update-inline-result!
+            :editor-data get-editor-data
+            :get-config #(:config @state)
+            :notify notify!})]
+    (.then p (fn [st]
                (atom/info "Clojure REPL connected" "")
                (console/open-console (-> @state :config :console-pos)
                                      #(connection/disconnect!))
                (swap! state #(-> %
-                                 (assoc-in [:repls :clj-eval] (:clj/repl repls))
-                                 (assoc-in [:repls :clj-aux] (:clj/aux repls))
-                                 (assoc :connection {:host host :port port})))
-               (-> repls :editor/commands register-commands!)))))
+                                 (assoc-in [:repls :clj-eval] (:clj/repl @st))
+                                 (assoc-in [:repls :clj-aux] (:clj/aux @st))
+                                 (assoc :connection {:host host :port port}
+                                        ; FIXME: This is just here so we can migrate
+                                        ; code to REPL-Tooling little by little
+                                        :tooling-state st)))
+               (-> @st :editor/commands register-commands!)))))
 
 (defn callback [output]
   (when (nil? output)
@@ -99,6 +146,7 @@
                              (get trs error error))
                  (do
                    (swap! state assoc-in [:repls :cljs-eval] %)
+                   (swap! (:tooling-state @state) assoc :cljs/repl %)
                    (atom/info "ClojureScript REPL connected" "")))))))
 
 (defn set-inline-result [inline-result eval-result]
@@ -110,10 +158,7 @@
       (inline/render-error! inline-result eval-result))))
 
 (defn need-cljs? [editor]
-  (or
-   (-> @state :config :eval-mode (= :cljs))
-   (and (-> @state :config :eval-mode (= :discover))
-        (str/ends-with? (str (.getFileName editor)) ".cljs"))))
+  (e-eval/need-cljs? (:config @state) (.getFileName editor)))
 
 (defn- eval-cljs [editor ns-name filename row col code ^js result opts callback]
   (if-let [repl (-> @state :repls :cljs-eval)]

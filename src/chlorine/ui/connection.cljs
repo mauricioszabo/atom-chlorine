@@ -88,6 +88,3 @@
                                                       "Clojure REPL"))
     (-> @state :repls :cljs-eval nil?) (repl/connect-self-hosted)
     :else (already-connected)))
-
-(defn disconnect! []
-  (connection/disconnect!))

@@ -10,6 +10,10 @@
 * Problems when we stack multiple evaluations (see FIXME on repl-tooling)
 * Fix problems with unreadable forms
 
+## NEXT
+- Changed defaults for auto-reload projects
+- Fixed load-file on non-saved or non-editor tabs (https://github.com/mauricioszabo/atom-chlorine/issues/75)
+
 ## 0.1.10
 - Fixed autocomplete on Clojure
 
