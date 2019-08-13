@@ -12,6 +12,7 @@
 
 ## NEXT
 - Changed defaults for auto-reload projects
+- Rendering correctly the rations
 - Fixed load-file on non-saved or non-editor tabs (https://github.com/mauricioszabo/atom-chlorine/issues/75)
 
 ## 0.1.10
