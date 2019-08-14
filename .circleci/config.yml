@@ -14,7 +14,13 @@ jobs:
     <<: *defaults
     steps:
       - checkout
-      - run: ./scripts/ci-prepare-release
+      - run:
+          command: ./scripts/ci-prepare-release
+          when: always
+      - store_test_results:
+          path: ~/junit
+      - store_artifacts:
+          path: ~/junit
 
 workflows:
   version: 2
