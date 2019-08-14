@@ -1,4 +1,4 @@
-FROM jamesnetherton/docker-atom-editor
+FROM jamesnetherton/docker-atom-editor:1.39.1
 
 USER root
 
