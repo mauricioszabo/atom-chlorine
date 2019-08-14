@@ -8,19 +8,19 @@ jobs:
     <<: *defaults
     steps:
       - checkout
-      - run: ./scripts/ci
-
-  publish:
-    <<: *defaults
-    steps:
-      - checkout
       - run:
-          command: ./scripts/ci-prepare-release
+          command: ./scripts/ci
           when: always
       - store_test_results:
           path: ~/junit
       - store_artifacts:
           path: ~/junit
+
+  publish:
+    <<: *defaults
+    steps:
+      - checkout
+      - run: ./scripts/ci-prepare-release
 
 workflows:
   version: 2
