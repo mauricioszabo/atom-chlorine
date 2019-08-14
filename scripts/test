@@ -10,7 +10,7 @@ done
 
 node integration/fixture-app/target/main.js &
 
-export MOCHA_FILE=~/junit/test-results.xml
+export MOCHA_FILE=/tmp/junit/test-results.xml
 ./node_modules/.bin/mocha integration/clojure-test.js --reporter mocha-junit-reporter
 result=$?
 
