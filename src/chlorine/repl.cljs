@@ -38,7 +38,7 @@
   (let [old-cmd (old-commands cmd-name)
         new-cmd (:command command)]
     (fn []
-      (if (and old-cmd (-> @state :config :experimental-features (= false)))
+      (if (and old-cmd (-> @state :config :experimental-features (not= true)))
         (old-cmd)
         (new-cmd)))))
 
