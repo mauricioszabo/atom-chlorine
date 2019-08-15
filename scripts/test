@@ -10,7 +10,8 @@ done
 
 node integration/fixture-app/target/main.js &
 
-./node_modules/.bin/mocha integration/clojure-test.js
+export MOCHA_FILE=/tmp/junit/test-results.xml
+./node_modules/.bin/mocha integration/clojure-test.js --reporter mocha-junit-reporter
 result=$?
 
 echo -e "(System/exit 0)\n" | nc localhost 3333

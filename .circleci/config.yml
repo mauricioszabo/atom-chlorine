@@ -8,7 +8,13 @@ jobs:
     <<: *defaults
     steps:
       - checkout
-      - run: ./scripts/ci
+      - run:
+          command: ./scripts/ci
+          when: always
+      - store_test_results:
+          path: ~/junit
+      - store_artifacts:
+          path: ~/junit
 
   publish:
     <<: *defaults
