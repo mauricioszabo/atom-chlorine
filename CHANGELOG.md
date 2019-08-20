@@ -10,11 +10,20 @@
 * Problems when we stack multiple evaluations (see FIXME on repl-tooling)
 * Fix problems with unreadable forms
 
-## NEXT
+## 0.1.11
+- Fixed some error with autocomplete in CLJS (https://github.com/mauricioszabo/atom-chlorine/issues/85)
+- Added experimental features with a config to control
 - Disabled editing on Console tab (https://github.com/mauricioszabo/atom-chlorine/issues/79)
 - Changed defaults for auto-reload projects
-- Rendering correctly the rations
+- Rendering correctly the ratio (like `1/2`)
 - Fixed load-file on non-saved or non-editor tabs (https://github.com/mauricioszabo/atom-chlorine/issues/75)
+
+### Experimental features on this version
+- To be able to support multiple NS on the same files and also to remove internal Atom's
+API on detecting the current start/end forms, there's a new way to detect start/end
+of forms. This affects the commands "evaluate-selection" and "evaluate-top-block" (but
+not "evaluate-block" because of other issues). These two new ways of evaluating are
+**not stable yet** and they'll fail with `::server/port` kind of symbols, for example.
 
 ## 0.1.10
 - Fixed autocomplete on Clojure

@@ -30,7 +30,6 @@
                                                       :replacementPrefix prefix}))))))]
 
     (when (-> prefix count (>= (min-word-size)))
-      (prn :completing)
       (if (repl/need-cljs? editor)
         (some-> @state :repls :cljs-eval
                 (compl/complete ns-name (str text) prefix row col)
