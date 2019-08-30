@@ -31,7 +31,7 @@ Then, you connect Chlorine with the port using the command _Connect Clojure Sock
 When connected, it'll try to load `compliment` and `org.clojure/tools.namespace` (for autocomplete and refresh). Then you can evaluate code on it, and it'll render on a block decoration below the line.
 
 ## Keybindings:
-This package does not register any keybinding for you. You can define whatever you want. Some suggestions could be:
+This package does not register any keybindings to avoid keybinding conflict issues. You can define whatever you want via keymap.cson. The following have worked for some people:
 
 **If you use vim-mode-plus:**
 ```cson
@@ -55,22 +55,21 @@ This package does not register any keybinding for you. You can define whatever y
 **If you don't use vim bindings:**
 ```cson
 'atom-text-editor[data-grammar="source clojure"]':
-  'ctrl-, y':       'chlorine:connect-clojure-socket-repl'
-  'ctrl-, e':       'chlorine:disconnect'
-  'ctrl-, k':       'chlorine:clear-console'
-  'ctrl-, f':       'chlorine:load-file'
-  'ctrl-, b':       'chlorine:evaluate-block'
-  'ctrl-, B':       'chlorine:evaluate-top-block'
-  'ctrl-, i':       'chlorine:inspect-block'
-  'ctrl-, I':       'chlorine:inspect-top-block'
-  'ctrl-, s':       'chlorine:evaluate-selection'
-  'ctrl-, c':       'chlorine:break-evaluation'
-  'ctrl-, S':       'chlorine:source-for-var'
-  'ctrl-, d':       'chlorine:doc-for-var'
-  'ctrl-, x':       'chlorine:run-tests-in-ns'
-  'ctrl-, t':       'chlorine:run-test-for-var'
+  'ctrl-; y':       'chlorine:connect-clojure-socket-repl'
+  'ctrl-; e':       'chlorine:disconnect'
+  'ctrl-; k':       'chlorine:clear-console'
+  'ctrl-; f':       'chlorine:load-file'
+  'ctrl-; b':       'chlorine:evaluate-block'
+  'ctrl-; B':       'chlorine:evaluate-top-block'
+  'ctrl-; i':       'chlorine:inspect-block'
+  'ctrl-; I':       'chlorine:inspect-top-block'
+  'ctrl-; s':       'chlorine:evaluate-selection'
+  'ctrl-; c':       'chlorine:break-evaluation'
+  'ctrl-; S':       'chlorine:source-for-var'
+  'ctrl-; d':       'chlorine:doc-for-var'
+  'ctrl-; x':       'chlorine:run-tests-in-ns'
+  'ctrl-; t':       'chlorine:run-test-for-var'
 ```
-
 ## How to work with ClojureScript
 For now, it only works with Shadow-CLJS or Lumo.
 
