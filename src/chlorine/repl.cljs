@@ -29,9 +29,10 @@
   (atom/info "Disconnected from REPLs" ""))
 
 (declare evaluate-top-block! evaluate-selection!)
-(def ^:private old-commands
+(defonce ^:private old-commands
   {:disconnect connection/disconnect!
    :evaluate-top-block evaluate-top-block!
+   :evaluate-block evaluate-top-block!
    :evaluate-selection evaluate-selection!})
 
 (defn- decide-command [cmd-name command]
@@ -43,7 +44,7 @@
         (new-cmd)))))
 
 (defn- register-commands! [commands]
-  (doseq [[k command] (dissoc commands :evaluate-block)
+  (doseq [[k command] commands
           :let [disp (-> js/atom
                          .-commands
                          (.add "atom-text-editor"
