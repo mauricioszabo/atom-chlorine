@@ -3,8 +3,8 @@
 
 (def configs {:eval-mode
               {:description "Should we evaluate Clojure or ClojureScript?"
-               :type [:discover :prefer-cljs :clj :cljs]
-               :default :discover}
+               :type [:prefer-clj :prefer-cljs :clj :cljs]
+               :default :prefer-clj}
 
               :refresh-mode
               {:description "Should we use clojure.tools.namespace to refresh, or a simple require?"
