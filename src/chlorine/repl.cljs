@@ -32,7 +32,7 @@
 (defonce ^:private old-commands
   {:disconnect connection/disconnect!
    :evaluate-top-block evaluate-top-block!
-   :evaluate-block evaluate-top-block!
+   :evaluate-block evaluate-block!
    :evaluate-selection evaluate-selection!})
 
 (defn- decide-command [cmd-name command]
