@@ -42,6 +42,6 @@
 
 (defn inline-result [^js editor row parsed-result]
   (let [parsed-ratom (render/parse-result parsed-result (-> @state :repls :clj-eval))
-        div (create-div! parsed-ratom true)
+        div (create-div! parsed-ratom (-> parsed-ratom meta :error))
         inline-result ^js (get @results [(.-id editor) row])]
     (.setContent inline-result div #js {:error (-> parsed-ratom meta :error)})))
