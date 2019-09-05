@@ -78,11 +78,19 @@
   (when-let [editor (:editor editor-data)]
     (inline/inline-result editor (-> range last first) result)))
 
+(defn- stdout [^js console txt]
+  (let [norm (str/replace-all txt #"\r?\n" "\r\n")]
+    (.. console -terminal (write norm))))
+
+(defn- stderr [^js console txt]
+  (let [norm (str/replace-all txt #"\r?\n" "\r\n")]
+    (.. console -terminal (write norm))))
+
 (defn connect! [host port]
   (let [p (connection/connect-unrepl!
            host port
-           {:on-stdout #(some-> ^js @console/console (.stdout %))
-            :on-stderr #(some-> ^js @console/console (.stderr %))
+           {:on-stdout #(some-> @console/console (stdout %))
+            :on-stderr #(some-> @console/console (stderr %))
             :on-result #(when (:result %) (inline/render-on-console! @console/console %))
             :on-disconnect #(handle-disconnect!)
             :on-start-eval create-inline-result!
@@ -108,9 +116,9 @@
     (handle-disconnect!))
 
   (when-let [out (:out output)]
-    (some-> ^js @console/console (.stdout out)))
+    (some-> ^js @console/console (stdout out)))
   (when-let [out (:err output)]
-    (some-> ^js @console/console (.stderr out)))
+    (some-> ^js @console/console (stderr out)))
   (when (contains? output :result)
     (inline/render-on-console! @console/console output)))
 
@@ -137,7 +145,7 @@
         dirs (->> js/atom .-project .getDirectories (map #(.getPath ^js %)))]
     (.. (conn/auto-connect-embedded! host port dirs
                                      {:on-stdout
-                                      #(some-> ^js @console/console (.stdout %))
+                                      #(some-> ^js @console/console (stdout %))
                                       :on-result
                                       #(when (:result %)
                                          (inline/render-on-console! @console/console %))})
