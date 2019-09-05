@@ -4,19 +4,19 @@
             [clojure.core.async :as async :include-macros true]))
 
 (defn- from-console-id [^js ink]
-  (-> ink .-Console
+  (-> ink .-InkTerminal
       (.fromId "chlorine-console")
       (doto
-       (.setTitle "Chlorine REPL")
-       (.onEval (fn [ed] (prn [:INSERTED ed])))
-       (.setModes (clj->js [{:name "chlorine"
-                             :default true
-                             :grammar "source.clojure"}])))))
+       (.setTitle "Chlorine REPL"))))
+       ; (.setModes (clj->js [{:name "chlorine"
+       ;                       :default true
+       ;                       :grammar "source.clojure"}])))))
 
 (def console (delay (some-> @inline/ink from-console-id)))
 
 (defn clear []
-  (some-> @console .reset))
+  (some-> ^js @console .-terminal (.write "a\r\n"))
+  (js/setTimeout #(some-> ^js @console .clear)))
 
 (defn- delete [selector]
   (let [element (.. @console -element (querySelector selector))]
