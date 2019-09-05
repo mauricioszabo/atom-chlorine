@@ -100,7 +100,7 @@ describe('Atom should open and evaluate code', function () {
       await evalCommand(`(Thread/sleep 2000)`)
       await time(400)
       await sendCommand("chlorine:break-evaluation")
-      assert.ok(await haveSelector(`span*=Evaluation interrupted`))
+      assert.ok(await haveSelector(`span*="Evaluation interrupted"`))
     })
 
     it('shows function doc', async () => {
@@ -122,7 +122,8 @@ describe('Atom should open and evaluate code', function () {
     it('allows big strings to be represented', async () => {
       await sendCommand('inline-results:clear-all')
       await evalCommand("(str (range 200))")
-      assert.ok(await haveText("29..."))
+      assert.ok(await haveText("29"))
+      assert.ok(await haveText("..."))
       // await app.client.click("a*=...")
       // assert.ok(await haveText("52 53 54"))
       await sendCommand('inline-results:clear-all')
