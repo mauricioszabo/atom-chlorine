@@ -10,6 +10,13 @@
 * Problems when we stack multiple evaluations (see FIXME on repl-tooling)
 * Fix problems with unreadable forms
 
+## 0.1.12
+- Fixed InkConsole not opening (https://github.com/mauricioszabo/atom-chlorine/issues/93)
+- Better evaluate-block and evaluate-top-block without using Atom API (still behind the experimental features)
+
+### Experimental features on this version
+- Commands "evaluate-selection", "evaluate-top-block" and "evaluate-block" without using Atom's APIs. They also are aware of reader symbols, so now `evaluate-block` over `'(+ 1 2 3)` will return a list, not run the function.
+
 ## 0.1.11
 - Fixed some error with autocomplete in CLJS (https://github.com/mauricioszabo/atom-chlorine/issues/85)
 - Added experimental features with a config to control
