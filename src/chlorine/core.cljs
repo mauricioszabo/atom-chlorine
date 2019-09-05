@@ -31,7 +31,7 @@
               :connect-embeded-clojurescript-repl conn/connect-self-hosted!
               ; :disconnect conn/disconnect!
 
-              :evaluate-block repl/evaluate-block!
+              ; :evaluate-block repl/evaluate-block!
               ; :evaluate-top-block repl/evaluate-top-block!
               ; :evaluate-selection repl/evaluate-selection!
               :doc-for-var doc/doc

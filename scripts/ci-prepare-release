@@ -5,7 +5,7 @@ cp .git/config /tmp/config &&
 sed 's/git.github.com:mauricioszabo.repl-tooling/https:\/\/github.com\/mauricioszabo\/repl-tooling.git/' /tmp/config > .git/config &&
 git submodule update &&
 git tag `echo "$CIRCLE_BRANCH-source" | sed s/release-//` &&
-docker run --rm -it -u root -v`pwd`:/work node:alpine sh -c 'apk add --no-cache openjdk8 && cd /work && npm install && npx shadow-cljs release dev'
+docker run --rm -it -u root -v`pwd`:/work node:alpine sh -c 'apk add --no-cache openjdk8 && cd /work && npm install && npx shadow-cljs release dev --source-maps'
 
 if [ "$?" != "0" ]; then
   exit 1
@@ -17,7 +17,7 @@ git config --global user.name "CircleCI Automated Build" &&
 
 git checkout -b release-prepare-DELETE-THIS &&
 git rm -r src integration scripts &&
-git add -f lib/cmds.js lib/main.js &&
+git add -f lib/cmds.js lib/cmds.js.map lib/main.js &&
 git commit -m 'Compiled version for release' &&
 git tag `echo $CIRCLE_BRANCH | sed s/release-//` &&
 git push --tags

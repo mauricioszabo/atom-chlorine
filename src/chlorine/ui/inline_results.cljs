@@ -27,8 +27,8 @@
 
 (defn render-on-console! [^js console parsed-result]
   (let [parsed (render/parse-result parsed-result (-> @state :repls :clj-eval))
-        div (create-div! parsed false)]
-    (some-> console (.result div))))
+        div (create-div! parsed false)]))
+    ; (some-> console (.result div))))
 
 (defn render-inline! [^js inline-result parsed-result]
   (let [parsed-ratom (render/parse-result parsed-result (-> @state :repls :clj-eval))
@@ -42,6 +42,6 @@
 
 (defn inline-result [^js editor row parsed-result]
   (let [parsed-ratom (render/parse-result parsed-result (-> @state :repls :clj-eval))
-        div (create-div! parsed-ratom true)
+        div (create-div! parsed-ratom (-> parsed-ratom meta :error))
         inline-result ^js (get @results [(.-id editor) row])]
     (.setContent inline-result div #js {:error (-> parsed-ratom meta :error)})))
