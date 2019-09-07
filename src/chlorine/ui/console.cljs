@@ -46,7 +46,7 @@
       [:div {:class kind} out-str]]]))
 
 (defn console-view []
-  [:div.chlorine.console.native-key-bindings
+  [:div.chlorine.console.native-key-bindings {:tabindex 0}
    [:<> (map cell-for @out-state (range))]])
 
 (defonce div (. js/document createElement "div"))
@@ -81,7 +81,8 @@
     ;                     "core:copy" #(let [sel (.. js/document getSelection toString)]
     ;                                    (prn :SELECTION!)
     ;                                    (.. js/atom clipboard (write sel))))))))
-(register-console! @aux/subscriptions)
+(defonce registered
+  (register-console! @aux/subscriptions))
 
 (defn clear []
   (reset! out-state []))
