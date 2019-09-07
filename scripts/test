@@ -9,7 +9,7 @@ for n in {1..15}; do
 done
 
 node integration/fixture-app/target/main.js &
-node ffmpeg -video_size 1024x768 -f x11grab -i :80.0 /tmp/junit/out.mpg &
+ffmpeg -video_size 1024x768 -f x11grab -i :80.0 /tmp/junit/out.mpg &
 
 export MOCHA_FILE=/tmp/junit/test-results.xml
 ./node_modules/.bin/mocha integration/clojure-test.js --reporter mocha-junit-reporter
