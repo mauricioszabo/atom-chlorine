@@ -3,10 +3,6 @@
             [chlorine.aux :as aux]
             [repl-tooling.editor-integration.renderer :as render]))
 
-; (defonce ConsoleHTML
-;   (js/eval "class Console extends HTMLElement {}
-; document.registerElement('chlorine-console', {prototype: Console.prototype})"))
-
 (defonce ^:private console-pair
   (do
     (deftype ^js ConsoleClass []
@@ -46,9 +42,8 @@
     [:div.cell {:key idx}
      [:div.gutter [:span {:class ["icon" icon]}]]
      (if (= out-type :result)
-       [rendered-content object]
-       [:div.content
-        [:div {:class kind} object]])]))
+       [:div.content [rendered-content object]]
+       [:div.content [:div {:class kind} object]])]))
 
 (defn console-view []
   [:div.chlorine.console.native-key-bindings {:tabindex 1}
@@ -81,11 +76,7 @@
         (.. js/atom -workspace
             (addOpener (fn [uri] (when (= uri "atom://chlorine-terminal") console)))))
   (.add subs (.. js/atom -views (addViewProvider Console (constantly div)))))
-    ; (.add subs (.. js/atom -commands
-    ;                (add "chlorine-console"
-    ;                     "core:copy" #(let [sel (.. js/document getSelection toString)]
-    ;                                    (prn :SELECTION!)
-    ;                                    (.. js/atom clipboard (write sel))))))))
+
 (defonce registered
   (register-console! @aux/subscriptions))
 
