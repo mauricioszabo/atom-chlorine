@@ -13,6 +13,7 @@
     "ink"
   ],
   "dependencies": {
+    "ansi_up": "^4.0.4",
     "atom-package-deps": "^5.1.0",
     "create-react-class": "^15.6.3",
     "react": "^16.9.0",

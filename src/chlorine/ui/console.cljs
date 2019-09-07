@@ -1,7 +1,8 @@
 (ns chlorine.ui.console
   (:require [reagent.core :as r]
             [chlorine.aux :as aux]
-            [repl-tooling.editor-integration.renderer :as render]))
+            [repl-tooling.editor-integration.renderer :as render]
+            ["ansi_up" :default Ansi]))
 
 (defonce ^:private console-pair
   (do
@@ -36,6 +37,7 @@
     [:div {:class ["result" "chlorine" (when error? "error")]}
      [render/view-for-result parsed-ratom]]))
 
+(defonce ansi (new Ansi))
 (defn- cell-for [[out-type object] idx]
   (let [kind (out-type {:stdout :output :stderr :err :result :result})
         icon (out-type {:stdout "icon-quote" :stderr "icon-alert" :result "icon-code"})]
@@ -43,7 +45,8 @@
      [:div.gutter [:span {:class ["icon" icon]}]]
      (if (= out-type :result)
        [:div.content [rendered-content object]]
-       [:div.content [:div {:class kind} object]])]))
+       (let [html (. ansi ansi_to_html object)]
+         [:div.content [:div {:class kind :dangerouslySetInnerHTML #js {:__html html}}]]))]))
 
 (defn console-view []
   [:div.chlorine.console.native-key-bindings {:tabindex 1}
