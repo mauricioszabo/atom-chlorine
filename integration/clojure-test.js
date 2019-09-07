@@ -62,8 +62,11 @@ describe('Atom should open and evaluate code', function () {
   })
 
   it('connects to editor', async () => {
+    assert.ok(await gotoTab('test.clj'))
     await sendCommand("chlorine:connect-clojure-socket-repl")
+    await(1000)
     assert.ok(await haveSelector('div*=Connect to Socket REPL'))
+    await app.client.execute("document.querySelector('atom-panel input').focus()")
     await app.client.keys("Tab")
     await app.client.keys("3333")
     await app.client.keys("Enter")
@@ -106,7 +109,7 @@ describe('Atom should open and evaluate code', function () {
       await evalCommand(`(Thread/sleep 2000)`)
       await time(400)
       await sendCommand("chlorine:break-evaluation")
-      assert.ok(await haveSelector(`span*='Evaluation interrupted'`))
+      assert.ok(await haveSelector(`//*[contains(., '"Evaluation interrupted"')]`))
     })
 
     it('shows function doc', async () => {
