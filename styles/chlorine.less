@@ -16,7 +16,9 @@ atom-text-editor {
   }
 }
 
-.ink div.chlorine.error {
+div.chlorine.error {
+  color: @text-color-error;
+
   strong.error-description {
     font-weight: 900;
   }
@@ -34,16 +36,16 @@ status-bar div.chlorine {
   font-style: italic;
 }
 
-.ink div.chlorine {
+div.chlorine.result {
   .children {
     margin-left: 1em;
   }
 
-  .ink div.chlorine {
-    span.single-line {
-      white-space: nowrap;
-    }
-  }
+  // .ink div.chlorine {
+  //   span.single-line {
+  //     white-space: nowrap;
+  //   }
+  // }
 }
 
 .chlorine.result {
