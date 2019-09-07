@@ -3,7 +3,7 @@ FROM jamesnetherton/docker-atom-editor:v1.36.0
 USER root
 
 RUN apt update
-RUN apt install -y xvfb
+RUN apt install -y xvfb ffmpeg
 #RUN apt install -y openjdk-8-jdk nodejs netcat
 RUN apt install -y nodejs netcat
 
