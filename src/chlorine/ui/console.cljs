@@ -1,9 +1,7 @@
 (ns chlorine.ui.console
-  (:require [chlorine.ui.inline-results :as inline]
-            [clojure.string :as str]
-            [reagent.core :as r]
+  (:require [reagent.core :as r]
             [chlorine.aux :as aux]
-            [clojure.core.async :as async :include-macros true]))
+            [repl-tooling.editor-integration.renderer :as render]))
 
 ; (defonce ConsoleHTML
 ;   (js/eval "class Console extends HTMLElement {}
@@ -37,16 +35,23 @@
 (defonce out-state
   (r/atom []))
 
-(defn- cell-for [[out-type out-str] idx]
+(defn- rendered-content [parsed-ratom]
+  (let [error? (-> parsed-ratom meta :error)]
+    [:div {:class ["result" "chlorine" (when error? "error")]}
+     [render/view-for-result parsed-ratom]]))
+
+(defn- cell-for [[out-type object] idx]
   (let [kind (out-type {:stdout :output :stderr :err :result :result})
-        icon (out-type {:stdout "icon-quote" :stderr "icon-alert" :result "icon-check"})]
+        icon (out-type {:stdout "icon-quote" :stderr "icon-alert" :result "icon-code"})]
     [:div.cell {:key idx}
      [:div.gutter [:span {:class ["icon" icon]}]]
-     [:div.content
-      [:div {:class kind} out-str]]]))
+     (if (= out-type :result)
+       [rendered-content object]
+       [:div.content
+        [:div {:class kind} object]])]))
 
 (defn console-view []
-  [:div.chlorine.console.native-key-bindings {:tabindex 0}
+  [:div.chlorine.console.native-key-bindings {:tabindex 1}
    [:<> (map cell-for @out-state (range))]])
 
 (defonce div (. js/document createElement "div"))
@@ -98,3 +103,6 @@
 
 (defn stderr [txt]
   (append-text :stderr txt))
+
+(defn result [parsed-result repl]
+  (swap! out-state conj [:result (render/parse-result parsed-result repl)]))
