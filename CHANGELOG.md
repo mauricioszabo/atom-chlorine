@@ -10,6 +10,9 @@
 * Problems when we stack multiple evaluations (see FIXME on repl-tooling)
 * Fix problems with unreadable forms
 
+## NEXT VERSION
+- Re-adding a rich console for evaluation and STDOUT/STDERR
+
 ## 0.1.12
 - Fixed InkConsole not opening (https://github.com/mauricioszabo/atom-chlorine/issues/93)
 - Better evaluate-block and evaluate-top-block without using Atom API (still behind the experimental features)
