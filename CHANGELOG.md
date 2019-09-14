@@ -10,8 +10,9 @@
 * Problems when we stack multiple evaluations (see FIXME on repl-tooling)
 * Fix problems with unreadable forms
 
-## NEXT VERSION
+## 0.1.14
 - Re-adding a rich console for evaluation and STDOUT/STDERR
+- Exceptions are now rendered on the console
 
 ## 0.1.12
 - Fixed InkConsole not opening (https://github.com/mauricioszabo/atom-chlorine/issues/93)
