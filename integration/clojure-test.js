@@ -16,9 +16,15 @@ const haveSelector = (sel) => app.client.waitForText(sel)
 const haveText = (text) =>
   haveSelector(`//div[contains(., '${text}')]`)
 
-const evalCommand = async (cmd) => {
+const typeCommand = async (cmd) => {
   await sendCommand("vim-mode-plus:activate-insert-mode")
+  await app.client.keys("End")
   await app.client.keys(`\n\n${cmd}`)
+  await app.client.keys("ArrowLeft")
+}
+
+const evalCommand = async (cmd) => {
+  await typeCommand(cmd)
   await sendCommand("chlorine:evaluate-block")
 }
 
@@ -56,31 +62,34 @@ describe('Atom should open and evaluate code', function () {
   })
 
   it('connects to editor', async () => {
+    assert.ok(await gotoTab('test.clj'))
     await sendCommand("chlorine:connect-clojure-socket-repl")
+    await(1000)
     assert.ok(await haveSelector('div*=Connect to Socket REPL'))
+    await app.client.execute("document.querySelector('atom-panel input').focus()")
     await app.client.keys("Tab")
     await app.client.keys("3333")
     await app.client.keys("Enter")
-    assert.ok(await haveSelector("ink-terminal"))
+    assert.ok(await haveSelector("div.chlorine"))
     assert.ok(await gotoTab('test.clj'))
   })
 
   describe('when connecting to Clojure', () => {
     it('evaluates code', async () => {
       await time(1000)
-      await sendCommand("vim-mode-plus:activate-insert-mode")
       assert.ok(await gotoTab('test.clj'))
-      await app.client.keys("(ns user.test1)")
-      await sendCommand("chlorine:evaluate-block")
+      await sendCommand("vim-mode-plus:activate-insert-mode")
+      await typeCommand("(ns user.test1)")
+      await sendCommand("chlorine:evaluate-top-block")
       assert.ok(await haveSelector('div*=nil'))
 
-      await app.client.keys("\n\n(str (+ 90 120))")
+      await evalCommand("(str (+ 90 120))")
       await sendCommand("chlorine:evaluate-block")
       assert.ok(await haveSelector(`//div[contains(., '"210"')]`))
     })
 
     it('goes to definition of var', async () => {
-      await app.client.keys("\ndefn")
+      await typeCommand("defn")
       await sendCommand("chlorine:go-to-var-definition")
       await time(100)
       await gotoTab('core.clj')
@@ -100,12 +109,12 @@ describe('Atom should open and evaluate code', function () {
       await evalCommand(`(Thread/sleep 2000)`)
       await time(400)
       await sendCommand("chlorine:break-evaluation")
-      assert.ok(await haveSelector(`span*='"Evaluation interrupted"'`))
+      assert.ok(await haveSelector(`//*[contains(., '"Evaluation interrupted"')]`))
     })
 
     it('shows function doc', async () => {
       await sendCommand('inline-results:clear-all')
-      await app.client.keys("\n\nstr")
+      await typeCommand("\n\nstr")
       await sendCommand("chlorine:doc-for-var")
       assert.ok(await haveText("With no args, returns the empty string. With one arg x, returns\n"))
     })
@@ -154,7 +163,7 @@ describe('Atom should open and evaluate code', function () {
 
     it('shows function doc', async () => {
       await sendCommand('inline-results:clear-all')
-      await app.client.keys("\n\nstr")
+      await typeCommand("str")
       await sendCommand("chlorine:doc-for-var")
       assert.ok(await haveText("With no args, returns the empty string"))
     })

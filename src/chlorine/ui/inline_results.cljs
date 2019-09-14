@@ -1,6 +1,5 @@
 (ns chlorine.ui.inline-results
   (:require [cljs.reader :as reader]
-            [clojure.string :as str]
             [reagent.core :as r]
             [repl-tooling.editor-integration.renderer :as render]
             [clojure.walk :as walk]
@@ -24,11 +23,6 @@
     (.. div -classList (add "result" "chlorine"))
     (r/render [render/view-for-result parsed-ratom] div)
     div))
-
-(defn render-on-console! [^js console parsed-result]
-  (let [parsed (render/parse-result parsed-result (-> @state :repls :clj-eval))
-        div (create-div! parsed false)]))
-    ; (some-> console (.result div))))
 
 (defn render-inline! [^js inline-result parsed-result]
   (let [parsed-ratom (render/parse-result parsed-result (-> @state :repls :clj-eval))
