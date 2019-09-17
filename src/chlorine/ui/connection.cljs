@@ -79,12 +79,3 @@
                   (repl/connect-cljs! (:hostname @local-state) (:port @local-state))
                   (destroy! %)))
     (already-connected)))
-
-(defn connect-self-hosted! []
-  (cond
-    (-> @state :repls :clj-eval nil?) (atom/warn "REPL not connected"
-                                                 (str "To connect a self-hosted REPL, "
-                                                      "you first need to connect a "
-                                                      "Clojure REPL"))
-    (-> @state :repls :cljs-eval nil?) (repl/connect-self-hosted)
-    :else (already-connected)))
