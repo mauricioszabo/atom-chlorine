@@ -70,16 +70,21 @@
     :warn (atom/warn title message)
     (atom/error title message)))
 
-(defn- prompt! [{:keys [title message arguments]}]
+(defn- prompt! [{:keys [title message arguments] :as foo}]
   (js/Promise.
    (fn [resolve]
-     (let [buttons (map (fn [{:keys [key value]}]
-                          {:text value
-                           :onDidClick #(resolve key)}))
-           notification (.. js/atom -notifications
-                            (addInfo title (clj->js {:detail message
-                                                     :buttons buttons})))]
-       (.onDidDismiss #(resolve nil))))))
+     (let [notification (atom nil)
+           buttons (->> arguments (map (fn [{:keys [key value]}]
+                                         {:text value
+                                          :onDidClick #(do
+                                                         (resolve key)
+                                                         (.dismiss ^js @notification))})))]
+
+       (reset! notification (.. js/atom -notifications
+                                (addInfo title (clj->js {:detail message
+                                                         :dismissable true
+                                                         :buttons buttons}))))
+       (.onDidDismiss ^js @notification #(do (resolve nil) true))))))
 
 (defn- create-inline-result! [{:keys [range editor-data]}]
   (when-let [editor (:editor editor-data)]
