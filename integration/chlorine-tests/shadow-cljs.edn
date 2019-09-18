@@ -1,0 +1,12 @@
+;; shadow-cljs configuration
+{:source-paths ["test"]
+
+ :dependencies [[org.clojure/core.async "0.4.474"]
+                [check "0.0.3-SNAPSHOT"]]
+
+ :builds
+ {:tests {:target :node-library
+          :compiler-options {:infer-externs :auto}
+          :exports {:activate chlorine.tests/activate}
+          :output-to "lib/main.js"
+          :devtools {:after-load chlorine.tests/after}}}}
