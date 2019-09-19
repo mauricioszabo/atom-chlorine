@@ -1,11 +1,6 @@
 (ns chlorine.providers-consumers.autocomplete
   (:require [clojure.walk :as walk]
-            [clojure.string :as str]
-            [chlorine.repl :as repl]
-            [chlorine.state :refer [state]]
-            [repl-tooling.eval :as eval]
-            [chlorine.ui.inline-results :as inline]
-            [repl-tooling.features.autocomplete :as compl]))
+            [chlorine.state :refer [state]]))
 
 (def clj-var-regex #"[a-zA-Z0-9\-.$!?\/><*=\?_:]+")
 
