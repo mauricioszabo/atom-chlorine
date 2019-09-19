@@ -163,7 +163,7 @@
   (e-eval/need-cljs? (:config @state) (.getFileName editor)))
 
 (defn- eval-cljs [editor ns-name filename row col code ^js result opts callback]
-  (if-let [repl (-> @state :repls :cljs-eval)]
+  (if-let [repl (some-> @state :tooling-state deref :cljs/repl)]
     (eval/evaluate repl code
                    {:namespace ns-name :row row :col col :filename filename
                     :pass opts}
@@ -182,7 +182,7 @@
   ([^js editor ns-name filename row col code opts callback]
    (if (need-cljs? editor)
      (eval-cljs editor ns-name filename row col code nil opts #(-> % helpers/parse-result callback))
-     (some-> @state :repls :clj-aux
+     (some-> @state :tooling-state deref :clj/aux
              (eval/evaluate code
                             {:namespace ns-name :row row :col col :filename filename
                              :pass opts}
@@ -198,7 +198,7 @@
 
      (if (need-cljs? editor)
        (eval-cljs editor ns-name filename row col code result opts #(set-inline-result result %))
-       (some-> @state :repls :clj-eval
+       (some-> @state :tooling-state deref :clj/repl
                (eval/evaluate code
                               {:namespace ns-name :row row :col col :filename filename
                                :pass opts}
