@@ -28,10 +28,8 @@
 (defn- containing-text [selector match]
   (->> selector
        query-all
-       (filter #(do
-                  (prn :CONN (some-> % .-isConnected))
-                  (and (some-> % .-isConnected)
-                       (re-find match (.-innerText %)))))
+       (filter #(and (some-> % .-isConnected)
+                     (re-find match (.-innerText %))))
        first))
 
 (defn- find-element [selector text]
@@ -140,13 +138,11 @@
                       #"Error Number 2"))
 
     (async-testing "allows big strings to be represented"
-      (p/alet [_ (p/delay 1500)]
-        (eval-and-check "(str (range 200))"
-                        "chlorine:evaluate-top-block"
-                        find-inside-editor
-                        #"29\s*\.\.\."))
-      (p/alet [_ (p/delay 1500)
-               link (find-element "div.string a" #"\.\.\.")
+      (eval-and-check "(str (range 200))"
+                      "chlorine:evaluate-top-block"
+                      find-inside-editor
+                      #"29\s*\.\.\.")
+      (p/alet [link (find-element "div.string a" #"\.\.\.")
                _ (some-> link .click)
                element (find-inside-editor #"52 53 54")]
         (check element => exist?)))))
@@ -156,8 +152,49 @@
       (p/alet [editor (cljs-editor)
                _ (evaluate-command "chlorine:connect-embedded")
                message (find-element "div.message" #"Connected to ClojureScript")]
-        (check message => exist?))))
+        (check message => exist?)))
 
+    (async-testing "evaluates code"
+      (cljs-eval-and-check "(str (+ 90 120))" "chlorine:evaluate-top-block"
+                           find-inside-editor #"\"210\""))
+
+    (async-testing "evaluates #Inf"
+      (cljs-eval-and-check "(/ 10 0)" "chlorine:evaluate-top-block"
+                           find-inside-editor #"##Inf"))
+
+    #_ ;NOT YET
+    (async-testing "go to definition of a var"
+      (p/alet [_ (cljs-eval-and-check "defn" "chlorine:go-to-var-definition"
+                                      find-inside-editor #":arglists")]
+        (evaluate-command "core:close")))
+
+    #_ ;NOT YET
+    (async-testing "shows definition of var"
+      (cljs-eval-and-check "defn" "chlorine:source-for-var"
+                           find-inside-console #"fdecl"))
+
+    (async-testing "shows function doc"
+      (cljs-eval-and-check "str" "chlorine:doc-for-var"
+                           find-inside-editor
+                           #"With no args, returns the empty string. With one arg x, returns"))
+
+    (async-testing "captures exceptions"
+      (cljs-eval-and-check "(throw (ex-info \"Error Number 1\", {}))"
+                           "chlorine:evaluate-top-block"
+                           (partial find-element "div.error")
+                           #"Error Number 1"))
+
+    (async-testing "captures evaluated exceptions"
+      (cljs-eval-and-check "(ex-info \"Error Number 2\", {})"
+                           "chlorine:evaluate-top-block"
+                           find-inside-editor
+                           #"Error Number 2"))
+
+    (async-testing "captures pure objects as exceptions"
+      (cljs-eval-and-check "(throw \"Error Number 3\")"
+                           "chlorine:evaluate-top-block"
+                           find-inside-editor
+                           #"Error Number 3")))
 
 (defn run-my-tests []
   (run-tests))
