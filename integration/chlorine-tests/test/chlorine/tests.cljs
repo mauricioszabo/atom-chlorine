@@ -3,6 +3,7 @@
             [chlorine.aux :refer-macros [in-channel]]
             [clojure.test :refer [testing is deftest async run-all-tests run-tests]]
             [check.core :refer-macros [check]]
+            [promesa.core :as p]
             ["remote" :as remote]))
 
 (defn clj-editor []
@@ -21,14 +22,6 @@
    (.setSelectedBufferRange editor (clj->js [[2 2] [2 2]]))
    (async/put! chan :ok)))
 
-(defn- evaluate-command [command]
-  (.. js/atom -commands (dispatch (. js/document -activeElement) command)))
-
-(defn- with-clj [text]
-  (async/go
-   (evaluate-command "inline-results:clear-all")
-   (with-text (<! (clj-editor)) 'user.test1 text)))
-
 (defn- await-for [fun]
   (in-channel
    (async/go-loop [n 0]
@@ -41,6 +34,15 @@
            (do
              (<! (async/timeout 100))
              (recur (inc n)))))))))
+
+(defn- evaluate-command [command]
+  (.. js/atom -commands (dispatch (. js/document -activeElement) command)))
+
+(defn- with-clj [text]
+  (async/go
+   (let [editor (<! (clj-editor))]
+     (evaluate-command "inline-results:clear-all")
+     (with-text editor 'user.test1 text))))
 
 (defn- as-vec [node-list]
   (map #(aget node-list %) (range (.-length node-list))))
@@ -69,51 +71,66 @@
 
 (def exist? #(not (nil? %)))
 
+; (defn- timeout [n]
+;   (js/Promise. #(js/setTimeout % n)))
+
+(defn- dispatch-command [command]
+  (.. js/atom -commands (dispatch (. js/document -activeElement) command)))
+
+(defn clj-editor1 []
+  (.. js/atom -workspace (open "/tmp/test.clj" #js {:searchAllPanes true})))
+
+(deftest connection-and-evaluation
+  (async done
+    (p/alet
+     [_ (evaluate-command "chlorine:disconnect")
+      _ (p/delay 1000)])
+
+    (testing "connecting to editor"
+      (p/alet
+       [editor (clj-editor1)
+        _ (dispatch-command "chlorine:connect-clojure-socket-repl")]))))
+      ;   message (find-element "div.message" #"REPL connected")])
+      ; (check (<! (find-element "div.message" #"REPL connected")) => exist?))))
+    ;   (<! (async/timeout 1000)))))
+
+#_
 (deftest connection-and-evaluation
   (async done
     (async/go
-     (evaluate-command "chlorine:disconnect")
-     (<! (async/timeout 1000))
-     (testing "connecting to editor"
-       (<! (clj-editor))
-       (<! (connect!))
-       (prn :AFTER-CONNECT)
-       (check (<! (find-element "div.message" #"REPL connected")) => exist?)
-       (<! (async/timeout 1000)))
+      (evaluate-command "chlorine:disconnect")
+      (<! (async/timeout 1000))
+      (testing "connecting to editor"
+        (<! (clj-editor))
+        (<! (connect!))
+        (check (<! (find-element "div.message" #"REPL connected")) => exist?)
+        (<! (async/timeout 1000)))
 
-     (testing "connecting to editor"
-       (with-clj "(str (+ 90 120))")
-       (<! (async/timeout 100))
-       (evaluate-command "chlorine:evaluate-top-block")
-       (check (<! (find-inside-editor #"\"210\"")) => exist?))
+      (testing "evaluating simple forms"
+        (with-clj "(str (+ 90 120))")
+        (evaluate-command "chlorine:evaluate-top-block")
+        (check (<! (find-inside-editor #"\"210\"")) => exist?)))
 
-     (testing "go to definition of a var"
-       (prn :AFTER?)
-       (with-clj "defn")
-       (prn :AFTER?)
-       (evaluate-command "chlorine:go-to-var-definition")
-       (check (<! (find-inside-editor #":arglists")) => exist?)
-       (evaluate-command "core:close")
+      ; (testing "go to definition of a var"
+      ;   (with-clj "defn")
+      ;   (evaluate-command "chlorine:go-to-var-definition")
+      ;   (check (<! (find-inside-editor #":arglists")) => exist?)
+      ;   (evaluate-command "core:close"))
+      ;
+      ; ; (testing "shows definition of var"
+      ; ;   (with-clj "defn")
+      ; ;   (evaluate-command "chlorine:source-for-var")
+      ; ;   (check (<! (find-inside-editor #"fdecl")) => exist?))
 
-      (done)))))
-
-#_
-(async/go
- (prn (<! (find-element "atom-text-editor div" #":arglists"))))
-
+    (done)))
 
 (defn run-my-tests []
   (run-tests))
 
 (defn activate []
-  (prn :RUNNING-TESTS)
-  #_
-  (run-all-tests)
-  #_
-  (async/go
-    (let [e (<! (clj-editor))]
-      (<! (with-text e 'test "(def foo 10)"))
-      (<! (evaluate-command "core:select-all")))))
+  (prn :RUNNING-TESTS))
+  ; #_
+  ; (run-all-tests))
 
 (defn after []
   (prn :RELOADED))
