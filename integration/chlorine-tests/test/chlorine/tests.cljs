@@ -28,14 +28,22 @@
 (defn- containing-text [selector match]
   (->> selector
        query-all
-       (filter #(re-find match (.-innerText %)))
+       (filter #(do
+                  (prn :CONN (some-> % .-isConnected))
+                  (and (some-> % .-isConnected)
+                       (re-find match (.-innerText %)))))
        first))
 
 (defn- find-element [selector text]
   (await-for #(containing-text selector text)))
 
+(defn- find-element-inside-editor [element match]
+  (find-element (str "atom-text-editor:not(*[style*='display: none']) " element)
+                match))
+
 (defn- find-inside-editor [match]
-  (find-element "atom-text-editor:not(*[style*='display: none']) div" match))
+  (find-element-inside-editor "div" match))
+
 (defn- find-inside-console [match]
   (find-element "div.chlorine.console div" match))
 
@@ -52,6 +60,8 @@
 
 (defn clj-editor []
   (.. js/atom -workspace (open "/tmp/test.clj" #js {:searchAllPanes true})))
+(defn cljs-editor []
+  (.. js/atom -workspace (open "/tmp/test.cljs" #js {:searchAllPanes true})))
 
 (defn- with-text [^js editor namespace text]
   (p/alet [_ (.. editor (setText (str "(ns " namespace ")\n\n" text)))]
@@ -62,13 +72,24 @@
            _ (evaluate-command "inline-results:clear-all")]
     (with-text editor 'user.test1 text)))
 
+(defn- with-cljs [text]
+  (p/alet [editor (cljs-editor)
+           _ (evaluate-command "inline-results:clear-all")]
+    (with-text editor 'user.test2 text)))
+
 (defn- eval-and-check [text command check-fn message]
   (p/alet [_ (with-clj text)
            _ (evaluate-command command)
            contents (check-fn message)]
     (check (some-> contents .-innerText) => message)))
 
-(deftest connection-and-evaluation
+(defn- cljs-eval-and-check [text command check-fn message]
+  (p/alet [_ (with-cljs text)
+           _ (evaluate-command command)
+           contents (check-fn message)]
+    (check (some-> contents .-innerText) => message)))
+
+(deftest clojure-connection-and-evaluation
   (async
     (async-testing "disconnecting editor"
       (p/alet [_ (evaluate-command "chlorine:disconnect")
@@ -104,26 +125,38 @@
     (async-testing "shows function doc"
       (eval-and-check "str" "chlorine:doc-for-var"
                       find-inside-editor
-                      #"With no args, returns the empty string. With one arg x, returns"))))
+                      #"With no args, returns the empty string. With one arg x, returns"))
 
-    ; it('captures exceptions', async () => {})
-    ;   await evalCommand(`(throw (ex-info "Error Number 1", {}))`)
-    ;   assert.ok(await haveSelector(`div.error`))
-    ;   assert.ok(await haveSelector(`span*=Error Number 1`))
-    ;
-    ;   await evalCommand(`(ex-info "Error Number 2", {})`)
-    ;   assert.ok(await haveText(`Error Number 2`))
-    ;
-    ;
-    ; it('allows big strings to be represented', async () => {})
-    ;   await sendCommand('inline-results:clear-all')
-    ;   await evalCommand("(str (range 200))")
-    ;   assert.ok(await haveText("29"))
-    ;   assert.ok(await haveText("..."))
-    ;   // await app.client.click("a*=...")
-    ;   // assert.ok(await haveText("52 53 54"))
-    ;   await sendCommand('inline-results:clear-all')))
-    ;
+    (async-testing "captures exceptions"
+      (eval-and-check "(throw (ex-info \"Error Number 1\", {}))"
+                      "chlorine:evaluate-top-block"
+                      (partial find-element "div.error")
+                      #"Error Number 1"))
+
+    (async-testing "captures evaluated exceptions"
+      (eval-and-check "(ex-info \"Error Number 2\", {})"
+                      "chlorine:evaluate-top-block"
+                      find-inside-editor
+                      #"Error Number 2"))
+
+    (async-testing "allows big strings to be represented"
+      (p/alet [_ (p/delay 1500)]
+        (eval-and-check "(str (range 200))"
+                        "chlorine:evaluate-top-block"
+                        find-inside-editor
+                        #"29\s*\.\.\."))
+      (p/alet [_ (p/delay 1500)
+               link (find-element "div.string a" #"\.\.\.")
+               _ (some-> link .click)
+               element (find-inside-editor #"52 53 54")]
+        (check element => exist?)))))
+
+(deftest cljs-connection-and-evaluation
+    (async-testing "connecting to clojurescript"
+      (p/alet [editor (cljs-editor)
+               _ (evaluate-command "chlorine:connect-embedded")
+               message (find-element "div.message" #"Connected to ClojureScript")]
+        (check message => exist?))))
 
 
 (defn run-my-tests []
