@@ -2,6 +2,7 @@
 {:source-paths ["test"]
 
  :dependencies [[org.clojure/core.async "0.4.474"]
+                [funcool/promesa "3.0.0"]
                 [check "0.0.3-SNAPSHOT"]]
 
  :builds
