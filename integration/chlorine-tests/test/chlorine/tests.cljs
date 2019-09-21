@@ -95,7 +95,9 @@
 
     (async-testing "connecting to editor"
       (p/alet [editor (clj-editor)
+               _ (p/delay 1000)
                _ (connect!)
+               _ (p/delay 1000)
                message (find-element "div.message" #"REPL connected")]
         (check message => exist?)))
 
