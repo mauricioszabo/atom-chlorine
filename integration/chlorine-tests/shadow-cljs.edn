@@ -5,9 +5,9 @@
                 [funcool/promesa "3.0.0"]
                 [check "0.0.3-SNAPSHOT"]]
 
- :builds
- {:tests {:target :node-library
-          :compiler-options {:infer-externs :auto}
-          :exports {:activate chlorine.tests/activate}
-          :output-to "lib/main.js"
-          :devtools {:after-load chlorine.tests/after}}}}
+ :socket-repl {:port 3333}
+ :builds {:tests {:target :node-library
+                  :compiler-options {:infer-externs :auto}
+                  :exports {:activate chlorine.tests/activate}
+                  :output-to "lib/main.js"
+                  :devtools {:after-load chlorine.tests/after}}}}
