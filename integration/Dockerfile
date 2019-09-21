@@ -4,8 +4,7 @@ USER root
 
 RUN apt update
 RUN apt install -y xvfb ffmpeg
-RUN apt install -y openjdk-8-jdk nodejs netcat
-RUN apt install -y nodejs netcat
+RUN apt install -y openjdk-8-jdk nodejs netcat npm
 
 ENV DISPLAY=:80
 ENV ELECTRON_ENABLE_LOGGING=true
