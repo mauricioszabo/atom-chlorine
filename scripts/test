@@ -8,10 +8,10 @@ for n in {1..15}; do
   sleep 10
 done
 
-sh -c 'sleep 120000 && killall atom'
+sh -c 'sleep 120000 && killall atom' &
 ffmpeg -video_size 1024x768 -f x11grab -i :80.0 /tmp/junit/out.mpg &
 
-atom --foreground /work/integration/chlorine-test
+atom --foreground /work/integration/chlorine-tests
 result=$?
 
 echo -e "(System/exit 0)\n" | nc localhost 3333
