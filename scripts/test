@@ -11,8 +11,7 @@ done
 node integration/fixture-app/target/main.js &
 ffmpeg -video_size 1024x768 -f x11grab -i :80.0 /tmp/junit/out.mpg &
 
-export MOCHA_FILE=/tmp/junit/test-results.xml
-./node_modules/.bin/mocha integration/clojure-test.js --reporter mocha-junit-reporter
+atom --foreground /work/integration/chlorine-test
 result=$?
 
 echo -e "(System/exit 0)\n" | nc localhost 3333
