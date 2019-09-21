@@ -4,7 +4,7 @@ USER root
 
 RUN apt update
 RUN apt install -y xvfb ffmpeg
-#RUN apt install -y openjdk-8-jdk nodejs netcat
+RUN apt install -y openjdk-8-jdk nodejs netcat
 RUN apt install -y nodejs netcat
 
 ENV DISPLAY=:80
