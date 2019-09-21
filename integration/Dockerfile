@@ -3,8 +3,7 @@ FROM jamesnetherton/docker-atom-editor
 USER root
 
 RUN apt update
-RUN apt install -y xvfb ffmpeg
-RUN apt install -y openjdk-8-jdk nodejs netcat npm npx
+RUN apt install -y xvfb ffmpeg openjdk-8-jdk nodejs netcat npm npx
 
 ENV DISPLAY=:80
 ENV ELECTRON_ENABLE_LOGGING=true
