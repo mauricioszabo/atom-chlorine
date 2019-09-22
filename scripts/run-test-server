@@ -1,6 +1,6 @@
 #!/bin/bash
 
-rm -Rf integration/fixture-app/target/
+rm -Rf integration/chlorine-tests/lib
 
 if [ "$1" == "node" ]; then
     cd integration/chlorine-test && npm install && nohup npx shadow-cljs watch dev &
