@@ -7,6 +7,13 @@ Socket-REPL integration with Clojure and ClojureScript with Atom.
 
 This package requires `Ink` to work. Install it on Atom package manager
 
+## Example
+Chlorine connects to a Socket REPL and adds autocomplete, goto var definition, evaluation, refresh, and documentation of functions on Atom. It can also add additional things, so check it out on [extending Chlorine](docs/extending.md). The idea of the project is to give Atom a felling of being completely connected to running code that's being developed, like SmallTalk images but still working with textual source codes, git, and every other tool that we already use with our code.
+
+![Evaluating code](docs/eval-code.gif)
+
+As it is possible to see above, Chlorine works both with Clojure and ClojureScript (only shadow-cljs for now).
+
 ## Usage:
 Fire up a clojure REPL with Socket REPL support. With `shadow-cljs`, when you `watch` some build ID it'll give you a port for nREPL and Socket REPL. With `lein`, invoke it in a folder where you have `project.clj` and you can use `JVM_OPTS` environment variable like:
 
