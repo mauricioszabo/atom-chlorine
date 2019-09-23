@@ -1,12 +1,6 @@
 (ns chlorine.aux
-  (:require [clojure.core.async :as async]
-            [promesa.core :as p]
+  (:require [promesa.core :as p]
             [clojure.test :as t]))
-
-(defmacro in-channel [ & forms]
-  `(let [~'chan (cljs.core.async/promise-chan)]
-     ~@forms
-     ~'chan))
 
 (def promises (atom []))
 
@@ -20,5 +14,5 @@
 
 (defmacro async-testing [description & body]
   `(t/testing ~description
-    (swap! promises conj (p/alet [_# (last @promises)] 
+    (swap! promises conj (p/alet [_# (last @promises)]
                            ~@body))))

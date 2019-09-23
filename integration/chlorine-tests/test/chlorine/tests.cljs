@@ -1,5 +1,5 @@
 (ns chlorine.tests
-  (:require [chlorine.aux :refer-macros [in-channel async async-testing]]
+  (:require [chlorine.aux :refer-macros [async async-testing]]
             [clojure.test :refer [is deftest run-all-tests run-tests] :as test]
             [check.core :refer-macros [check]]
             [promesa.core :as p]
@@ -46,9 +46,6 @@
   (find-element "div.chlorine.console div" match))
 
 (def exist? #(not (nil? %)))
-
-(defn- dispatch-command [command]
-  (.. js/atom -commands (dispatch (. js/document -activeElement) command)))
 
 (defn- connect! []
   (p/alet [_ (evaluate-command "chlorine:connect-clojure-socket-repl")
