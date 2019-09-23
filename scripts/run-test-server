@@ -1,16 +1,17 @@
 #!/bin/bash
 
-rm -Rf integration/fixture-app/target/
+rm -Rf integration/chlorine-tests/lib
 
 if [ "$1" == "node" ]; then
-    cd integration/fixture-app && nohup ./scripts/repl &
+    cd integration/chlorine-test && npm install && nohup npx shadow-cljs watch dev &
 else
     docker run -d \
+        --rm \
+        --name=test-server \
         --network=host \
         -it \
         -u root \
         -v`pwd`:/work \
-        -e JVM_OPTS='-Dclojure.server.myrepl={:port,3333,:accept,clojure.core.server/repl}' \
-        clojure \
-        sh -c 'cd /work/integration/fixture-app && lein trampoline run -m shadow.cljs.devtools.cli --npm watch dev'
+        atom \
+        sh -c 'cd /work/integration/chlorine-tests && npm install && npx shadow-cljs watch tests'
 fi

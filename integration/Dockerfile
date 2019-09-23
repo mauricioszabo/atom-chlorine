@@ -1,16 +1,16 @@
-FROM jamesnetherton/docker-atom-editor:v1.36.0
+FROM jamesnetherton/docker-atom-editor
 
 USER root
 
 RUN apt update
-RUN apt install -y xvfb ffmpeg
-#RUN apt install -y openjdk-8-jdk nodejs netcat
-RUN apt install -y nodejs netcat
+RUN apt install -y xvfb ffmpeg openjdk-8-jdk netcat xz-utils
 
-#RUN curl https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein > /usr/bin/lein
-#RUN chmod +x /usr/bin/lein
+RUN cd /tmp && curl https://nodejs.org/dist/v10.16.3/node-v10.16.3-linux-x64.tar.xz | tar -xJ
+RUN cp -a /tmp/node-v10.16.3-linux-x64/* /usr
+RUN rm -R /tmp/node-v10.16.3-linux-x64
 
 ENV DISPLAY=:80
+ENV ELECTRON_ENABLE_LOGGING=true
 
 RUN mkdir /root/.atom
 RUN echo "'*':\n  welcome:\n    showOnStartup: false\n  core:\n    telemetryConsent: \"no\"\n    disabledPackages: [\"github\"]\n  \"autocomplete-plus\":\n    enableAutoActivation: false" > /root/.atom/config.cson
