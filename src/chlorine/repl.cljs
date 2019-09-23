@@ -14,7 +14,8 @@
             [chlorine.ui.atom :as atom]
             [clojure.core.async :as async :include-macros true]
             [repl-tooling.editor-integration.evaluation :as e-eval]
-            ["atom" :refer [CompositeDisposable]]))
+            ["atom" :refer [CompositeDisposable]]
+            ["grim" :as grim]))
 
 (defonce ^:private commands-subs (atom (CompositeDisposable.)))
 
@@ -389,8 +390,11 @@
        :evaluate_and_present evaluate-and-present
 
        ; TODO: deprecate these
-       :eval_and_present eval-and-present
+       :eval_and_present (fn [ & args]
+                           (.deprecate grim "Use evaluate_and_present instead")
+                           (apply eval-and-present args))
        :eval_and_present_at_pos (fn [code]
+                                  (.deprecate grim "Use evaluate_and_present instead")
                                   (let [editor (atom/current-editor)]
                                     (eval-and-present editor
                                                       (ns-for editor)
