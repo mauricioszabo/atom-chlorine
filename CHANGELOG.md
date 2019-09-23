@@ -13,6 +13,7 @@
 - New autocomplete for ClojureScript **with** Compliment
 - Detection of which autocomplete to use based detecting namespaces on the classpath
 - Fix console CSS when using IDEs packages
+- Better extension points for Atom
 
 ## 0.1.14
 - Re-adding a rich console for evaluation and STDOUT/STDERR
