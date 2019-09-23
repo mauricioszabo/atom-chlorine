@@ -70,6 +70,22 @@
     :warn (atom/warn title message)
     (atom/error title message)))
 
+(defn- prompt! [{:keys [title message arguments] :as foo}]
+  (js/Promise.
+   (fn [resolve]
+     (let [notification (atom nil)
+           buttons (->> arguments (map (fn [{:keys [key value]}]
+                                         {:text value
+                                          :onDidClick #(do
+                                                         (resolve key)
+                                                         (.dismiss ^js @notification))})))]
+
+       (reset! notification (.. js/atom -notifications
+                                (addInfo title (clj->js {:detail message
+                                                         :dismissable true
+                                                         :buttons buttons}))))
+       (.onDidDismiss ^js @notification #(do (resolve nil) true))))))
+
 (defn- create-inline-result! [{:keys [range editor-data]}]
   (when-let [editor (:editor editor-data)]
     (inline/new-result editor (-> range last first))))
@@ -77,6 +93,9 @@
 (defn- update-inline-result! [{:keys [range editor-data result]}]
   (when-let [editor (:editor editor-data)]
     (inline/inline-result editor (-> range last first) result)))
+
+(defn- get-project-paths []
+  (->> js/atom .-project .getDirectories (map #(.getPath ^js %))))
 
 (defn connect! [host port]
   (let [p (connection/connect-unrepl!
@@ -88,8 +107,10 @@
             :on-start-eval create-inline-result!
             :on-eval update-inline-result!
             :editor-data get-editor-data
-            :get-config #(:config @state)
-            :notify notify!})]
+            :get-config #(assoc (:config @state) :project-paths (get-project-paths))
+
+            :notify notify!
+            :prompt prompt!})]
     (.then p (fn [st]
                (atom/info "Clojure REPL connected" "")
                (console/open-console (-> @state :config :console-pos)
@@ -130,23 +151,6 @@
           :no-worker "No worker for first build ID"
           :unknown "Unknown error"})
 
-(defn connect-self-hosted []
-  (let [{:keys [host port]} (:connection @state)
-        dirs (->> js/atom .-project .getDirectories (map #(.getPath ^js %)))]
-    (.. (conn/auto-connect-embedded! host port dirs
-                                     {:on-stdout console/stdout
-                                      :on-result
-                                      #(when (or (contains? % :result) (contains? % :error))
-                                         (console/result % (-> @state :repls :cljs-eval)))})
-
-        (then #(if-let [error (:error %)]
-                 (atom/error "Error connecting to ClojureScript"
-                             (get trs error error))
-                 (do
-                   (swap! state assoc-in [:repls :cljs-eval] %)
-                   (swap! (:tooling-state @state) assoc :cljs/repl %)
-                   (atom/info "ClojureScript REPL connected" "")))))))
-
 (defn set-inline-result [inline-result eval-result]
   (if (contains? eval-result :result)
     (inline/render-inline! inline-result eval-result)
@@ -159,7 +163,7 @@
   (e-eval/need-cljs? (:config @state) (.getFileName editor)))
 
 (defn- eval-cljs [editor ns-name filename row col code ^js result opts callback]
-  (if-let [repl (-> @state :repls :cljs-eval)]
+  (if-let [repl (some-> @state :tooling-state deref :cljs/repl)]
     (eval/evaluate repl code
                    {:namespace ns-name :row row :col col :filename filename
                     :pass opts}
@@ -178,7 +182,7 @@
   ([^js editor ns-name filename row col code opts callback]
    (if (need-cljs? editor)
      (eval-cljs editor ns-name filename row col code nil opts #(-> % helpers/parse-result callback))
-     (some-> @state :repls :clj-aux
+     (some-> @state :tooling-state deref :clj/aux
              (eval/evaluate code
                             {:namespace ns-name :row row :col col :filename filename
                              :pass opts}
@@ -194,7 +198,7 @@
 
      (if (need-cljs? editor)
        (eval-cljs editor ns-name filename row col code result opts #(set-inline-result result %))
-       (some-> @state :repls :clj-eval
+       (some-> @state :tooling-state deref :clj/repl
                (eval/evaluate code
                               {:namespace ns-name :row row :col col :filename filename
                                :pass opts}

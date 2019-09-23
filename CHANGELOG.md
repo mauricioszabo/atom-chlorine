@@ -1,14 +1,17 @@
 ## Planned/TODO
 * Connect to Figwheel
-* Connect to Shadow-CLJS but allows to select build ID
 * Connect to ClojureScript using an arbitrary command
 * Before/After refresh
 * Higlight current form
 * GOTO definition for ClojureScript (as far as we can)
 * Auto-import
 * Clean unused imports
-* Problems when we stack multiple evaluations (see FIXME on repl-tooling)
-* Fix problems with unreadable forms
+
+### Next version
+- Connection to ClojureScript with Shadow-CLJS allows us to select the build ID
+- New autocomplete for Clojure without Compliment
+- New autocomplete for ClojureScritp **with** Compliment
+- Detection of which autocomplete to use based detecting namespaces on the classpath
 
 ## 0.1.14
 - Re-adding a rich console for evaluation and STDOUT/STDERR

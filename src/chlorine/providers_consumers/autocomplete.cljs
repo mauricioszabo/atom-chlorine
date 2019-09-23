@@ -1,44 +1,24 @@
 (ns chlorine.providers-consumers.autocomplete
   (:require [clojure.walk :as walk]
-            [clojure.string :as str]
-            [chlorine.repl :as repl]
-            [chlorine.state :refer [state]]
-            [repl-tooling.eval :as eval]
-            [chlorine.ui.inline-results :as inline]
-            [repl-tooling.features.autocomplete :as compl]))
+            [chlorine.state :refer [state]]))
 
 (def clj-var-regex #"[a-zA-Z0-9\-.$!?\/><*=\?_:]+")
 
 (defn- min-word-size []
   (.. js/atom -config (get "autocomplete-plus.minimumWordLength")))
 
-(defn suggestions [{:keys [^js editor ^js bufferPosition]}]
-  (let [prefix (.. editor (getWordUnderCursor #js {:wordRegex clj-var-regex}))
-        [range text] (repl/top-level-code editor bufferPosition)
-        [row col] (if range
-                    [(- (.-row bufferPosition) (.. ^js range -start -row))
-                     (.-column bufferPosition)]
-                    [0 0])
-        ns-name (repl/ns-for editor)
-        clj-completions (delay
-                         (some-> @state :repls :clj-aux
-                                 (compl/complete ns-name (str text) prefix row col)
-                                 (.then #(->> %
-                                              (map (fn [{:keys [candidate type]}]
-                                                     {:text candidate
-                                                      :type type
-                                                      :replacementPrefix prefix}))))))]
+(defn- treat-result [prefix {:keys [candidate type]}]
+  {:text candidate
+   :type type
+   :replacementPrefix prefix})
 
+(defn suggestions [{:keys [^js editor ^js bufferPosition]}]
+  (let [prefix (.. editor (getWordUnderCursor #js {:wordRegex clj-var-regex}))]
     (when (-> prefix count (>= (min-word-size)))
-      (if (repl/need-cljs? editor)
-        (some-> @state :repls :cljs-eval
-                (compl/complete ns-name (str text) prefix row col)
-                (.then #(->> %
-                             (map (fn [res] {:text res
-                                             :type "function"
-                                             :replacementPrefix prefix}))
-                             clj->js)))
-        (some-> @clj-completions (.then clj->js))))))
+      (if-let [complete (some-> @state :tooling-state deref :editor/features :autocomplete)]
+        (.. (complete)
+            (then #(map (partial treat-result prefix) %))
+            (then clj->js))))))
 
 (def provider
   (fn []
