@@ -363,8 +363,33 @@
                     code
                     identity))))
 
+(defn get-code [kind]
+  (when-let [editor (atom/current-editor)]
+    (let [range (.getSelectedBufferRange editor)
+          start (.-start range)
+          row (.-row start)
+          col (.-column start)
+          contents (.getText editor)
+          [range text] (case kind
+                         "top-block" (helpers/top-block-for contents [row col])
+                         "block" (helpers/block-for contents [row col])
+                         (helpers/current-var contents [row col]))]
+      (clj->js {:text text
+                :range range}))))
+
+(defn evaluate-and-present [code range]
+  (when-let [command (some-> @state :tooling-state deref
+                             :editor/features :eval-and-render)]
+    (command code (js->clj range))))
+
 (def exports
-  #js {:eval_and_present eval-and-present
+  #js {:get_top_block #(get-code "top-block")
+       :get_block #(get-code "block")
+       :get_var #(get-code "var")
+       :evaluate_and_present evaluate-and-present
+
+       ; TODO: deprecate these
+       :eval_and_present eval-and-present
        :eval_and_present_at_pos (fn [code]
                                   (let [editor (atom/current-editor)]
                                     (eval-and-present editor
