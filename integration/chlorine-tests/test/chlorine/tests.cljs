@@ -125,29 +125,29 @@
     (async-testing "shows function doc"
       (eval-and-check "str" "chlorine:doc-for-var"
                       find-inside-editor
-                      #"With no args, returns the empty string. With one arg x, returns"))))
+                      #"With no args, returns the empty string. With one arg x, returns"))
 
-    ; (async-testing "captures exceptions"
-    ;   (eval-and-check "(throw (ex-info \"Error Number 1\", {}))"
-    ;                   "chlorine:evaluate-top-block"
-    ;                   (partial find-element "div.error")
-    ;                   #"Error Number 1"))
-    ;
-    ; (async-testing "captures evaluated exceptions"
-    ;   (eval-and-check "(ex-info \"Error Number 2\", {})"
-    ;                   "chlorine:evaluate-top-block"
-    ;                   find-inside-editor
-    ;                   #"Error Number 2"))
-    ;
-    ; (async-testing "allows big strings to be represented"
-    ;   (eval-and-check "(str (range 200))"
-    ;                   "chlorine:evaluate-top-block"
-    ;                   find-inside-editor
-    ;                   #"29\s*\.\.\.")
-    ;   (p/alet [link (find-element "div.string a" #"\.\.\.")
-    ;            _ (some-> link .click)
-    ;            element (find-inside-editor #"52 53 54")]
-    ;     (check element => exist?)))))
+    (async-testing "captures exceptions"
+      (eval-and-check "(throw (ex-info \"Error Number 1\", {}))"
+                      "chlorine:evaluate-top-block"
+                      (partial find-element "div.error")
+                      #"Error Number 1"))
+
+    (async-testing "captures evaluated exceptions"
+      (eval-and-check "(ex-info \"Error Number 2\", {})"
+                      "chlorine:evaluate-top-block"
+                      find-inside-editor
+                      #"Error Number 2"))
+
+    (async-testing "allows big strings to be represented"
+      (eval-and-check "(str (range 200))"
+                      "chlorine:evaluate-top-block"
+                      find-inside-editor
+                      #"29\s*\.\.\.")
+      (p/alet [link (find-element "div.string a" #"\.\.\.")
+               _ (some-> link .click)
+               element (find-inside-editor #"52 53 54")]
+        (check element => exist?)))))
 
 (deftest cljs-connection-and-evaluation
   (async
