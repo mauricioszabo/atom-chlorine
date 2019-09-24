@@ -37,3 +37,19 @@ atom.packages.activatePackage('chlorine').then(package => {
 Example of the above code running:
 
 ![Getting Schema](./get-schema.gif)
+
+## API
+
+Once you've got the package's `mainModule`, inside `.ext` there are 4 commands to help you extend functionality:
+
+* `pkg.ext.get_top_block()` will get the current top block of the active text editor.
+* `pkg.ext.get_block()` will get the current block. Please notice that `#(+ 1 2)` will return the anonymous function, not the `(+ 1 2)` and getting top block of `@(:some value)` will deref that current value (but `(deref (:some value))`, if your cursor is pointed inside `:some`, for example, will return the atom).
+* `pkg.ext.get_var()` will get the current var under the cursor. If the editor's position is over a parenthesis, will get the whole form
+* `pkg.ext.get_selection()` will get the current selection in the current editor. Please notice that it may be not a valid Clojure code
+* `pkg.ext.get_namespace()` will get the current namespace name, with the full range of it.
+
+All the above commands return `{text: string? range: array?}`. If both are `null`, it means that the current cursor position/selection does not point to a valid Clojure form or var (maybe it's a whitespace, or maybe it's inside a comment, for example). If one is present, the other will be present too.
+
+`range` is a 2x2 array containing: `[[startRow, startCol], [endRow, endCol]]`. If both start and end are equal, it means that there's nothing selected.
+
+* `pkg.ext.evaluate_and_present(code, range)` will evaluate the `code`, inside the current `range`, and it'll render on the screen. It expects the code to evaluate, and the current range (so it knows where to render on the screen).

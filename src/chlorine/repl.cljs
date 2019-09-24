@@ -364,6 +364,10 @@
                     code
                     identity))))
 
+(defn- txt-in-range []
+  (let [{:keys [contents range]} (get-editor-data)]
+    [range (helpers/text-in-range contents range)]))
+
 (defn get-code [kind]
   (when-let [editor (atom/current-editor)]
     (let [range (.getSelectedBufferRange editor)
@@ -374,7 +378,9 @@
           [range text] (case kind
                          "top-block" (helpers/top-block-for contents [row col])
                          "block" (helpers/block-for contents [row col])
-                         (helpers/current-var contents [row col]))]
+                         "var" (helpers/current-var contents [row col])
+                         "selection" (txt-in-range)
+                         "ns" (helpers/ns-range-for contents [row col]))]
       (clj->js {:text text
                 :range range}))))
 
@@ -387,6 +393,8 @@
   #js {:get_top_block #(get-code "top-block")
        :get_block #(get-code "block")
        :get_var #(get-code "var")
+       :get_selection #(get-code "selection")
+       :get_namespace #(get-code "ns")
        :evaluate_and_present evaluate-and-present
 
        ; TODO: deprecate these
