@@ -40,7 +40,7 @@ Example of the above code running:
 
 ## API
 
-Once you've got the package's `mainModule`, inside `.ext` there are 5 commands to help you extend functionality:
+Once you've got the package's `mainModule`, inside `.ext` there are the following commands to help you extend functionality:
 
 * `pkg.ext.get_top_block()` will get the current top block of the active text editor.
 * `pkg.ext.get_block()` will get the current block. Please notice that `#(+ 1 2)` will return the anonymous function, not the `(+ 1 2)` and getting top block of `@(:some value)` will deref that current value (but `(deref (:some value))`, if your cursor is pointed inside `:some`, for example, will return the atom).
