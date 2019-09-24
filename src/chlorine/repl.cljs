@@ -14,7 +14,8 @@
             [chlorine.ui.atom :as atom]
             [clojure.core.async :as async :include-macros true]
             [repl-tooling.editor-integration.evaluation :as e-eval]
-            ["atom" :refer [CompositeDisposable]]))
+            ["atom" :refer [CompositeDisposable]]
+            ["grim" :as grim]))
 
 (defonce ^:private commands-subs (atom (CompositeDisposable.)))
 
@@ -363,9 +364,45 @@
                     code
                     identity))))
 
+(defn- txt-in-range []
+  (let [{:keys [contents range]} (get-editor-data)]
+    [range (helpers/text-in-range contents range)]))
+
+(defn get-code [kind]
+  (when-let [editor (atom/current-editor)]
+    (let [range (.getSelectedBufferRange editor)
+          start (.-start range)
+          row (.-row start)
+          col (.-column start)
+          contents (.getText editor)
+          [range text] (case kind
+                         "top-block" (helpers/top-block-for contents [row col])
+                         "block" (helpers/block-for contents [row col])
+                         "var" (helpers/current-var contents [row col])
+                         "selection" (txt-in-range)
+                         "ns" (helpers/ns-range-for contents [row col]))]
+      (clj->js {:text text
+                :range range}))))
+
+(defn evaluate-and-present [code range]
+  (when-let [command (some-> @state :tooling-state deref
+                             :editor/features :eval-and-render)]
+    (command code (js->clj range))))
+
 (def exports
-  #js {:eval_and_present eval-and-present
+  #js {:get_top_block #(get-code "top-block")
+       :get_block #(get-code "block")
+       :get_var #(get-code "var")
+       :get_selection #(get-code "selection")
+       :get_namespace #(get-code "ns")
+       :evaluate_and_present evaluate-and-present
+
+       ; TODO: deprecate these
+       :eval_and_present (fn [ & args]
+                           (.deprecate grim "Use evaluate_and_present instead")
+                           (apply eval-and-present args))
        :eval_and_present_at_pos (fn [code]
+                                  (.deprecate grim "Use evaluate_and_present instead")
                                   (let [editor (atom/current-editor)]
                                     (eval-and-present editor
                                                       (ns-for editor)
