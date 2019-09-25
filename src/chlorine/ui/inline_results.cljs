@@ -17,25 +17,25 @@
       (swap! results assoc [(.-id editor) row] result)
       result)))
 
-(defn- create-div! [parsed-ratom error?]
+(defn- create-div! [parsed-ratom]
   (let [div (. js/document createElement "div")]
-    (when error? (.. div -classList (add "error")))
+    (when (-> parsed-ratom meta :error) (.. div -classList (add "error")))
     (.. div -classList (add "result" "chlorine"))
     (r/render [render/view-for-result parsed-ratom] div)
     div))
 
 (defn render-inline! [^js inline-result parsed-result]
   (let [parsed-ratom (render/parse-result parsed-result (-> @state :repls :clj-eval))
-        div (create-div! parsed-ratom false)]
-    (.setContent inline-result div #js {:error false})))
+        div (create-div! parsed-ratom)]
+    (.setContent inline-result div #js {:error (-> parsed-ratom meta :error)})))
 
 (defn render-error! [^js inline-result parsed-result]
   (let [parsed-ratom (render/parse-result parsed-result (-> @state :repls :clj-eval))
-        div (create-div! parsed-ratom true)]
-    (.setContent inline-result div #js {:error true})))
+        div (create-div! parsed-ratom)]
+    (.setContent inline-result div #js {:error (-> parsed-ratom meta :error)})))
 
 (defn inline-result [^js editor row parsed-result]
   (let [parsed-ratom (render/parse-result parsed-result (-> @state :repls :clj-eval))
-        div (create-div! parsed-ratom (-> parsed-ratom meta :error))
+        div (create-div! parsed-ratom)
         inline-result ^js (get @results [(.-id editor) row])]
     (.setContent inline-result div #js {:error (-> parsed-ratom meta :error)})))

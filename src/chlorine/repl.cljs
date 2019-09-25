@@ -152,14 +152,6 @@
           :no-worker "No worker for first build ID"
           :unknown "Unknown error"})
 
-(defn set-inline-result [inline-result eval-result]
-  (if (contains? eval-result :result)
-    (inline/render-inline! inline-result eval-result)
-    (do
-      (some-> @state :repls :clj-eval
-              (eval/evaluate "(clojure.repl/pst)" {} identity))
-      (inline/render-error! inline-result eval-result))))
-
 (defn need-cljs? [editor]
   (e-eval/need-cljs? (:config @state) (.getFileName editor)))
 
@@ -198,12 +190,12 @@
          col (.. range -start -column)]
 
      (if (need-cljs? editor)
-       (eval-cljs editor ns-name filename row col code result opts #(set-inline-result result %))
+       (eval-cljs editor ns-name filename row col code result opts #(inline/render-inline! result %))
        (some-> @state :tooling-state deref :clj/repl
                (eval/evaluate code
                               {:namespace ns-name :row row :col col :filename filename
                                :pass opts}
-                              #(set-inline-result result %)))))))
+                              #(inline/render-inline! result %)))))))
 
 (def ^:private EditorUtils (js/require "./editor-utils"))
 (defn top-level-code [^js editor ^js range]
