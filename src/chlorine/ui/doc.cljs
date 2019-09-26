@@ -27,7 +27,7 @@
                        (.. range -start -column)
                        code
                        {:literal true}
-                       #(repl/set-inline-result in-result %))))
+                       #(inline/render-inline! in-result %))))
 
 (defn doc []
   (let [editor ^js (atom/current-editor)
