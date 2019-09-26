@@ -58,7 +58,7 @@ div.chlorine.result {
 
     font-family: 'Octicons Regular';
     font-weight: bold;
-    font-size: 16px;
+    font-size: var(--editor-font-size);
     margin-right: 10px;
     width: 0px;
     height: 15px;
@@ -114,8 +114,8 @@ div.chlorine.console {
   background-color: @syntax-background-color;
   color: @syntax-text-color;
   overflow: auto;
-  font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
-  font-size: 1.3em;
+  font-family: var(--editor-font-family);
+  font-size: var(--editor-font-size);
 
   a { color: @text-color-subtle }
 
