@@ -7,6 +7,15 @@
 * Auto-import
 * Clean unused imports
 
+### 0.2.2
+- Fixes problems when evaluating code that can't be compiled (https://github.com/mauricioszabo/atom-chlorine/issues/109)
+- Fixes autocomplete crashing the editor
+
+### 0.2.1
+- Removed printing of `name.space=> ` on console for CLJS
+- Fixes styling issues on console tab
+- Fixed double-exception rendering on console tab
+
 ### 0.2.0
 - Connection to ClojureScript with Shadow-CLJS allows us to select the build ID
 - New autocomplete for Clojure without Compliment
