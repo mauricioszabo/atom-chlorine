@@ -1,5 +1,5 @@
 (ns chlorine.tests
-  (:require [chlorine.aux :refer-macros [async async-testing]]
+  (:require [chlorine.utils :refer-macros [async async-testing]]
             [clojure.test :refer [is deftest run-all-tests run-tests] :as test]
             [check.core :refer-macros [check]]
             [promesa.core :as p]
