@@ -1,4 +1,4 @@
-(ns chlorine.aux
+(ns chlorine.utils
   (:require [chlorine.state :refer [state]]))
 
 (def ^:private atom-ed (js/require "atom"))
