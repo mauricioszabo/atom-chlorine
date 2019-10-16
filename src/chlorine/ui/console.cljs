@@ -1,6 +1,6 @@
 (ns chlorine.ui.console
   (:require [reagent.core :as r]
-            [chlorine.aux :as aux]
+            [chlorine.utils :as aux]
             [repl-tooling.editor-integration.renderer :as render]
             ["ansi_up" :default Ansi]))
 

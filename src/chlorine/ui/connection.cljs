@@ -6,7 +6,7 @@
             [chlorine.ui.atom :as atom]
             [repl-tooling.repl-client :as repl-client]
             [repl-tooling.repl-client.clojure :as clj-repl]
-            [chlorine.aux :as aux]
+            [chlorine.utils :as aux]
             [repl-tooling.editor-integration.connection :as connection]
             ["fs" :refer [existsSync readFileSync]]))
 

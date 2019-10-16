@@ -1,7 +1,7 @@
 (ns chlorine.configs
   (:require [chlorine.state :refer [configs state]]
             [clojure.walk :as walk]
-            [chlorine.aux :as aux]
+            [chlorine.utils :as aux]
             [check.core :refer-macros [check]]))
 
 (defn- propagate-to-config [new-value]

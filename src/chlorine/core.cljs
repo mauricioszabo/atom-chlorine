@@ -1,5 +1,5 @@
 (ns chlorine.core
-  (:require [chlorine.aux :as aux]
+  (:require [chlorine.utils :as aux]
             [chlorine.ui.connection :as conn]
             [chlorine.providers-consumers.status-bar :as sbar]
             [chlorine.repl :as repl]
