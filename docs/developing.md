@@ -12,7 +12,7 @@ cd atom-chlorine # or the name you gave when cloning
 npx shadow-cljs watch dev
 ```
 
-This will fire up a compiler for ClojureScript. If you symlink your directory on `~/.atom/packages`, you can use it while developing itself!
+This will fire up a compiler for ClojureScript. If you symlink your directory to `~/.atom/packages/chorine`, you can use it while developing itself!
 
 Please notice that Chlorine only activates if you run any of the "connect" commands. You don't **need** to connect into a Clojure REPL, just fire the command and then you'll see `JS runtime connected.` on shadow.
 
