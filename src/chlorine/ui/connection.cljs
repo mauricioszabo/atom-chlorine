@@ -73,6 +73,13 @@
     (conn-view repl-connect!)
     (already-connected)))
 
+(defn connect-socket! []
+  (if (-> @state :repls :clj-eval nil?)
+    (conn-view (fn [panel]
+                 (repl/connect-socket! (:hostname @local-state) (:port @local-state))
+                 (destroy! panel)))
+    (already-connected)))
+
 (defn connect-cljs! []
   (if (-> @state :repls :cljs-eval nil?)
     (conn-view #(do

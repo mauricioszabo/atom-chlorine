@@ -125,6 +125,33 @@
                                         :tooling-state st)))
                (-> @st :editor/commands register-commands!)))))
 
+(defn connect-socket! [host port]
+  (let [p (connection/connect!
+           host port
+           {:on-stdout console/stdout
+            :on-stderr console/stderr
+            :on-result #(console/result % (-> @state :repls :clj-eval))
+            :on-disconnect #(handle-disconnect!)
+            :on-start-eval create-inline-result!
+            :on-eval update-inline-result!
+            :editor-data get-editor-data
+            :get-config #(assoc (:config @state) :project-paths (get-project-paths))
+
+            :notify notify!
+            :prompt prompt!})]
+    (.then p (fn [st]
+               (atom/info "Clojure REPL connected" "")
+               (console/open-console (-> @state :config :console-pos)
+                                     #(connection/disconnect!))
+               (swap! state #(-> %
+                                 (assoc-in [:repls :clj-eval] (:clj/repl @st))
+                                 (assoc-in [:repls :clj-aux] (:clj/aux @st))
+                                 (assoc :connection {:host host :port port}
+                                        ; FIXME: This is just here so we can migrate
+                                        ; code to REPL-Tooling little by little
+                                        :tooling-state st)))
+               (-> @st :editor/commands register-commands!)))))
+
 (defn callback [output]
   (when (nil? output)
     (handle-disconnect!))
