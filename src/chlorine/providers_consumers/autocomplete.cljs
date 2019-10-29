@@ -15,7 +15,7 @@
 (defn suggestions [{:keys [^js editor ^js bufferPosition]}]
   (let [prefix (.. editor (getWordUnderCursor #js {:wordRegex clj-var-regex}))]
     (when (-> prefix count (>= (min-word-size)))
-      (if-let [complete (some-> @state :tooling-state deref :editor/features :autocomplete)]
+      (when-let [complete (some-> @state :tooling-state deref :editor/features :autocomplete)]
         (.. (complete)
             (then #(map (partial treat-result prefix) %))
             (then clj->js))))))
