@@ -8,6 +8,8 @@
 * Clean unused imports
 
 ### NEXT
+- Fixed sending incomplete forms freezing Clojure REPL
+
 #### Experimental support for new REPLs
 - Support for Babashka >= 0.0.24
 - Support for ClojureCLR
