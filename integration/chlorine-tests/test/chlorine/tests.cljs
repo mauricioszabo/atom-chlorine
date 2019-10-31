@@ -48,7 +48,7 @@
 (def exist? #(not (nil? %)))
 
 (defn- connect! []
-  (p/alet [_ (evaluate-command "chlorine:connect-clojure-socket-repl")
+  (p/alet [_ (evaluate-command "chlorine:connect-socket-repl")
            elem (await-for #(. js/document querySelector "input[placeholder=port]"))]
      (aset elem "value" 2233)
      (.onkeydown elem #js {:key "Enter"})))
