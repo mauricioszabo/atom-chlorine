@@ -125,10 +125,6 @@
                                         :tooling-state st)))
                (-> @st :editor/commands register-commands!)))))
 
-(defn- tr-kind [kind]
-  (let [kinds {:clj "Clojure" :cljs "ClojureScript" :bb "Babaska"}]
-    (kinds kind (-> kind name (str/replace-first #"." str/upper-case)))))
-
 (defn connect-socket! [host port]
   (let [p (connection/connect!
            host port
@@ -144,19 +140,17 @@
             :notify notify!
             :prompt prompt!})]
     (.then p (fn [st]
-               (atom/info (-> @st :repl/info :kind tr-kind
-                              (str " REPL connected"))
-                          "")
-               (console/open-console (-> @state :config :console-pos)
-                                     #(connection/disconnect!))
-               (swap! state #(-> %
-                                 (assoc-in [:repls :clj-eval] (:clj/repl @st))
-                                 (assoc-in [:repls :clj-aux] (:clj/aux @st))
-                                 (assoc :connection {:host host :port port}
-                                        ; FIXME: This is just here so we can migrate
-                                        ; code to REPL-Tooling little by little
-                                        :tooling-state st)))
-               (-> @st :editor/commands register-commands!)))))
+               (when st
+                 (console/open-console (-> @state :config :console-pos)
+                                       #(connection/disconnect!))
+                 (swap! state #(-> %
+                                   (assoc-in [:repls :clj-eval] (:clj/repl @st))
+                                   (assoc-in [:repls :clj-aux] (:clj/aux @st))
+                                   (assoc :connection {:host host :port port}
+                                          ; FIXME: This is just here so we can migrate
+                                          ; code to REPL-Tooling little by little
+                                          :tooling-state st)))
+                 (-> @st :editor/commands register-commands!))))))
 
 (defn callback [output]
   (when (nil? output)
