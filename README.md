@@ -78,11 +78,19 @@ This package does not register any keybindings to avoid keybinding conflict issu
   'ctrl-; t':       'chlorine:run-test-for-var'
 ```
 ## How to work with ClojureScript
-For now, it only works with Shadow-CLJS or Lumo.
+For now, it only works with Shadow-CLJS or ClojureScript implementations like Lumo or Plank that exposes a ClojureScript socket REPL.
 
 With Lumo, you fire up lumo with `lumo -n 3322` to start a socket REPL on port `3322` (or any other port), then connect Chlorine with "Connect ClojureScript Socket REPL".
 
-With Shadow-CLJS, after watching (or after starting a server, or anything that starts a socket REPL) you connect with "Connect Clojure Socket REPL", then run the command "Connect Embedded ClojureScript REPL". Then you can run code on .cljs files too.
+With Shadow-CLJS, after watching (or after starting a server, or anything that starts a socket REPL) you connect with "Connect Clojure Socket REPL", then run the command "Connect Embedded". Then you can run code on .cljs files too.
+
+### Detection
+Chlorine will try to detect the current file extension, falling back to `.clj` if the file is not saved. With ClojureScript, it'll only evaluate `.cljs` files, and it'll use the Clojure REPL to evaluate `.clj` and `.cljc` files. You can override this behavior in the package's configuration to one of the following:
+
+* Prefer CLJ - The default configuration, will use the Clojure REPL to evaluate `.clj` and `.cljc` and it'll use the ClojureScript REPL to evaluate `.cljs`
+* Prefer CLJS - It will use the Clojure REPL to evaluate `.clj` and the ClojureScript REPL to evaluate `.cljc` and `.cljs`
+* CLJ - It'll use the Clojure REPL to evaluate all files
+* CLJS - It'll use the ClojureScripte REPL to evaluate all files
 
 ## How to contribute?
 As Chlorine is in active development, it was starting to become tedious to publish a newer version of repl-tooling for every experiment, so for now, the library is registered as a submodule. To contribute, you clone this repository and run:
