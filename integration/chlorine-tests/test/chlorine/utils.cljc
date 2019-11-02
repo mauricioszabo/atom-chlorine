@@ -14,5 +14,6 @@
 
 (defmacro async-testing [description & body]
   `(t/testing ~description
+    (println "Testing:" ~description)
     (swap! promises conj (p/alet [_# (last @promises)]
                            ~@body))))
