@@ -9,7 +9,7 @@
   (js/Promise.
    (fn [resolve]
      ((fn acc [n resolve]
-        (if (>= n 10)
+        (if (>= n 20)
           (resolve nil)
           (if-let [res (fun)]
             (resolve res)
@@ -143,7 +143,7 @@
                       #"29\s*\.\.\.")
       (p/alet [link (find-element "div.string a" #"\.\.\.")
                _ (some-> link .click)
-               element (find-inside-editor #"52 53 54")]
+               element (find-inside-editor #"32 33 34")]
         (check element => exist?)))))
 
 (deftest cljs-connection-and-evaluation
