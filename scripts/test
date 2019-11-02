@@ -8,7 +8,9 @@ for n in {1..15}; do
   sleep 10
 done
 
-sh -c 'sleep 120000 && killall atom' &
+ls integration/chlorine-tests/lib/main.js &>/dev/null || exit 1
+sh -c 'sleep 240 && killall atom' &
+
 ffmpeg -video_size 1024x768 -f x11grab -i :80.0 /tmp/junit/out.mpg &
 
 atom --foreground /work/integration/chlorine-tests
