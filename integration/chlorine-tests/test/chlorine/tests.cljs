@@ -141,9 +141,9 @@
                       "chlorine:evaluate-top-block"
                       find-inside-editor
                       #"29\s*\.\.\.")
-      (p/alet [link (find-element "div.string a" #"\.\.\.")
+      (p/alet [link (find-element "div.big.string a" #"\.\.\.")
                _ (some-> link .click)
-               element (find-inside-editor #"32 33 34")]
+               element (find-inside-editor #"52 53 54")]
         (check element => exist?)))))
 
 (deftest cljs-connection-and-evaluation

@@ -16,4 +16,4 @@ RUN mkdir /root/.atom
 RUN echo "'*':\n  welcome:\n    showOnStartup: false\n  core:\n    telemetryConsent: \"no\"\n    disabledPackages: [\"github\"]\n  \"autocomplete-plus\":\n    enableAutoActivation: false" > /root/.atom/config.cson
 
 WORKDIR /work
-CMD sh -c 'Xvfb :80 & ./scripts/test'
+CMD sh -c 'Xvfb -screen 0 1024x768x24+32 :80 & ./scripts/test'
