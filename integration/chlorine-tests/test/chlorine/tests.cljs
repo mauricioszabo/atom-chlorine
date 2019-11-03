@@ -25,7 +25,7 @@
 (defn- query-all [selector]
   (as-vec (.. js/document (querySelectorAll selector))))
 
-(defn- containing-text [selector match]
+(defn containing-text [selector match]
   (->> selector
        query-all
        (filter #(and (some-> % .-isConnected)
@@ -45,7 +45,8 @@
 (defn- find-inside-console [match]
   (find-element "div.chlorine.console div" match))
 
-(def exist? #(not (nil? %)))
+(defn exist? [some-string]
+  #(not (nil? %)))
 
 (defn- connect! []
   (p/alet [_ (evaluate-command "chlorine:connect-socket-repl")
@@ -88,6 +89,7 @@
   (async
     (async-testing "disconnecting editor"
       (p/alet [_ (evaluate-command "chlorine:disconnect")
+               _ (evaluate-command "tree-view:show")
                _ (evaluate-command "tree-view:toggle")
                _ (p/delay 1000)]))
 
@@ -96,8 +98,8 @@
                _ (p/delay 1000)
                _ (connect!)
                _ (p/delay 1000)
-               message (find-element "div.message" #"REPL connected")]
-        (check message => exist?)))
+               message (find-element "div.message" #"REPL Connected")]
+        (check message => (exist? "REPL connected"))))
 
     (async-testing "evaluates code"
       (eval-and-check "(str (+ 90 120))" "chlorine:evaluate-top-block"
@@ -118,7 +120,7 @@
                _ (p/delay 400)
                _ (evaluate-command "chlorine:break-evaluation")
                contents (find-inside-editor #"Evaluation interrupted")]
-        (check contents => exist?)))
+        (check contents => (exist? "Evaluation interrupted"))))
 
     (async-testing "shows function doc"
       (eval-and-check "str" "chlorine:doc-for-var"
@@ -141,11 +143,12 @@
       (eval-and-check "(str (range 200))"
                       "chlorine:evaluate-top-block"
                       find-inside-editor
-                      #"29\s*\.\.\.")
-      (p/alet [link (find-element "div.big.string a" #"\.\.\.")
-               _ (some-> link .click)
+                      #"(?m)29[\s\n]*\.\.\.")
+      (p/alet [_ (p/delay 1000)
+               link (find-element "div.string a" #"\.\.\.")
+               _ (.click link)
                element (find-inside-editor #"52 53 54")]
-        (check element => exist?)))))
+        (check element => (exist? "52 53 54"))))))
 
 (deftest cljs-connection-and-evaluation
   (async
@@ -153,7 +156,7 @@
       (p/alet [editor (cljs-editor)
                _ (evaluate-command "chlorine:connect-embedded")
                message (find-element "div.message" #"Connected to ClojureScript")]
-        (check message => exist?)))
+        (check message => (exist? "Connected to ClojureScript"))))
 
     (async-testing "evaluates code"
       (cljs-eval-and-check "(str (+ 90 120))" "chlorine:evaluate-top-block"
