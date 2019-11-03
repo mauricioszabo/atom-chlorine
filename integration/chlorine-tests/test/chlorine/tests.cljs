@@ -88,6 +88,7 @@
   (async
     (async-testing "disconnecting editor"
       (p/alet [_ (evaluate-command "chlorine:disconnect")
+               _ (evaluate-command "tree-view:toggle")
                _ (p/delay 1000)]))
 
     (async-testing "connecting to editor"
