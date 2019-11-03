@@ -9,6 +9,8 @@
 
 ### NEXT
 - Fixed sending incomplete forms freezing Clojure REPL
+- When trying to connect to a wrong host/port, displays an error
+- Disable commands that other REPLs don't support
 
 #### Experimental support for new REPLs
 - Support for Babashka >= 0.0.24
