@@ -7,6 +7,17 @@
 * Auto-import
 * Clean unused imports
 
+### NEXT
+- Fixed sending incomplete forms freezing Clojure REPL
+- When trying to connect to a wrong host/port, displays an error
+- Disable commands that other REPLs don't support
+
+#### Experimental support for new REPLs
+- Support for Babashka >= 0.0.24
+- Support for ClojureCLR
+- Support for Joker
+- Support for more ClojureScript REPLs that open a socket REPL
+
 ### 0.2.2
 - Fixes problems when evaluating code that can't be compiled (https://github.com/mauricioszabo/atom-chlorine/issues/109)
 - Fixes autocomplete crashing the editor

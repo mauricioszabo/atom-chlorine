@@ -125,6 +125,33 @@
                                         :tooling-state st)))
                (-> @st :editor/commands register-commands!)))))
 
+(defn connect-socket! [host port]
+  (let [p (connection/connect!
+           host port
+           {:on-stdout console/stdout
+            :on-stderr console/stderr
+            :on-result #(console/result % (-> @state :repls :clj-eval))
+            :on-disconnect #(handle-disconnect!)
+            :on-start-eval create-inline-result!
+            :on-eval update-inline-result!
+            :editor-data get-editor-data
+            :get-config #(assoc (:config @state) :project-paths (get-project-paths))
+
+            :notify notify!
+            :prompt prompt!})]
+    (.then p (fn [st]
+               (when st
+                 (console/open-console (-> @state :config :console-pos)
+                                       #(connection/disconnect!))
+                 (swap! state #(-> %
+                                   (assoc-in [:repls :clj-eval] (:clj/repl @st))
+                                   (assoc-in [:repls :clj-aux] (:clj/aux @st))
+                                   (assoc :connection {:host host :port port}
+                                          ; FIXME: This is just here so we can migrate
+                                          ; code to REPL-Tooling little by little
+                                          :tooling-state st)))
+                 (-> @st :editor/commands register-commands!))))))
+
 (defn callback [output]
   (when (nil? output)
     (handle-disconnect!))
@@ -307,37 +334,6 @@
                   code
                   #(atom/info (str "Tested " s)
                               "See REPL for any failures."))))
-
-(defn load-file! []
-  (let [editor (atom/current-editor)
-        file-name (.getPath editor)
-        ;; canonicalize path separator for Java -- this avoids problems
-        ;; with \ causing 'bad escape characters' in the strings below
-        file-name (str/replace file-name "\\" "/")
-        code (str "(do"
-                  " (require 'clojure.string)"
-                  " (println \"Loading\" \"" file-name "\")"
-                  " (try "
-                  "  (let [path \"" file-name "\""
-                  ;; if target REPL is running on *nix-like O/S...
-                  "        nix? (clojure.string/starts-with? (System/getProperty \"user.dir\") \"/\")"
-                  ;; ...and the file path looks like Windows...
-                  "        win? (clojure.string/starts-with? (subs path 1) \":/\")"
-                  ;; ...extract the driver letter...
-                  "        drv  (clojure.string/lower-case (subs path 0 1))"
-                  ;; ...and map to a Windows Subsystem for Linux mount path:
-                  "        path (if (and nix? win?) (str \"/mnt/\" drv (subs path 2)) path)]"
-                  "   (load-file path))"
-                  "  (catch Throwable t"
-                  "   (doseq [e (:via (Throwable->map t))]"
-                  "    (println (:message e))))))")]
-    (evaluate-aux editor
-                  (ns-for editor)
-                  (.getFileName editor)
-                  1
-                  0
-                  code
-                  #(atom/info "Loaded file" file-name))))
 
 (defn source-for-var! []
   (let [editor (atom/current-editor)

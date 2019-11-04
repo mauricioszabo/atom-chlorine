@@ -23,6 +23,7 @@
   "activationCommands": {
     "atom-workspace": [
       "chlorine:connect-clojure-socket-repl",
+      "chlorine:connect-socket-repl",
       "chlorine:connect-clojurescript-socket-repl"
     ]
   },
@@ -51,7 +52,7 @@
     }
   },
   "devDependencies": {
-    "shadow-cljs": "^2.8.52",
+    "shadow-cljs": "^2.8.64",
     "source-map-support": "^0.5.13",
     "ws": "^7.1.2"
   }
