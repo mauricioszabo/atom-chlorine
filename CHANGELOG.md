@@ -7,7 +7,7 @@
 * Auto-import
 * Clean unused imports
 
-### NEXT
+### 0.3.0
 - Fixed sending incomplete forms freezing Clojure REPL
 - When trying to connect to a wrong host/port, displays an error
 - Disable commands that other REPLs don't support
