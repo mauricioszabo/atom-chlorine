@@ -7,10 +7,11 @@
 * Auto-import
 * Clean unused imports
 
-### NEXT
+### 0.3.0
 - Fixed sending incomplete forms freezing Clojure REPL
 - When trying to connect to a wrong host/port, displays an error
 - Disable commands that other REPLs don't support
+- Fixed edge case of internal implementation "leaking" over the Chlorine console and appearing on the output of evaluations
 
 #### Experimental support for new REPLs
 - Support for Babashka >= 0.0.24
