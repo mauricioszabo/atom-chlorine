@@ -7,6 +7,9 @@
 * Auto-import
 * Clean unused imports
 
+### 0.3.1
+- Fixed connection on Clojure over the "Connect Socket REPL" command
+
 ### 0.3.0
 - Fixed sending incomplete forms freezing Clojure REPL
 - When trying to connect to a wrong host/port, displays an error
