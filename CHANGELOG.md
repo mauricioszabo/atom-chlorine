@@ -7,6 +7,14 @@
 * Auto-import
 * Clean unused imports
 
+### 0.3.2
+- Fixed an edge-case with "Evaluate Selection" (sometimes when selecting the last line and sending to evaluate, it could crash).
+- Fixed "load-file" on "Connect Clojure Socket REPL"
+- Disabled "Connect ClojureScript Socket REPL"
+
+### 0.3.1
+- Fixed connection on Clojure over the "Connect Socket REPL" command
+
 ### 0.3.0
 - Fixed sending incomplete forms freezing Clojure REPL
 - When trying to connect to a wrong host/port, displays an error
