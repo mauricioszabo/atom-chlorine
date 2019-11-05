@@ -1,7 +1,7 @@
 {
   "name": "chlorine",
   "main": "./lib/main",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Socket REPL client for Clojure and ClojureScript",
   "keywords": [],
   "repository": "https://github.com/mauricioszabo/atom-chlorine",
@@ -23,8 +23,7 @@
   "activationCommands": {
     "atom-workspace": [
       "chlorine:connect-clojure-socket-repl",
-      "chlorine:connect-socket-repl",
-      "chlorine:connect-clojurescript-socket-repl"
+      "chlorine:connect-socket-repl"
     ]
   },
   "providedServices": {
