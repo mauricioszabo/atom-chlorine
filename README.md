@@ -18,10 +18,8 @@ As it is possible to see above, Chlorine works both with Clojure and ClojureScri
 Fire up a clojure REPL with Socket REPL support. With `shadow-cljs`, when you `watch` some build ID it'll give you a port for nREPL and Socket REPL. With `lein`, invoke it in a folder where you have `project.clj` and you can use `JVM_OPTS` environment variable like:
 
 ```bash
-JVM_OPTS='-Dclojure.server.myrepl={:port,5555,:accept,clojure.core.server/repl}' lein trampoline repl
+JVM_OPTS='-Dclojure.server.myrepl={:port,5555,:accept,clojure.core.server/repl}' lein repl
 ```
-
-You can use `lein trampoline repl` or `lein repl`: both work (but I found that using `trampoline` uses less memory. Notice that `trampoline` **will not work** with nREPL).
 
 On Shadow-CLJS' newer versions, when you start a build with `shadow-cljs watch <some-id>`, it doesn't shows the Socket REPL port on the console, but it does create a file with the port number on `.shadow-cljs/socket-repl.port`. You can read that file to see the port number (Chlorine currently uses this file to mark the port as default).
 
