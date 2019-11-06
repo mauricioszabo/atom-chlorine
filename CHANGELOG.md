@@ -11,6 +11,7 @@
 ### NEXT
 - Fixed evaluation on CLR where it fails with "Unable to resolve symbol: str in this context"
 - Load-file working on multiple REPLs
+- Fixed UUIDs
 
 ### 0.3.2
 - Fixed an edge-case with "Evaluate Selection" (sometimes when selecting the last line and sending to evaluate, it could crash).
