@@ -8,7 +8,7 @@
 * Clean unused imports
 
 
-### NEXT
+### 0.3.3
 - Fixed evaluation on CLR where it fails with "Unable to resolve symbol: str in this context"
 - Load-file working on multiple REPLs
 - Fixed UUIDs
