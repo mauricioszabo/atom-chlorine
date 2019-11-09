@@ -20,14 +20,17 @@
 (defonce ^:private commands-subs (atom (CompositeDisposable.)))
 
 (defn- handle-disconnect! []
+  (let [repls (:repls @state)]
+    (if (or (:clj-eval repls) (:cljs-eval repls))
+      (atom/info "Disconnected from REPLs" "")))
+
   (swap! state assoc
          :repls {:clj-eval nil
                  :cljs-eval nil
                  :clj-aux nil}
          :connection nil)
   (.dispose ^js @commands-subs)
-  (reset! commands-subs (CompositeDisposable.))
-  (atom/info "Disconnected from REPLs" ""))
+  (reset! commands-subs (CompositeDisposable.)))
 
 (declare evaluate-top-block! evaluate-selection! evaluate-block!)
 (defonce ^:private old-commands
