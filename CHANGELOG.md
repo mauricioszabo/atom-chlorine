@@ -7,7 +7,7 @@
 * Auto-import
 * Clean unused imports
 
-### NEXT
+### 0.3.4
 - Fixed connection on Arcadia
 - Some REPLs don't send a "disconnect" event when closing the socket, so we "simulate" a disconnect
 - Fixed "Disconnected from REPLs" appearing twice
