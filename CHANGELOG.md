@@ -11,6 +11,7 @@
 - Fixed connection on Arcadia
 - Some REPLs don't send a "disconnect" event when closing the socket, so we "simulate" a disconnect
 - Fixed "Disconnected from REPLs" appearing twice
+- Copy results to clipboard
 
 ### 0.3.3
 - Fixed evaluation on CLR where it fails with "Unable to resolve symbol: str in this context"
