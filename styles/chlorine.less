@@ -41,11 +41,9 @@ div.chlorine.result {
     margin-left: 1em;
   }
 
-  // .ink div.chlorine {
-  //   span.single-line {
-  //     white-space: nowrap;
-  //   }
-  // }
+  .tag.children {
+    margin-left: 0;
+  }
 }
 
 .chlorine.result {
@@ -87,6 +85,18 @@ div.chlorine.result {
 
   div .children {
     flex-direction: column;
+  }
+
+  a.icon.clipboard {
+    transition: opacity 0.2s ease-in;
+    opacity: 0.15;
+
+    &:hover { opacity: 1; }
+    &::before {
+      margin-left: 0.5em;
+      font-family: 'Octicons Regular';
+      content: "\f035";
+    }
   }
 }
 

@@ -95,11 +95,17 @@
     (inline/new-result editor (-> range last first))))
 
 (defn- update-inline-result! [{:keys [range editor-data result]}]
-  (when-let [editor (:editor editor-data)]
-    (inline/inline-result editor (-> range last first) result)))
+  (let [editor (:editor editor-data)
+        parse (-> @state :tooling-state deref :editor/features :result-for-renderer)]
+    (when editor
+      (inline/inline-result editor (-> range last first) (parse result)))))
 
 (defn- get-project-paths []
   (->> js/atom .-project .getDirectories (map #(.getPath ^js %))))
+
+(defn- on-copy! [txt]
+  (.. js/atom -clipboard (write txt))
+  (atom/info "Copied result" ""))
 
 (defn connect! [host port]
   (let [p (connection/connect-unrepl!
@@ -110,6 +116,7 @@
             :on-disconnect #(handle-disconnect!)
             :on-start-eval create-inline-result!
             :on-eval update-inline-result!
+            :on-copy on-copy!
             :editor-data get-editor-data
             :get-config #(assoc (:config @state) :project-paths (get-project-paths))
 
@@ -137,6 +144,7 @@
             :on-disconnect #(handle-disconnect!)
             :on-start-eval create-inline-result!
             :on-eval update-inline-result!
+            :on-copy on-copy!
             :editor-data get-editor-data
             :get-config #(assoc (:config @state) :project-paths (get-project-paths))
 
