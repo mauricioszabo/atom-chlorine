@@ -2,6 +2,7 @@
   (:require [reagent.core :as r]
             [chlorine.utils :as aux]
             [repl-tooling.editor-integration.renderer :as render]
+            [chlorine.state :refer [state]]
             ["ansi_up" :default Ansi]))
 
 (defonce ^:private console-pair
@@ -98,5 +99,9 @@
 (defn stderr [txt]
   (append-text :stderr txt))
 
-(defn result [parsed-result repl]
-  (swap! out-state conj [:result (render/parse-result parsed-result repl)]))
+(defn- parse-result [result]
+  (let [parse (:parse @state)]
+    (parse result)))
+
+(defn result [parsed-result]
+  (swap! out-state conj [:result (parse-result parsed-result)]))

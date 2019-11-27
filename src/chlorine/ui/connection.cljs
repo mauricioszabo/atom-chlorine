@@ -1,13 +1,9 @@
 (ns chlorine.ui.connection
   (:require [reagent.core :as r]
-            [cljsjs.react :as react]
             [chlorine.repl :as repl]
             [chlorine.state :refer [state]]
             [chlorine.ui.atom :as atom]
-            [repl-tooling.repl-client :as repl-client]
-            [repl-tooling.repl-client.clojure :as clj-repl]
             [chlorine.utils :as aux]
-            [repl-tooling.editor-integration.connection :as connection]
             ["fs" :refer [existsSync readFileSync]]))
 
 (defonce local-state
@@ -37,10 +33,6 @@
   (.destroy panel)
   (aux/refocus!))
 
-(defn- repl-connect! [panel]
-  (repl/connect! (:hostname @local-state) (:port @local-state))
-  (destroy! panel))
-
 (defn- treat-key [cmd panel event]
   (case (.-key event)
     "Escape" (destroy! panel)
@@ -68,21 +60,9 @@
                   "Please, disconnect the current REPL "
                   "if you want to connect to another.")))
 
-(defn connect! []
-  (if (-> @state :repls :clj-eval nil?)
-    (conn-view repl-connect!)
-    (already-connected)))
-
 (defn connect-socket! []
   (if (-> @state :repls :clj-eval nil?)
     (conn-view (fn [panel]
                  (repl/connect-socket! (:hostname @local-state) (:port @local-state))
                  (destroy! panel)))
-    (already-connected)))
-
-(defn connect-cljs! []
-  (if (-> @state :repls :cljs-eval nil?)
-    (conn-view #(do
-                  (repl/connect-cljs! (:hostname @local-state) (:port @local-state))
-                  (destroy! %)))
     (already-connected)))

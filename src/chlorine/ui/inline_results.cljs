@@ -1,10 +1,6 @@
 (ns chlorine.ui.inline-results
-  (:require [cljs.reader :as reader]
-            [reagent.core :as r]
+  (:require [reagent.core :as r]
             [repl-tooling.editor-integration.renderer :as render]
-            [clojure.walk :as walk]
-            [repl-tooling.eval :as eval]
-            [repl-tooling.editor-helpers :as editor-helpers]
             [chlorine.state :refer [state]]))
 
 (defonce ink (atom nil))
@@ -24,13 +20,17 @@
     (r/render [render/view-for-result parsed-ratom] div)
     div))
 
+(defn- parse-result [result]
+  (let [parse (:parse @state)]
+    (parse result)))
+
 (defn render-inline! [^js inline-result parsed-result]
-  (let [parsed-ratom (render/parse-result parsed-result (-> @state :repls :clj-eval))
+  (let [parsed-ratom (parse-result parsed-result)
         div (create-div! parsed-ratom)]
     (.setContent inline-result div #js {:error (-> parsed-ratom meta :error)})))
 
 (defn render-error! [^js inline-result parsed-result]
-  (let [parsed-ratom (render/parse-result parsed-result (-> @state :repls :clj-eval))
+  (let [parsed-ratom (parse-result parsed-result)
         div (create-div! parsed-ratom)]
     (.setContent inline-result div #js {:error (-> parsed-ratom meta :error)})))
 

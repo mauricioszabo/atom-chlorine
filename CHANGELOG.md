@@ -7,6 +7,11 @@
 * Auto-import
 * Clean unused imports
 
+### NEXT
+- Fixed issues with "Copy to Clipboard"
+- Removed old connection methods like "Connect Clojure Socket REPL" and "Connect ClojureScript REPL"
+- Removed deprecated extension points
+
 ### 0.3.4
 - Fixed connection on Arcadia
 - Some REPLs don't send a "disconnect" event when closing the socket, so we "simulate" a disconnect

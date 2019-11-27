@@ -1,21 +1,13 @@
 (ns chlorine.repl
-  (:require [clojure.string :as str]
-            [repl-tooling.eval :as eval]
-            [repl-tooling.repl-client.clojure :as clj-repl]
+  (:require [repl-tooling.eval :as eval]
             [chlorine.state :refer [state]]
-            [repl-tooling.repl-client.clojurescript :as cljs]
             [repl-tooling.editor-helpers :as helpers]
             [chlorine.ui.inline-results :as inline]
-            [reagent.core :as r]
             [chlorine.ui.console :as console]
-            [repl-tooling.repl-client :as repl-client]
-            [repl-tooling.integrations.connection :as conn]
             [repl-tooling.editor-integration.connection :as connection]
             [chlorine.ui.atom :as atom]
-            [clojure.core.async :as async :include-macros true]
             [repl-tooling.editor-integration.evaluation :as e-eval]
-            ["atom" :refer [CompositeDisposable]]
-            ["grim" :as grim]))
+            ["atom" :refer [CompositeDisposable]]))
 
 (defonce ^:private commands-subs (atom (CompositeDisposable.)))
 
@@ -74,7 +66,7 @@
     :warn (atom/warn title message)
     (atom/error title message)))
 
-(defn- prompt! [{:keys [title message arguments] :as foo}]
+(defn- prompt! [{:keys [title message arguments]}]
   (js/Promise.
    (fn [resolve]
      (let [notification (atom nil)
@@ -107,41 +99,13 @@
   (.. js/atom -clipboard (write txt))
   (atom/info "Copied result" ""))
 
-(defn connect! [host port]
-  (let [p (connection/connect-unrepl!
-           host port
-           {:on-stdout console/stdout
-            :on-stderr console/stderr
-            :on-result #(console/result % (-> @state :repls :clj-eval))
-            :on-disconnect #(handle-disconnect!)
-            :on-start-eval create-inline-result!
-            :on-eval update-inline-result!
-            :on-copy on-copy!
-            :editor-data get-editor-data
-            :get-config #(assoc (:config @state) :project-paths (get-project-paths))
-
-            :notify notify!
-            :prompt prompt!})]
-    (.then p (fn [st]
-               (atom/info "Clojure REPL connected" "")
-               (console/open-console (-> @state :config :console-pos)
-                                     #(connection/disconnect!))
-               (swap! state #(-> %
-                                 (assoc-in [:repls :clj-eval] (:clj/repl @st))
-                                 (assoc-in [:repls :clj-aux] (:clj/aux @st))
-                                 (assoc :connection {:host host :port port}
-                                        ; FIXME: This is just here so we can migrate
-                                        ; code to REPL-Tooling little by little
-                                        :tooling-state st)))
-               (-> @st :editor/commands register-commands!)))))
-
 (defn connect-socket! [host port]
   (let [p (connection/connect!
            host port
            {:on-stdout console/stdout
             :on-stderr console/stderr
-            :on-result #(console/result % (-> @state :repls :clj-eval))
-            :on-disconnect #(handle-disconnect!)
+            :on-result console/result
+            :on-disconnect handle-disconnect!
             :on-start-eval create-inline-result!
             :on-eval update-inline-result!
             :on-copy on-copy!
@@ -157,6 +121,7 @@
                  (swap! state #(-> %
                                    (assoc-in [:repls :clj-eval] (:clj/repl @st))
                                    (assoc-in [:repls :clj-aux] (:clj/aux @st))
+                                   (assoc :parse (-> @st :editor/features :result-for-renderer))
                                    (assoc :connection {:host host :port port}
                                           ; FIXME: This is just here so we can migrate
                                           ; code to REPL-Tooling little by little
@@ -172,19 +137,7 @@
   (when-let [out (:err output)]
     (console/stderr out))
   (when (or (contains? output :result) (contains? output :error))
-    (console/result output (-> @state :repls :cljs-eval))))
-
-(defn connect-cljs! [host port]
-  (let [repl (cljs/repl :cljs-eval host port callback)]
-    (eval/evaluate repl ":ok" {} (fn []
-                                   (atom/info "ClojureScript REPL connected" "")
-                                   (console/open-console (-> @state :config :console-pos)
-                                                         #(connection/disconnect!))
-                                   (swap! state
-                                          #(-> %
-                                               (assoc-in [:repls :cljs-eval] repl)
-                                               (assoc :connection {:host host
-                                                                   :port port})))))))
+    (console/result output)))
 
 (def trs {:no-shadow-file "File shadow-cljs.edn not found"
           :no-worker "No worker for first build ID"
@@ -394,17 +347,4 @@
        :get_var #(get-code "var")
        :get_selection #(get-code "selection")
        :get_namespace #(get-code "ns")
-       :evaluate_and_present evaluate-and-present
-
-       ; TODO: deprecate these
-       :eval_and_present (fn [ & args]
-                           (.deprecate grim "Use evaluate_and_present instead")
-                           (apply eval-and-present args))
-       :eval_and_present_at_pos (fn [code]
-                                  (.deprecate grim "Use evaluate_and_present instead")
-                                  (let [editor (atom/current-editor)]
-                                    (eval-and-present editor
-                                                      (ns-for editor)
-                                                      (.getPath editor)
-                                                      (. editor getSelectedBufferRange)
-                                                      code)))})
+       :evaluate_and_present evaluate-and-present})
