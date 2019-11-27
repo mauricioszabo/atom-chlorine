@@ -1,8 +1,6 @@
 (ns chlorine.ui.doc
   (:require [chlorine.repl :as repl]
-            ; [repl-tooling.features.documentation :as doc]
             [chlorine.ui.inline-results :as inline]
-            [repl-tooling.editor-helpers :as editor-helpers]
             [chlorine.ui.atom :as atom]))
 
 (defn doc-for [editor ^js range str-var-name]

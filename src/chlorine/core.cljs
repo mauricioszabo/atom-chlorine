@@ -1,12 +1,10 @@
 (ns chlorine.core
   (:require [chlorine.utils :as aux]
             [chlorine.ui.connection :as conn]
-            [chlorine.providers-consumers.status-bar :as sbar]
             [chlorine.repl :as repl]
             [chlorine.features.refresh :as refresh]
             [chlorine.ui.doc :as doc]
             [chlorine.configs :as configs]
-            [chlorine.ui.atom :as atom]
             [chlorine.ui.console :as console]
             [chlorine.features.code :as code]))
 
@@ -22,12 +20,11 @@
             (observeTextEditors subscribe-editor-events))))
 
 (defn- install-dependencies-maybe []
-  (-> (.install (js/require "atom-package-deps") "chlorine")))
+  (.install (js/require "atom-package-deps") "chlorine"))
 
 (def commands
   (fn []
-    (clj->js {:connect-clojure-socket-repl conn/connect!
-              :connect-clojurescript-socket-repl conn/connect-cljs!
+    (clj->js {:connect-clojure-socket-repl conn/connect-socket!
               :connect-socket-repl conn/connect-socket!
               :doc-for-var doc/doc
               :source-for-var repl/source-for-var!
