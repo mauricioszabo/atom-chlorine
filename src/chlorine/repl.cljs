@@ -105,8 +105,8 @@
            host port
            {:on-stdout console/stdout
             :on-stderr console/stderr
-            :on-result #(console/result % (-> @state :repls :clj-eval))
-            :on-disconnect #(handle-disconnect!)
+            :on-result console/result
+            :on-disconnect handle-disconnect!
             :on-start-eval create-inline-result!
             :on-eval update-inline-result!
             :on-copy on-copy!
@@ -122,6 +122,7 @@
                  (swap! state #(-> %
                                    (assoc-in [:repls :clj-eval] (:clj/repl @st))
                                    (assoc-in [:repls :clj-aux] (:clj/aux @st))
+                                   (assoc :parse (-> @st :editor/features :result-for-renderer))
                                    (assoc :connection {:host host :port port}
                                           ; FIXME: This is just here so we can migrate
                                           ; code to REPL-Tooling little by little
@@ -137,7 +138,7 @@
   (when-let [out (:err output)]
     (console/stderr out))
   (when (or (contains? output :result) (contains? output :error))
-    (console/result output (-> @state :repls :cljs-eval))))
+    (console/result output)))
 
 (def trs {:no-shadow-file "File shadow-cljs.edn not found"
           :no-worker "No worker for first build ID"
