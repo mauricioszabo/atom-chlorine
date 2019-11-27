@@ -7,8 +7,7 @@
             [repl-tooling.editor-integration.connection :as connection]
             [chlorine.ui.atom :as atom]
             [repl-tooling.editor-integration.evaluation :as e-eval]
-            ["atom" :refer [CompositeDisposable]]
-            ["grim" :as grim]))
+            ["atom" :refer [CompositeDisposable]]))
 
 (defonce ^:private commands-subs (atom (CompositeDisposable.)))
 
@@ -348,17 +347,4 @@
        :get_var #(get-code "var")
        :get_selection #(get-code "selection")
        :get_namespace #(get-code "ns")
-       :evaluate_and_present evaluate-and-present
-
-       ; TODO: deprecate these
-       :eval_and_present (fn [ & args]
-                           (.deprecate grim "Use evaluate_and_present instead")
-                           (apply eval-and-present args))
-       :eval_and_present_at_pos (fn [code]
-                                  (.deprecate grim "Use evaluate_and_present instead")
-                                  (let [editor (atom/current-editor)]
-                                    (eval-and-present editor
-                                                      (ns-for editor)
-                                                      (.getPath editor)
-                                                      (. editor getSelectedBufferRange)
-                                                      code)))})
+       :evaluate_and_present evaluate-and-present})
