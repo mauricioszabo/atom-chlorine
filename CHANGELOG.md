@@ -7,7 +7,7 @@
 * Auto-import
 * Clean unused imports
 
-### NEXT
+### 0.3.5
 - Fixed issues with "Copy to Clipboard"
 - Removed old connection methods like "Connect Clojure Socket REPL" and "Connect ClojureScript REPL"
 - Removed deprecated extension points
