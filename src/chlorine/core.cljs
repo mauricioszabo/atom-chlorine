@@ -3,7 +3,6 @@
             [chlorine.ui.connection :as conn]
             [chlorine.repl :as repl]
             [chlorine.features.refresh :as refresh]
-            [chlorine.ui.doc :as doc]
             [chlorine.configs :as configs]
             [chlorine.ui.console :as console]
             [chlorine.features.code :as code]))
