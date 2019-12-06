@@ -7,6 +7,10 @@
 * Auto-import
 * Clean unused imports
 
+### 0.3.6
+- Added specs on doc-for-var (https://github.com/mauricioszabo/atom-chlorine/issues/100)
+- Fixed an issue with goto var definition where sometimes it wasn't able to find the var
+
 ### 0.3.5
 - Fixed issues with "Copy to Clipboard"
 - Removed old connection methods like "Connect Clojure Socket REPL" and "Connect ClojureScript REPL"
