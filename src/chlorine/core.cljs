@@ -3,7 +3,6 @@
             [chlorine.ui.connection :as conn]
             [chlorine.repl :as repl]
             [chlorine.features.refresh :as refresh]
-            [chlorine.ui.doc :as doc]
             [chlorine.configs :as configs]
             [chlorine.ui.console :as console]
             [chlorine.features.code :as code]))
@@ -26,7 +25,7 @@
   (fn []
     (clj->js {:connect-clojure-socket-repl conn/connect-socket!
               :connect-socket-repl conn/connect-socket!
-              :doc-for-var doc/doc
+              ; :doc-for-var doc/doc
               :source-for-var repl/source-for-var!
               :clear-console console/clear
 

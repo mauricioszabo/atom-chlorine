@@ -3,6 +3,7 @@
                 "repl-tooling/resources"]
 
  :dependencies [[org.clojure/core.async "0.4.474"]
+                [funcool/promesa "4.0.2"]
                 [reagent "0.8.1"]
                 [rewrite-cljs "0.4.4"]
                 [org.seleniumhq.selenium/selenium-java "3.141.59"]
