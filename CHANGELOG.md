@@ -7,6 +7,10 @@
 * Auto-import
 * Clean unused imports
 
+### 0.3.7
+- Fixed "get current var" when cursor is at the end of the variable
+- Fixed warning messages connection to Shadow-CLJS when reagent is not present (https://github.com/mauricioszabo/atom-chlorine/issues/127)
+
 ### 0.3.6
 - Added specs on doc-for-var (https://github.com/mauricioszabo/atom-chlorine/issues/100)
 - Fixed an issue with goto var definition where sometimes it wasn't able to find the var
