@@ -5,7 +5,9 @@
             [chlorine.features.refresh :as refresh]
             [chlorine.configs :as configs]
             [chlorine.ui.console :as console]
-            [chlorine.features.code :as code]))
+            [chlorine.features.code :as code]
+            [orchestra-cljs.spec.test :as st]))
+
 
 (def config (configs/get-configs))
 
@@ -14,6 +16,7 @@
     (.add ^js @aux/subscriptions (.onDidSave editor #(refresh/run-editor-refresh!)))))
 
 (defn- observe-editors []
+  (when js/goog.DEBUG (st/instrument))
   (.add @aux/subscriptions
         (.. js/atom -workspace
             (observeTextEditors subscribe-editor-events))))
@@ -55,4 +58,5 @@
   (let [main (.. js/atom -packages (getActivePackage "chlorine") -mainModule)]
     (.activate main)
     (.. js/atom -notifications (addSuccess "Reloaded Chlorine"))
-    (println "Reloaded")))
+    (println "Reloaded")
+    (st/instrument)))
