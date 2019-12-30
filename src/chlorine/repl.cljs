@@ -24,12 +24,7 @@
   (.dispose ^js @commands-subs)
   (reset! commands-subs (CompositeDisposable.)))
 
-(declare evaluate-top-block! evaluate-selection! evaluate-block!)
-(defonce ^:private old-commands
-  {:disconnect connection/disconnect!
-   :evaluate-top-block evaluate-top-block!
-   :evaluate-block evaluate-block!
-   :evaluate-selection evaluate-selection!})
+(defonce ^:private old-commands {})
 
 (defn- decide-command [cmd-name command]
   (let [old-cmd (old-commands cmd-name)
@@ -72,7 +67,7 @@
      (let [notification (atom nil)
            buttons (->> arguments (map (fn [{:keys [key value]}]
                                          {:text value
-                                          :onDidClick #(do
+                                          :onDidClick #(fn []
                                                          (resolve key)
                                                          (.dismiss ^js @notification))})))]
 
@@ -80,7 +75,7 @@
                                 (addInfo title (clj->js {:detail message
                                                          :dismissable true
                                                          :buttons buttons}))))
-       (.onDidDismiss ^js @notification #(do (resolve nil) true))))))
+       (.onDidDismiss ^js @notification #(fn [] (resolve nil) true))))))
 
 (defn- create-inline-result! [{:keys [range editor-data]}]
   (when-let [editor (:editor editor-data)]
@@ -189,43 +184,9 @@
                               #(inline/render-inline! result %)))))))
 
 (def ^:private EditorUtils (js/require "./editor-utils"))
-(defn top-level-code [^js editor ^js range]
-  (let [range (. EditorUtils
-                (getCursorInBlockRange editor #js {:topLevel true}))]
-    [range (some->> range (.getTextInBufferRange editor))]))
-
+; FIXME: Remove this
 (defn ns-for [^js editor]
   (.. EditorUtils (findNsDeclaration editor)))
-
-(defn evaluate-top-block! []
-  (let [editor (atom/current-editor)
-        range (. EditorUtils
-                (getCursorInBlockRange editor #js {:topLevel true}))]
-    (some->> range
-             (.getTextInBufferRange editor)
-             (eval-and-present editor
-                               (ns-for editor)
-                               (.getPath editor)
-                               range))))
-
-(defn evaluate-block! []
-  (let [editor (atom/current-editor)
-        range (. EditorUtils
-                (getCursorInBlockRange editor))]
-    (some->> range
-             (.getTextInBufferRange editor)
-             (eval-and-present editor
-                               (ns-for editor)
-                               (.getPath editor)
-                               range))))
-
-(defn evaluate-selection! []
-  (let [editor (atom/current-editor)]
-    (eval-and-present editor
-                      (ns-for editor)
-                      (.getPath editor)
-                      (. editor getSelectedBufferRange)
-                      (.getSelectedText editor))))
 
 (defn wrap-in-rebl-submit
   "Clojure 1.10 only, require REBL on the classpath (and UI open)."
