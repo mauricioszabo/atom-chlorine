@@ -7,6 +7,10 @@
 * Auto-import
 * Clean unused imports
 
+### 0.3.8
+- Fixed error when trying to execute a ClojureScript code when REPL is not clj-connected
+- Fixed warnings when connecting to ClojureScript without reagent
+
 ### 0.3.7
 - Fixed "get current var" when cursor is at the end of the variable
 - Fixed warning messages connection to Shadow-CLJS when reagent is not present (https://github.com/mauricioszabo/atom-chlorine/issues/127)
