@@ -7,7 +7,9 @@
             [repl-tooling.editor-integration.connection :as connection]
             [chlorine.ui.atom :as atom]
             [repl-tooling.editor-integration.evaluation :as e-eval]
-            ["atom" :refer [CompositeDisposable]]))
+            ["atom" :refer [CompositeDisposable]]
+            [repl-tooling.editor-integration.schemas :as schemas]
+            [orchestra.core :refer-macros [defn-spec]]))
 
 (defonce ^:private commands-subs (atom (CompositeDisposable.)))
 
@@ -43,7 +45,7 @@
                                (decide-command k command)))]]
     (.add ^js @commands-subs disp)))
 
-(defn- get-editor-data []
+(defn-spec ^:private get-editor-data ::schemas/editor-data []
   (when-let [editor (atom/current-editor)]
     (let [range (.getSelectedBufferRange editor)
           start (.-start range)
@@ -87,12 +89,16 @@
     (when editor
       (inline/inline-result editor (-> range last first) (parse result)))))
 
-(defn- get-project-paths []
-  (->> js/atom .-project .getDirectories (map #(.getPath ^js %))))
-
 (defn- on-copy! [txt]
   (.. js/atom -clipboard (write txt))
   (atom/info "Copied result" ""))
+
+(defn-spec get-config ::schemas/configs []
+  (assoc (:config @state)
+         :project-paths (->> js/atom
+                             .-project
+                             .getDirectories
+                             (map #(.getPath ^js %)))))
 
 (defn connect-socket! [host port]
   (let [p (connection/connect!
@@ -105,10 +111,10 @@
             :on-eval update-inline-result!
             :on-copy on-copy!
             :editor-data get-editor-data
-            :get-config #(assoc (:config @state) :project-paths (get-project-paths))
-
+            :get-config get-config
             :notify notify!
             :prompt prompt!})]
+
     (.then p (fn [st]
                (when st
                  (console/open-console (-> @state :config :console-pos)
@@ -122,21 +128,6 @@
                                           ; code to REPL-Tooling little by little
                                           :tooling-state st)))
                  (-> @st :editor/commands register-commands!))))))
-
-(defn callback [output]
-  (when (nil? output)
-    (handle-disconnect!))
-
-  (when-let [out (:out output)]
-    (console/stdout out))
-  (when-let [out (:err output)]
-    (console/stderr out))
-  (when (or (contains? output :result) (contains? output :error))
-    (console/result output)))
-
-(def trs {:no-shadow-file "File shadow-cljs.edn not found"
-          :no-worker "No worker for first build ID"
-          :unknown "Unknown error"})
 
 (defn need-cljs? [editor]
   (e-eval/need-cljs? (:config @state) (.getFileName editor)))
