@@ -5,11 +5,9 @@
  :dependencies [[org.clojure/core.async "0.4.474"]
                 [funcool/promesa "4.0.2"]
                 [reagent "0.8.1"]
-                [orchestra "2019.02.06-1"]
-                [org.clojure/test.check "0.10.0"]
+                [paprika "0.1.2"]
                 [rewrite-cljs "0.4.4"]
-                [org.seleniumhq.selenium/selenium-java "3.141.59"]
-                [check "0.0.2-SNAPSHOT"]]
+                [check "0.1.0-SNAPSHOT"]]
 
  :builds
  {:dev {:target :node-library
