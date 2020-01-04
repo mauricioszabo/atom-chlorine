@@ -9,7 +9,7 @@
             [repl-tooling.editor-integration.evaluation :as e-eval]
             ["atom" :refer [CompositeDisposable]]
             [repl-tooling.editor-integration.schemas :as schemas]
-            [orchestra.core :refer-macros [defn-spec]]))
+            [schema.core :as s]))
 
 (defonce ^:private commands-subs (atom (CompositeDisposable.)))
 
@@ -45,7 +45,7 @@
                                (decide-command k command)))]]
     (.add ^js @commands-subs disp)))
 
-(defn-spec ^:private get-editor-data ::schemas/editor-data []
+(s/defn ^:private get-editor-data :- schemas/EditorData []
   (when-let [editor (atom/current-editor)]
     (let [range (.getSelectedBufferRange editor)
           start (.-start range)
@@ -69,9 +69,9 @@
      (let [notification (atom nil)
            buttons (->> arguments (map (fn [{:keys [key value]}]
                                          {:text value
-                                          :onDidClick #(fn []
-                                                         (resolve key)
-                                                         (.dismiss ^js @notification))})))]
+                                          :onDidClick (fn []
+                                                        (resolve key)
+                                                        (.dismiss ^js @notification))})))]
 
        (reset! notification (.. js/atom -notifications
                                 (addInfo title (clj->js {:detail message
@@ -83,7 +83,7 @@
   (when-let [editor (:editor editor-data)]
     (inline/new-result editor (-> range last first))))
 
-(defn- update-inline-result! [{:keys [range editor-data result]}]
+(defn- update-inline-result! [{:keys [range editor-data] :as result}]
   (let [editor (:editor editor-data)
         parse (-> @state :tooling-state deref :editor/features :result-for-renderer)]
     (when editor
@@ -93,7 +93,7 @@
   (.. js/atom -clipboard (write txt))
   (atom/info "Copied result" ""))
 
-(defn-spec get-config ::schemas/configs []
+(s/defn get-config :- schemas/Config []
   (assoc (:config @state)
          :project-paths (->> js/atom
                              .-project
