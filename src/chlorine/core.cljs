@@ -58,4 +58,5 @@
     (.. js/atom -notifications (addSuccess "Reloaded Chlorine"))
     (println "Reloaded")))
 
+#_
 (s/set-fn-validation! js/goog.DEBUG)
