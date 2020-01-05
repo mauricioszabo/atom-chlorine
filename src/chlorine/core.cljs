@@ -56,5 +56,6 @@
   (let [main (.. js/atom -packages (getActivePackage "chlorine") -mainModule)]
     (.activate main)
     (.. js/atom -notifications (addSuccess "Reloaded Chlorine"))
-    (println "Reloaded")
-    (s/set-fn-validation! js/goog.DEBUG)))
+    (println "Reloaded")))
+
+(s/set-fn-validation! js/goog.DEBUG)

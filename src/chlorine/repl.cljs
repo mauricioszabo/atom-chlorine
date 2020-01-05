@@ -83,7 +83,7 @@
   (when-let [editor (:editor editor-data)]
     (inline/new-result editor (-> range last first))))
 
-(defn- update-inline-result! [{:keys [range editor-data] :as result}]
+(defn- update-inline-result! [{:keys [range editor-data result]}]
   (let [editor (:editor editor-data)
         parse (-> @state :tooling-state deref :editor/features :result-for-renderer)]
     (when editor
