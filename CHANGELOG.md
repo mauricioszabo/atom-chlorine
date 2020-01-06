@@ -9,8 +9,9 @@
 
 ### 0.4.0
 - Fixed test output not rendering on console
-- Removed all "experimental features" as they are suitable
+- Promoted all "experimental features" as they passed the battle test
 - All "evaluate" commands are implemented without using Atom's APIs. They also are aware of reader symbols, so now `evaluate-block` over `'(+ 1 2 3)` will return a list, not run the function.
+- Added "interactive" evaluation
 
 ### 0.3.8
 - Fixed error when trying to execute a ClojureScript code when REPL is not clj-connected
