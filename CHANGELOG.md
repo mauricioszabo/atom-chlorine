@@ -7,6 +7,11 @@
 * Auto-import
 * Clean unused imports
 
+### 0.3.9
+- Fixed autocomplete error on dynamic vars (https://github.com/mauricioszabo/atom-chlorine/issues/132)
+- Support for Clojerl
+- Treating special windows chars on REPL output
+
 ### 0.3.8
 - Fixed error when trying to execute a ClojureScript code when REPL is not clj-connected
 - Fixed warnings when connecting to ClojureScript without reagent
