@@ -83,7 +83,7 @@
   (when-let [editor (:editor editor-data)]
     (inline/new-result editor (-> range last first))))
 
-(defn- update-inline-result! [{:keys [range editor-data result]}]
+(defn- update-inline-result! [{:keys [range editor-data] :as result}]
   (let [editor (:editor editor-data)
         parse (-> @state :tooling-state deref :editor/features :result-for-renderer)]
     (when editor
@@ -105,10 +105,12 @@
            host port
            {:on-stdout console/stdout
             :on-stderr console/stderr
-            :on-result console/result
+            ; :on-result console/result
             :on-disconnect handle-disconnect!
             :on-start-eval create-inline-result!
-            :on-eval update-inline-result!
+            :on-eval (fn [res]
+                       (console/result res)
+                       (update-inline-result! res))
             :on-copy on-copy!
             :editor-data get-editor-data
             :get-config get-config
