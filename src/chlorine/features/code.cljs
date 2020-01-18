@@ -32,10 +32,10 @@
                                 st
                                 (.getPath editor)
                                 true))]
-    ; (when repl
-    ;   ; (atom/warn "Can't go to definition on a CLJS file" "")
-      (.. (some-> repl (definition/find-var-definition aux namespace var))
-          (then (fn [info]
-                  (if info
-                    (open-editor info)
-                    (atom/error "Could not find definition for var" "")))))))
+    (when-not
+      (some-> repl (definition/find-var-definition aux namespace var)
+              (.then (fn [info]
+                       (if info
+                         (open-editor info)
+                         (atom/error "Could not find definition for var" "")))))
+      (atom/error "Could not find definition for var" ""))))

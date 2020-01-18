@@ -12,6 +12,7 @@
 - Promoted all "experimental features" as they passed the battle test
 - All "evaluate" commands are implemented without using Atom's APIs. They also are aware of reader symbols, so now `evaluate-block` over `'(+ 1 2 3)` will return a list, not run the function.
 - Added "interactive" evaluation
+- Goto var definition now works on ClojureScript
 
 ### 0.3.8
 - Fixed error when trying to execute a ClojureScript code when REPL is not clj-connected
