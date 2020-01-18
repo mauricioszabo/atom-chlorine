@@ -27,11 +27,10 @@
         namespace (repl/ns-for editor)
         st (:tooling-state @state/state)
         aux (:clj/aux @st)
-        repl (if (repl/need-cljs? editor)
-               (e-eval/repl-for (:editor/callbacks @st)
-                                st
-                                (.getPath editor)
-                                true))]
+        repl (e-eval/repl-for (:editor/callbacks @st)
+                              st
+                              (.getPath editor)
+                              true)]
     (when-not
       (some-> repl (definition/find-var-definition aux namespace var)
               (.then (fn [info]
