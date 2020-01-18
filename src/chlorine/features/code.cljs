@@ -23,11 +23,11 @@
 (defn goto-var []
   (let [editor (atom/current-editor)
         var (atom/current-var editor)
-        namespace (repl/ns-for editor)]
+        namespace (repl/ns-for editor)
+        repl (some-> @state/state :repls :clj-aux)]
     (if (repl/need-cljs? editor)
       (atom/warn "Can't go to definition on a CLJS file" "")
-      (.. (some-> @state/state :repls :clj-aux
-                  (definition/find-var-definition namespace var))
+      (.. (some-> repl (definition/find-var-definition repl namespace var))
           (then (fn [info]
                   (if info
                     (open-editor info)
