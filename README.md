@@ -7,6 +7,8 @@ Socket-REPL integration with Clojure and ClojureScript with Atom.
 
 This package requires `Ink` to work. Install it on Atom package manager
 
+This project also have a [FAQ](https://github.com/mauricioszabo/repl-tooling/blob/master/doc/FAQ.md) now
+
 ## Example
 Chlorine connects to a Socket REPL and adds autocomplete, goto var definition, evaluation, refresh, and documentation of functions on Atom. It can also add additional things, so check it out on [extending Chlorine](docs/extending.md). The idea of the project is to give Atom a felling of being completely connected to running code that's being developed, like SmallTalk images but still working with textual source codes, git, and every other tool that we already use with our code.
 
