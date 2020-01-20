@@ -2,7 +2,8 @@
   (:require [chlorine.state :refer [configs state]]
             [clojure.walk :as walk]
             [chlorine.utils :as aux]
-            [check.core :refer-macros [check]]))
+            [check.core :refer-macros [check]]
+            [clojure.test]))
 
 (defn- propagate-to-config [new-value]
   (let [config (. js/atom -config)]

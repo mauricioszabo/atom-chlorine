@@ -7,6 +7,13 @@
 * Auto-import
 * Clean unused imports
 
+### 0.4.0
+- Fixed test output not rendering on console
+- Promoted all "experimental features" as they passed the battle test
+- All "evaluate" commands are implemented without using Atom's APIs. They also are aware of reader symbols, so now `evaluate-block` over `'(+ 1 2 3)` will return a list, not run the function.
+- Added "interactive" evaluation
+- Goto var definition now works on ClojureScript
+
 ### 0.3.9
 - Fixed autocomplete error on dynamic vars (https://github.com/mauricioszabo/atom-chlorine/issues/132)
 - Support for Clojerl

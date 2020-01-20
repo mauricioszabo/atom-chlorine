@@ -7,7 +7,9 @@
             [repl-tooling.editor-integration.connection :as connection]
             [chlorine.ui.atom :as atom]
             [repl-tooling.editor-integration.evaluation :as e-eval]
-            ["atom" :refer [CompositeDisposable]]))
+            ["atom" :refer [CompositeDisposable]]
+            [repl-tooling.editor-integration.schemas :as schemas]
+            [schema.core :as s]))
 
 (defonce ^:private commands-subs (atom (CompositeDisposable.)))
 
@@ -24,12 +26,7 @@
   (.dispose ^js @commands-subs)
   (reset! commands-subs (CompositeDisposable.)))
 
-(declare evaluate-top-block! evaluate-selection! evaluate-block!)
-(defonce ^:private old-commands
-  {:disconnect connection/disconnect!
-   :evaluate-top-block evaluate-top-block!
-   :evaluate-block evaluate-block!
-   :evaluate-selection evaluate-selection!})
+(defonce ^:private old-commands {})
 
 (defn- decide-command [cmd-name command]
   (let [old-cmd (old-commands cmd-name)
@@ -48,7 +45,7 @@
                                (decide-command k command)))]]
     (.add ^js @commands-subs disp)))
 
-(defn- get-editor-data []
+(s/defn ^:private get-editor-data :- schemas/EditorData []
   (when-let [editor (atom/current-editor)]
     (let [range (.getSelectedBufferRange editor)
           start (.-start range)
@@ -72,48 +69,54 @@
      (let [notification (atom nil)
            buttons (->> arguments (map (fn [{:keys [key value]}]
                                          {:text value
-                                          :onDidClick #(do
-                                                         (resolve key)
-                                                         (.dismiss ^js @notification))})))]
+                                          :onDidClick (fn []
+                                                        (resolve key)
+                                                        (.dismiss ^js @notification))})))]
 
        (reset! notification (.. js/atom -notifications
                                 (addInfo title (clj->js {:detail message
                                                          :dismissable true
                                                          :buttons buttons}))))
-       (.onDidDismiss ^js @notification #(do (resolve nil) true))))))
+       (.onDidDismiss ^js @notification #(fn [] (resolve nil) true))))))
 
 (defn- create-inline-result! [{:keys [range editor-data]}]
   (when-let [editor (:editor editor-data)]
     (inline/new-result editor (-> range last first))))
 
-(defn- update-inline-result! [{:keys [range editor-data result]}]
+(defn- update-inline-result! [{:keys [range editor-data] :as result}]
   (let [editor (:editor editor-data)
         parse (-> @state :tooling-state deref :editor/features :result-for-renderer)]
     (when editor
       (inline/inline-result editor (-> range last first) (parse result)))))
 
-(defn- get-project-paths []
-  (->> js/atom .-project .getDirectories (map #(.getPath ^js %))))
-
 (defn- on-copy! [txt]
   (.. js/atom -clipboard (write txt))
   (atom/info "Copied result" ""))
+
+(s/defn get-config :- schemas/Config []
+  (assoc (:config @state)
+         :project-paths (->> js/atom
+                             .-project
+                             .getDirectories
+                             (map #(.getPath ^js %)))))
 
 (defn connect-socket! [host port]
   (let [p (connection/connect!
            host port
            {:on-stdout console/stdout
             :on-stderr console/stderr
-            :on-result console/result
+            ; :on-result console/result
             :on-disconnect handle-disconnect!
             :on-start-eval create-inline-result!
-            :on-eval update-inline-result!
+            :on-eval (fn [res]
+                       (console/result res)
+                       (update-inline-result! res))
             :on-copy on-copy!
             :editor-data get-editor-data
-            :get-config #(assoc (:config @state) :project-paths (get-project-paths))
-
+            :get-config get-config
             :notify notify!
             :prompt prompt!})]
+
     (.then p (fn [st]
                (when st
                  (console/open-console (-> @state :config :console-pos)
@@ -127,21 +130,6 @@
                                           ; code to REPL-Tooling little by little
                                           :tooling-state st)))
                  (-> @st :editor/commands register-commands!))))))
-
-(defn callback [output]
-  (when (nil? output)
-    (handle-disconnect!))
-
-  (when-let [out (:out output)]
-    (console/stdout out))
-  (when-let [out (:err output)]
-    (console/stderr out))
-  (when (or (contains? output :result) (contains? output :error))
-    (console/result output)))
-
-(def trs {:no-shadow-file "File shadow-cljs.edn not found"
-          :no-worker "No worker for first build ID"
-          :unknown "Unknown error"})
 
 (defn need-cljs? [editor]
   (e-eval/need-cljs? (:config @state) (.getFileName editor)))
@@ -189,43 +177,9 @@
                               #(inline/render-inline! result %)))))))
 
 (def ^:private EditorUtils (js/require "./editor-utils"))
-(defn top-level-code [^js editor ^js range]
-  (let [range (. EditorUtils
-                (getCursorInBlockRange editor #js {:topLevel true}))]
-    [range (some->> range (.getTextInBufferRange editor))]))
-
+; FIXME: Remove this
 (defn ns-for [^js editor]
   (.. EditorUtils (findNsDeclaration editor)))
-
-(defn evaluate-top-block! []
-  (let [editor (atom/current-editor)
-        range (. EditorUtils
-                (getCursorInBlockRange editor #js {:topLevel true}))]
-    (some->> range
-             (.getTextInBufferRange editor)
-             (eval-and-present editor
-                               (ns-for editor)
-                               (.getPath editor)
-                               range))))
-
-(defn evaluate-block! []
-  (let [editor (atom/current-editor)
-        range (. EditorUtils
-                (getCursorInBlockRange editor))]
-    (some->> range
-             (.getTextInBufferRange editor)
-             (eval-and-present editor
-                               (ns-for editor)
-                               (.getPath editor)
-                               range))))
-
-(defn evaluate-selection! []
-  (let [editor (atom/current-editor)]
-    (eval-and-present editor
-                      (ns-for editor)
-                      (.getPath editor)
-                      (. editor getSelectedBufferRange)
-                      (.getSelectedText editor))))
 
 (defn wrap-in-rebl-submit
   "Clojure 1.10 only, require REBL on the classpath (and UI open)."

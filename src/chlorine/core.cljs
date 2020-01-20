@@ -5,7 +5,8 @@
             [chlorine.features.refresh :as refresh]
             [chlorine.configs :as configs]
             [chlorine.ui.console :as console]
-            [chlorine.features.code :as code]))
+            [chlorine.features.code :as code]
+            [schema.core :as s]))
 
 (def config (configs/get-configs))
 
@@ -56,3 +57,6 @@
     (.activate main)
     (.. js/atom -notifications (addSuccess "Reloaded Chlorine"))
     (println "Reloaded")))
+
+#_
+(s/set-fn-validation! js/goog.DEBUG)
