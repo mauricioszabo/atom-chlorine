@@ -13,6 +13,7 @@
 - All "evaluate" commands are implemented without using Atom's APIs. They also are aware of reader symbols, so now `evaluate-block` over `'(+ 1 2 3)` will return a list, not run the function.
 - Added "interactive" evaluation
 - Goto var definition now works on ClojureScript
+- Babashka is now aware of namespaces
 
 ### 0.3.9
 - Fixed autocomplete error on dynamic vars (https://github.com/mauricioszabo/atom-chlorine/issues/132)
