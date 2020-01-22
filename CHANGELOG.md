@@ -7,6 +7,9 @@
 * Auto-import
 * Clean unused imports
 
+### 0.4.1
+- Fixed test results and output not appearing on console
+
 ### 0.4.0
 - Fixed test output not rendering on console
 - Promoted all "experimental features" as they passed the battle test
