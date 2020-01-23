@@ -176,6 +176,7 @@
                                :pass opts}
                               #(inline/render-inline! result %)))))))
 
+; FIXME: Remove this
 (def ^:private EditorUtils (js/require "./editor-utils"))
 ; FIXME: Remove this
 (defn ns-for [^js editor]
