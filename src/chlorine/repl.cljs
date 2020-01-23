@@ -181,39 +181,6 @@
 (defn ns-for [^js editor]
   (.. EditorUtils (findNsDeclaration editor)))
 
-(defn wrap-in-rebl-submit
-  "Clojure 1.10 only, require REBL on the classpath (and UI open)."
-  [code]
-  (str "(let [value " code "]"
-       " (try"
-       "  ((requiring-resolve 'cognitect.rebl/submit) '" code " value)"
-       "  (catch Throwable _))"
-       " value)"))
-
-(defn inspect-top-block! []
-  (let [editor (atom/current-editor)
-        range (. EditorUtils
-                (getCursorInBlockRange editor #js {:topLevel true}))]
-    (some->> range
-             (.getTextInBufferRange editor)
-             (wrap-in-rebl-submit)
-             (eval-and-present editor
-                               (ns-for editor)
-                               (.getPath editor)
-                               range))))
-
-(defn inspect-block! []
-  (let [editor (atom/current-editor)
-        range (. EditorUtils
-                (getCursorInBlockRange editor))]
-    (some->> range
-             (.getTextInBufferRange editor)
-             (wrap-in-rebl-submit)
-             (eval-and-present editor
-                               (ns-for editor)
-                               (.getPath editor)
-                               range))))
-
 (defn run-tests-in-ns! []
   (let [editor (atom/current-editor)
         pos (.getCursorBufferPosition editor)]
@@ -294,6 +261,27 @@
   (when-let [command (some-> @state :tooling-state deref
                              :editor/features :eval-and-render)]
     (command code (js->clj range))))
+
+(defn wrap-in-rebl-submit
+  "Clojure 1.10 only, require REBL on the classpath (and UI open)."
+  [code]
+  (str "(let [value " code "]"
+       " (try"
+       "  ((requiring-resolve 'cognitect.rebl/submit) '" code " value)"
+       "  (catch Throwable _))"
+       " value)"))
+
+(defn inspect-top-block! []
+  (let [res (get-code "top-block")]
+    (some-> (.-text res)
+            (wrap-in-rebl-submit)
+            (evaluate-and-present (.-range res)))))
+
+(defn inspect-block! []
+  (let [res (get-code "block")]
+    (some-> (.-text res)
+            (wrap-in-rebl-submit)
+            (evaluate-and-present (.-range res)))))
 
 (def exports
   #js {:get_top_block #(get-code "top-block")
