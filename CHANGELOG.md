@@ -7,6 +7,9 @@
 * Auto-import
 * Clean unused imports
 
+### 0.4.2
+- Fixed https://github.com/mauricioszabo/atom-chlorine/issues/139
+
 ### 0.4.1
 - Fixed test results and output not appearing on console
 
