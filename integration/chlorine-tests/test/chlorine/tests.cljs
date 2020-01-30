@@ -2,7 +2,6 @@
   (:require [chlorine.utils :refer-macros [async async-testing]]
             [clojure.test :refer [is deftest run-all-tests run-tests] :as test]
             [check.core :refer-macros [check]]
-            [check.async :refer-macros [async-test]]
             [promesa.core :as p]
             ["remote" :as remote]))
 
