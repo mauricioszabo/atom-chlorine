@@ -6,7 +6,7 @@
 * Auto-import
 * Clean unused imports
 
-### NEXT
+### 0.4.3
 - Supporting Suitable for CLJS autocomplete
 - When evaluating top-level, considers the parens before the cursor if the selection is on the end of the line
 - Fixes for strange issues happening on evaluation of Clojure forms (sometimes, things were evaluating out-of-order or returning nil incorrectly)
