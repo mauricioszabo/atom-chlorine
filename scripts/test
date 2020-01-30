@@ -4,7 +4,7 @@
 #cd integration/fixture-app && ./scripts/repl &
 for n in {1..35}; do
   ls integration/chlorine-tests/lib/main.js &>/dev/null && break
-  echo "Test plug-in not compiled yet, waiting..."
+  echo "Test plug-in not compiled yet, waiting... ($n)"
   sleep 15
 done
 
