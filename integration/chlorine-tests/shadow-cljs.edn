@@ -3,7 +3,7 @@
 
  :dependencies [[org.clojure/core.async "0.4.474"]
                 [funcool/promesa "3.0.0"]
-                [check "0.1.0-SNAPSHOT"]]
+                [check "0.0.3-SNAPSHOT"]]
 
  :socket-repl {:port 3333}
  :builds {:tests {:target :node-library
