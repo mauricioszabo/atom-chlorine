@@ -11,7 +11,7 @@ RUN rm -R /tmp/node-v10.16.3-linux-x64
 
 ENV DISPLAY=:80
 ENV ELECTRON_ENABLE_LOGGING=true
-ENV JVM_OPTS='-Xmx1g'
+ENV JVM_OPTS='-Xmx3200m'
 
 RUN mkdir /root/.atom
 RUN echo "'*':\n  welcome:\n    showOnStartup: false\n  core:\n    telemetryConsent: \"no\"\n    disabledPackages: [\"github\"]\n  \"autocomplete-plus\":\n    enableAutoActivation: false" > /root/.atom/config.cson
