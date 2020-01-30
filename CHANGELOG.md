@@ -3,9 +3,15 @@
 * Connect to ClojureScript using an arbitrary command
 * Before/After refresh
 * Higlight current form
-* GOTO definition for ClojureScript (as far as we can)
 * Auto-import
 * Clean unused imports
+
+### NEXT
+- Supporting Suitable for CLJS autocomplete
+- When evaluating top-level, considers the parens before the cursor if the selection is on the end of the line
+- Fixes for strange issues happening on evaluation of Clojure forms (sometimes, things were evaluating out-of-order or returning nil incorrectly)
+- Migrated autocomplete tools to use promises, to avoid crashing the Atom editor in case of failures while autocompleting
+- Fixed a bug on Autocomplete (when disconnecting the REPL and adding/removing Compliment, the autocomplete would still try to use/not use Compliment after connecting to REPL)
 
 ### 0.4.2
 - Fixed https://github.com/mauricioszabo/atom-chlorine/issues/139
