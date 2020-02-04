@@ -26,10 +26,8 @@
   (.dispose ^js @commands-subs)
   (reset! commands-subs (CompositeDisposable.)))
 
-(defonce ^:private old-commands {})
-
 (defn- decide-command [cmd-name command]
-  (let [old-cmd (old-commands cmd-name)
+  (let [old-cmd (:old-command command)
         new-cmd (:command command)]
     (fn []
       (if (and old-cmd (-> @state :config :experimental-features (not= true)))
