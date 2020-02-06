@@ -4,10 +4,7 @@ USER root
 
 RUN apt-get update
 RUN apt-get install -y wget gpg
-RUN wget -qO - https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public | apt-key add -
-RUN apt-get install -y software-properties-common
-RUN add-apt-repository --yes https://adoptopenjdk.jfrog.io/adoptopenjdk/deb/
-RUN apt-get install -y xvfb ffmpeg netcat xz-utils adoptopenjdk-11-openj9
+RUN apt-get install -y xvfb ffmpeg netcat xz-utils openjdk-11-jdk
 
 RUN cd /tmp && curl https://nodejs.org/dist/v10.16.3/node-v10.16.3-linux-x64.tar.xz | tar -xJ
 RUN cp -a /tmp/node-v10.16.3-linux-x64/* /usr
