@@ -6,6 +6,13 @@
 * Auto-import
 * Clean unused imports
 
+### 0.4.4
+- Some fixes on evaluate-block
+#### Experimental features on this version
+- Changed the way to evaluate Shadow-CLJS commands
+- Added some inspection to Javascript objects
+- Fixed some issues on deeply nested invalid EDN objects on ClojureScript
+
 ### 0.4.3
 - Supporting Suitable for CLJS autocomplete
 - When evaluating top-level, considers the parens before the cursor if the selection is on the end of the line
