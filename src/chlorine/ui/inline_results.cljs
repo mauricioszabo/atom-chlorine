@@ -16,9 +16,9 @@
 
 (defn all-parsed-results []
   (for [[editor-id v] @results
-        [row {:keys [parsed-result]}] v
-        :when parsed-result]
-    parsed-result))
+        [row {:keys [parsed-ratom]}] v
+        :when parsed-ratom]
+    parsed-ratom))
 
 (defn ^js new-result [^js editor row]
   (when-let [InkResult (some-> ^js @ink .-Result)]
@@ -34,7 +34,7 @@
   (let [div (. js/document createElement "div")]
     (when (-> parsed-ratom meta :error) (.. div -classList (add "error")))
     (.. div -classList (add "result" "chlorine"))
-    (r/render [render/view-for-result parsed-ratom] div)
+    (r/render [:div [render/view-for-result parsed-ratom]] div)
     div))
 
 (defn inline-result [^js editor row parsed-ratom]

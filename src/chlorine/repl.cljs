@@ -109,7 +109,10 @@
             :on-eval (fn [res]
                        (console/result res)
                        (update-inline-result! res))
-            :get-rendered-results #()
+            :get-rendered-results #(concat (inline/all-parsed-results)
+                                           (->> @console/out-state
+                                                (filter (fn [r] (-> r first (= :result))))
+                                                (map second)))
             :on-copy on-copy!
             :editor-data get-editor-data
             :get-config get-config
