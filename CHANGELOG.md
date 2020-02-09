@@ -6,6 +6,12 @@
 * Auto-import
 * Clean unused imports
 
+### NEXT VERSION
+- Some fixes on the experimental features' renderer
+- Fixed a bug that happens when something is evaluating, then you disconnect the REPL
+#### Experimental features
+- Added support for resolving promises
+
 ### 0.4.4
 - Some fixes on evaluate-block
 #### Experimental features on this version

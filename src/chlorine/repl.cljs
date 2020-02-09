@@ -109,6 +109,10 @@
             :on-eval (fn [res]
                        (console/result res)
                        (update-inline-result! res))
+            :get-rendered-results #(concat (inline/all-parsed-results)
+                                           (->> @console/out-state
+                                                (filter (fn [r] (-> r first (= :result))))
+                                                (map second)))
             :on-copy on-copy!
             :editor-data get-editor-data
             :get-config get-config
@@ -162,17 +166,18 @@
   ([^js editor ns-name filename ^js range code]
    (eval-and-present editor ns-name filename range code {}))
   ([^js editor ns-name filename ^js range code opts]
-   (let [result (inline/new-result editor (.. range -end -row))
-         row (.. range -start -row)
-         col (.. range -start -column)]
+   (let [row (.. range -start -row)
+         col (.. range -start -column)
+         result (inline/new-result editor (.. range -end -row))]
 
      (if (need-cljs? editor)
-       (eval-cljs editor ns-name filename row col code result opts #(inline/render-inline! result %))
+       (eval-cljs editor ns-name filename row col code result opts
+                  #(inline/parse-and-inline editor (.. range -end -row) %))
        (some-> @state :tooling-state deref :clj/repl
                (eval/evaluate code
                               {:namespace ns-name :row row :col col :filename filename
                                :pass opts}
-                              #(inline/render-inline! result %)))))))
+                              #(inline/parse-and-inline editor (.. range -end -row) %)))))))
 
 ; FIXME: Remove this
 (def ^:private EditorUtils (js/require "./editor-utils"))
