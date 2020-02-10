@@ -6,7 +6,7 @@
 * Auto-import
 * Clean unused imports
 
-### NEXT VERSION
+### 0.4.5
 - Some fixes on the experimental features' renderer
 - Fixed a bug that happens when something is evaluating, then you disconnect the REPL
 #### Experimental features
