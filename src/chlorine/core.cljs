@@ -6,8 +6,7 @@
             [chlorine.configs :as configs]
             [chlorine.ui.console :as console]
             [chlorine.features.code :as code]
-            [schema.core :as s]
-            ["atom-package-deps" :as deps]))
+            [schema.core :as s]))
 
 (def config (configs/get-configs))
 
@@ -21,7 +20,7 @@
             (observeTextEditors subscribe-editor-events))))
 
 (defn- install-dependencies-maybe []
-  (.install deps "chlorine"))
+  (.install (js/require "atom-package-deps") "chlorine"))
 
 (def commands
   (fn []
