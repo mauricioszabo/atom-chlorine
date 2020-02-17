@@ -20,7 +20,9 @@ RUN sh -c 'cd /root/.atom/packages && git clone https://github.com/JunoLab/atom-
 WORKDIR /work
 COPY . /work
 RUN npm install
-RUN npx shadow-cljs release dev --source-maps
+RUN npx shadow-cljs release dev
+RUN rm -R node_modules
+RUN npm install --production
 RUN ln -s /work /root/.atom/packages/chlorine
 
 CMD sh -c 'Xvfb -screen 0 1024x768x24+32 :80 & ./scripts/test'
