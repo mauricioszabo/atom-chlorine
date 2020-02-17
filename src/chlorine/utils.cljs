@@ -1,8 +1,7 @@
 (ns chlorine.utils
-  (:require [chlorine.state :refer [state]]))
+  (:require [chlorine.state :refer [state]]
+            ["atom" :refer [CompositeDisposable]]))
 
-(def ^:private atom-ed (js/require "atom"))
-(def ^:private CompositeDisposable (.-CompositeDisposable atom-ed))
 (def subscriptions (atom (CompositeDisposable.)))
 
 (defn reload-subscriptions! []
