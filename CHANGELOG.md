@@ -6,6 +6,10 @@
 * Auto-import
 * Clean unused imports
 
+### 0.4.6
+- Changed the detection of blocks (will consider the parens the cursor is in as the "block")
+- Fixed https://github.com/mauricioszabo/atom-chlorine/issues/150
+
 ### 0.4.5
 - Some fixes on the experimental features' renderer
 - Fixed a bug that happens when something is evaluating, then you disconnect the REPL
