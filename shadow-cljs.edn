@@ -12,8 +12,11 @@
 
  :builds
  {:dev {:target :node-library
-        :dev {:closure-defines {chlorine.aux/TESTS true}}
+        :js-options {:js-provider :shadow
+                     :keep-native-requires true
+                     :keep-as-require #{"atom"}}
 
+        :dev {:closure-defines {chlorine.aux/TESTS true}}
         :compiler-options {:infer-externs :auto}
         :exports {:config chlorine.core/config
                   :commands chlorine.core/commands

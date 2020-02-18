@@ -99,7 +99,8 @@
                _ (connect!)
                _ (p/delay 1000)
                message (find-element "div.message" #"REPL Connected")]
-        (check message => (exist? "REPL connected"))))
+        (check message => (exist? "REPL connected"))
+        (p/delay 5000)))
 
     (async-testing "evaluates code"
       (eval-and-check "(str (+ 90 120))" "chlorine:evaluate-top-block"

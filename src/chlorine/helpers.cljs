@@ -1,6 +1,5 @@
-(ns chlorine.helpers)
-
-(def ^:private CompositeDisposable (.-CompositeDisposable (js/require "atom")))
+(ns chlorine.helpers
+  (:require ["atom" :refer [CompositeDisposable]]))
 
 (def ^:private commands (atom (CompositeDisposable.)))
 
