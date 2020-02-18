@@ -10,10 +10,6 @@
 (defn get-result [editor row]
   (get-in @results [(.-id editor) row :result]))
 
-(defn update-with-result [editor row parsed-ratom]
-  (when (get-in @results [(.-id editor) row :result])
-    (swap! results assoc-in [(.-id editor) row :parsed-ratom] parsed-ratom)))
-
 (defn all-parsed-results []
   (for [[editor-id v] @results
         [row {:keys [parsed-ratom]}] v
@@ -37,11 +33,14 @@
     (r/render [:div [render/view-for-result parsed-ratom]] div)
     div))
 
+(defn update-with-result [editor row parsed-ratom]
+  (when-let [inline-result (get-result editor row)]
+    (swap! results assoc-in [(.-id editor) row :parsed-ratom] parsed-ratom)
+    (let [div (create-div! parsed-ratom)]
+      (.setContent inline-result div #js {:error (-> parsed-ratom meta :error)}))))
+
 (defn inline-result [^js editor row parsed-ratom]
-  (let [div (create-div! parsed-ratom)
-        inline-result ^js (get-result editor row)]
-    (update-with-result editor row parsed-ratom)
-    (.setContent inline-result div #js {:error (-> parsed-ratom meta :error)})))
+  (update-with-result editor row parsed-ratom))
 
 (defn parse-and-inline [editor row parsed-result]
   (let [parse (:parse @state)]
