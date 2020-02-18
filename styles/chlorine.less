@@ -112,6 +112,21 @@ div.chlorine {
   }
 }
 
+div.chlorine.result-overlay {
+  background-color: @syntax-background-color;
+  padding: 0.2em;
+  padding-left: 1em;
+  border-radius: 3px;
+
+  &.result {
+    border-left: 2px solid #0098ff;
+  }
+
+  &.error {
+    border-left: 2px solid #bb0000;
+  }
+}
+
 div.chlorine.console {
   display: block;
   width: 100%;
