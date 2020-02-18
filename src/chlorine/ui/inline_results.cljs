@@ -26,6 +26,13 @@
                     (and div (.isDestroyed result)))]
     (swap! results update editor-id dissoc row)))
 
+(defn clear-results! [^js editor]
+  (doseq [v (get @results (.-id editor))
+          [row {:keys [result div]}] v
+          :when div]
+    (.destroy result)
+    (swap! results update (.-id editor) dissoc row)))
+
 ; TODO: Remove Ink
 (defn ^js new-result [^js editor row]
   (discard-old-results!)
@@ -42,6 +49,7 @@
         div (doto (. js/document createElement "div")
                   (aset "classList" "chlorine result-overlay")
                   (aset "innerHTML" "..."))]
+
     (when-let [result (get-result editor r2)]
       (and (.-isDestroyed result) (.destroy result)))
 
