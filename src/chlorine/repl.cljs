@@ -79,7 +79,9 @@
 
 (defn- create-inline-result! [{:keys [range editor-data]}]
   (when-let [editor (:editor editor-data)]
-    (inline/new-result editor (-> range last first))))
+    (if (-> @state :config :experimental-features (not= true))
+      (inline/new-result editor (-> range last first))
+      (inline/new-inline-result editor range))))
 
 (defn- update-inline-result! [{:keys [range editor-data] :as result}]
   (let [editor (:editor editor-data)
