@@ -71,7 +71,7 @@
 
     (swap! results assoc-in [(.-id editor) r2]
            {:result marker :div div :listener dispose})
-    (. editor decorateMarker marker #js {:type "block" :position "tail" :item div})))
+    (. editor decorateMarker marker #js {:type "block" :position "after" :item div})))
 
 (defn- create-div! [parsed-ratom]
   (let [div (. js/document createElement "div")]
