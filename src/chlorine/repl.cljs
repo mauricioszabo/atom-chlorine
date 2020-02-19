@@ -289,6 +289,9 @@
             (wrap-in-rebl-submit)
             (evaluate-and-present (.-range res)))))
 
+(defn clear-inline! []
+  (inline/clear-results! (atom/current-editor)))
+
 (def exports
   #js {:get_top_block #(get-code "top-block")
        :get_block #(get-code "block")
