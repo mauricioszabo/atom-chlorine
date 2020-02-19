@@ -42,6 +42,24 @@ div.chlorine.result {
   }
 }
 
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.chlorine.icon.loading {
+  white-space: pre;
+  font-family: 'Octicons Regular';
+  opacity: 0.7;
+  animation: spin 4s linear infinite;
+
+  &:before {
+    content: "\f02f";
+    margin: 0 auto;
+  }
+}
+
 .chlorine.result {
   white-space: pre;
 
@@ -117,6 +135,10 @@ div.chlorine.result-overlay {
   padding: 0.2em;
   padding-left: 1em;
   border-radius: 3px;
+  overflow-x: auto;
+  a {
+    color: @text-color-subtle
+  }
 
   &.result {
     border-left: 2px solid #0098ff;
@@ -124,6 +146,11 @@ div.chlorine.result-overlay {
 
   &.error {
     border-left: 2px solid #bb0000;
+  }
+
+  div {
+    display: flex;
+    flex-direction: row;
   }
 }
 
