@@ -6,6 +6,10 @@
 
 (defonce ink (atom nil))
 
+; FORMAT:
+; {<editor-id> {<row> {:result <marker-or-ink>
+;                      :div <div>
+;                      :parsed-ratom <ratom>}}}
 (defonce results (atom {}))
 
 (defn get-result [editor row]
@@ -20,17 +24,20 @@
 
 (defn- discard-old-results! []
   (doseq [[editor-id v] @results
-          [row {:keys [result div]}] v
+          [row {:keys [result div listener]}] v
           ; TODO: Feature toggle
           :when (or (and (not div) (not (some-> result .-view .-view .-isConnected)))
                     (and div (.isDestroyed result)))]
+    ; TODO: Remove Ink, this will be default
+    (when div
+      (.dispose listener))
     (swap! results update editor-id dissoc row)))
 
 (defn clear-results! [^js editor]
-  (doseq [v (get @results (.-id editor))
-          [row {:keys [result div]}] v
+  (doseq [[row {:keys [result div]}] (get @results (.-id editor))
           :when div]
     (.destroy result)
+    (.dispose (get-in @results [(.-id editor) row :listener]))
     (swap! results update (.-id editor) dissoc row)))
 
 ; TODO: Remove Ink
@@ -41,6 +48,13 @@
       (swap! results assoc-in [(.-id editor) row :result] result)
       result)))
 
+(defn- update-marker-on-result! [^js change ^js editor]
+  (let [old (dec (.. change -oldTailBufferPosition -row))
+        new (dec (.. change -newTailBufferPosition -row))]
+    (prn :REALLY-NEW)
+    (swap! results update (.-id editor)
+           #(-> % (assoc new (get % old)) (dissoc old)))))
+
 (defn ^js new-inline-result [^js editor [[r1 c1] [r2 c2]]]
   (discard-old-results!)
   (let [marker (. editor markBufferRange
@@ -48,12 +62,16 @@
                  #js {:invalidate "inside"})
         div (doto (. js/document createElement "div")
                   (aset "classList" "chlorine result-overlay")
-                  (aset "innerHTML" "..."))]
+                  (aset "innerHTML" "<div><span class='chlorine icon loading'></span></div>"))
+        dispose (.onDidChange marker #(update-marker-on-result! % editor))
+        result (get-result editor r2)]
+    ; TODO: Remove ink, this will be default
+    (when (and result (.-isDestroyed result))
+      (.destroy result)
+      (.dispose (get-in @results [(.-id editor) r2 :listener])))
 
-    (when-let [result (get-result editor r2)]
-      (and (.-isDestroyed result) (.destroy result)))
-
-    (swap! results assoc-in [(.-id editor) r2] {:result marker :div div})
+    (swap! results assoc-in [(.-id editor) r2]
+           {:result marker :div div :listener dispose})
     (. editor decorateMarker marker #js {:type "block" :position "tail" :item div})))
 
 (defn- create-div! [parsed-ratom]
