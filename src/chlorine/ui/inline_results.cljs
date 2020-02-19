@@ -51,7 +51,6 @@
 (defn- update-marker-on-result! [^js change ^js editor]
   (let [old (dec (.. change -oldTailBufferPosition -row))
         new (dec (.. change -newTailBufferPosition -row))]
-    (prn :REALLY-NEW)
     (swap! results update (.-id editor)
            #(-> % (assoc new (get % old)) (dissoc old)))))
 
