@@ -5,14 +5,15 @@
 
 (defonce ink (atom nil))
 
+; FORMAT:
+; {<editor-id> {<row> {:result <marker-or-ink>
+;                      :div <div>
+;                      :parsed-ratom <ratom>}}}
 (defonce results (atom {}))
 
 (defn get-result [editor row]
+  ; TODO: Remove this, use only div maybe?
   (get-in @results [(.-id editor) row :result]))
-
-(defn update-with-result [editor row parsed-ratom]
-  (when (get-in @results [(.-id editor) row :result])
-    (swap! results assoc-in [(.-id editor) row :parsed-ratom] parsed-ratom)))
 
 (defn all-parsed-results []
   (for [[editor-id v] @results
@@ -20,28 +21,82 @@
         :when parsed-ratom]
     parsed-ratom))
 
+(defn- discard-old-results! []
+  (doseq [[editor-id v] @results
+          [row {:keys [result div listener]}] v
+          ; TODO: Feature toggle
+          :when (or (and (not div) (not (some-> result .-view .-view .-isConnected)))
+                    (and div (.-isDestroyed result)))]
+    ; TODO: Remove Ink, this will be default
+    (when div
+      (.dispose listener))
+    (swap! results update editor-id dissoc row)))
+
+(defn clear-results! [^js editor]
+  (doseq [[row {:keys [result div]}] (get @results (.-id editor))
+          :when div]
+    (.destroy result)
+    (.dispose (get-in @results [(.-id editor) row :listener]))
+    (swap! results update (.-id editor) dissoc row)))
+
+; TODO: Remove Ink
 (defn ^js new-result [^js editor row]
+  (discard-old-results!)
   (when-let [InkResult (some-> ^js @ink .-Result)]
     (let [result (InkResult. editor #js [row row] #js {:type "block"})]
-      (doseq [[editor-id v] @results
-              [row {:keys [result]}] v
-              :when (not (some-> result .-view .-view .-isConnected))]
-        (swap! results update editor-id dissoc row))
       (swap! results assoc-in [(.-id editor) row :result] result)
       result)))
 
+(defn- update-marker-on-result! [^js change ^js editor]
+  (let [old (.. change -oldHeadBufferPosition -row)
+        new (.. change -newHeadBufferPosition -row)]
+    (swap! results update (.-id editor)
+           #(-> % (assoc new (get % old)) (dissoc old)))))
+
+(defn ^js new-inline-result [^js editor [[r1 c1] [r2 c2]]]
+  (discard-old-results!)
+  (let [marker (. editor markBufferRange
+                 (clj->js [[r1 c1] [r2 c2]])
+                 #js {:invalidate "inside"})
+        div (doto (. js/document createElement "div")
+                  (aset "classList" "chlorine result-overlay")
+                  (aset "innerHTML" "<div><span class='chlorine icon loading'></span></div>"))
+        dispose (.onDidChange marker #(update-marker-on-result! % editor))
+        result (get-result editor r2)]
+    ; TODO: Remove ink, this will be default
+    (when (and result (.-isDestroyed result))
+      (.destroy result)
+      (.dispose (get-in @results [(.-id editor) r2 :listener])))
+
+    (swap! results assoc-in [(.-id editor) r2]
+           {:result marker :div div :listener dispose})
+    (. editor decorateMarker marker #js {:type "block" :position "after" :item div})))
+
 (defn- create-div! [parsed-ratom]
   (let [div (. js/document createElement "div")]
+    (aset div "classList" "chlorine result-overlay")
     (when (-> parsed-ratom meta :error) (.. div -classList (add "error")))
     (.. div -classList (add "result" "chlorine"))
     (r/render [:div [render/view-for-result parsed-ratom]] div)
     div))
 
+(defn- get-or-create-div! [editor row parsed-ratom]
+  (let [div (or (get-in @results [(.-id editor) row :div])
+                (. js/document createElement "div"))]
+    (when (-> parsed-ratom meta :error) (.. div -classList (add "error")))
+    (.. div -classList (add "result"))
+    (r/render [:div [render/view-for-result parsed-ratom]] div)
+    div))
+
+(defn update-with-result [editor row parsed-ratom]
+  (when-let [inline-result ^js (get-result editor row)]
+    (swap! results assoc-in [(.-id editor) row :parsed-ratom] parsed-ratom)
+    (let [div (get-or-create-div! editor row parsed-ratom)]
+      (when (.-setContent inline-result)
+        (.setContent inline-result div #js {:error (-> parsed-ratom meta :error)})))))
+
 (defn inline-result [^js editor row parsed-ratom]
-  (let [div (create-div! parsed-ratom)
-        inline-result ^js (get-result editor row)]
-    (update-with-result editor row parsed-ratom)
-    (.setContent inline-result div #js {:error (-> parsed-ratom meta :error)})))
+  (update-with-result editor row parsed-ratom))
 
 (defn parse-and-inline [editor row parsed-result]
   (let [parse (:parse @state)]

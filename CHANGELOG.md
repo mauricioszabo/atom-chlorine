@@ -6,6 +6,12 @@
 * Auto-import
 * Clean unused imports
 
+### NEXT
+- Autocomplete for Babashka
+
+#### Experimental features
+- Dropping Ink dependency
+
 ### 0.4.6
 - Changed the detection of blocks (will consider the parens the cursor is in as the "block")
 - Fixed https://github.com/mauricioszabo/atom-chlorine/issues/150

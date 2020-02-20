@@ -26,7 +26,7 @@
   (fn []
     (clj->js {:connect-clojure-socket-repl conn/connect-socket!
               :connect-socket-repl conn/connect-socket!
-              ; :doc-for-var doc/doc
+              :clear-inline-results repl/clear-inline!
               :source-for-var repl/source-for-var!
               :clear-console console/clear
 
