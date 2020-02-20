@@ -27,7 +27,7 @@
           [row {:keys [result div listener]}] v
           ; TODO: Feature toggle
           :when (or (and (not div) (not (some-> result .-view .-view .-isConnected)))
-                    (and div (.isDestroyed result)))]
+                    (and div (.-isDestroyed result)))]
     ; TODO: Remove Ink, this will be default
     (when div
       (.dispose listener))
