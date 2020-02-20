@@ -49,15 +49,15 @@
       result)))
 
 (defn- update-marker-on-result! [^js change ^js editor]
-  (let [old (dec (.. change -oldTailBufferPosition -row))
-        new (dec (.. change -newTailBufferPosition -row))]
+  (let [old (.. change -oldHeadBufferPosition -row)
+        new (.. change -newHeadBufferPosition -row)]
     (swap! results update (.-id editor)
            #(-> % (assoc new (get % old)) (dissoc old)))))
 
 (defn ^js new-inline-result [^js editor [[r1 c1] [r2 c2]]]
   (discard-old-results!)
   (let [marker (. editor markBufferRange
-                 (clj->js [[(inc r1) (inc c1)] [(inc r2) (inc c2)]])
+                 (clj->js [[r1 c1] [r2 c2]])
                  #js {:invalidate "inside"})
         div (doto (. js/document createElement "div")
                   (aset "classList" "chlorine result-overlay")
