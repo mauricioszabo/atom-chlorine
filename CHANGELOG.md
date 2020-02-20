@@ -6,7 +6,7 @@
 * Auto-import
 * Clean unused imports
 
-### NEXT
+### 0.4.7
 - Autocomplete for Babashka
 
 #### Experimental features
