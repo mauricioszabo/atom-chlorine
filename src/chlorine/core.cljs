@@ -27,7 +27,6 @@
     (clj->js {:connect-clojure-socket-repl conn/connect-socket!
               :connect-socket-repl conn/connect-socket!
               :clear-inline-results repl/clear-inline!
-              ; :doc-for-var doc/doc
               :source-for-var repl/source-for-var!
               :clear-console console/clear
 
