@@ -1,6 +1,5 @@
 (ns chlorine.ui.inline-results
   (:require [reagent.core :as r]
-            [chlorine.ui.atom :as atom]
             [repl-tooling.editor-integration.renderer :as render]
             [chlorine.state :refer [state]]))
 
