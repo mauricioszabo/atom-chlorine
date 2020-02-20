@@ -90,7 +90,7 @@
     div))
 
 (defn update-with-result [editor row parsed-ratom]
-  (when-let [inline-result (get-result editor row)]
+  (when-let [inline-result ^js (get-result editor row)]
     (swap! results assoc-in [(.-id editor) row :parsed-ratom] parsed-ratom)
     (let [div (get-or-create-div! editor row parsed-ratom)]
       (when (.-setContent inline-result)
