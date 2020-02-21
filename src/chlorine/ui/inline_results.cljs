@@ -26,8 +26,10 @@
   (doseq [[editor-id v] @results
           [row {:keys [result div listener]}] v
           ; TODO: Feature toggle
+          :let [_ (prn :DEST? (.-isDestroyed ^js result) div)]
           :when (or (and (not div) (not (some-> result .-view .-view .-isConnected)))
-                    (and div (.isDestroyed ^js result)))]
+                    (and (.-isDestroyed ^js result) (or (= true (.-isDestroyed ^js result))
+                                                        (.isDestroyed ^js result))))]
     ; TODO: Remove Ink, this will be default
     (when div
       (.dispose ^js listener))
@@ -73,17 +75,13 @@
     (swap! atom-results update (.-id editor) conj {:result marker :listener dispose})
     (. editor decorateMarker marker #js {:type "block" :position "after" :item div})))
 
-(defn- create-div! [parsed-ratom]
-  (let [div (. js/document createElement "div")]
-    (aset div "classList" "chlorine result-overlay")
-    (when (-> parsed-ratom meta :error) (.. div -classList (add "error")))
-    (.. div -classList (add "result" "chlorine"))
-    (r/render [:div [render/view-for-result parsed-ratom]] div)
-    div))
+(defn- create-div! []
+  (doto (. js/document createElement "div")
+    (.. -classList (add "result" "chlorine"))))
 
 (defn- get-or-create-div! [editor row parsed-ratom]
   (let [div (or (get-in @results [(.-id editor) row :div])
-                (. js/document createElement "div"))]
+                (create-div!))]
     (when (-> parsed-ratom meta :error) (.. div -classList (add "error")))
     (.. div -classList (add "result"))
     (r/render [:div [render/view-for-result parsed-ratom]] div)

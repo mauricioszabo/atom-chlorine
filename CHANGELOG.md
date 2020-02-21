@@ -6,6 +6,9 @@
 * Auto-import
 * Clean unused imports
 
+### 0.4.9
+- Fix for CSS of Ink inline results, and some edge-cases that could throw exceptions
+
 ### 0.4.7
 - Autocomplete for Babashka
 
