@@ -22,14 +22,17 @@
         :when parsed-ratom]
     parsed-ratom))
 
+(defn- destroyed? [^js result]
+  (and (some-> result .-isDestroyed)
+       (or (= true (.-isDestroyed result))
+           (.isDestroyed result))))
+
 (defn- discard-old-results! []
   (doseq [[editor-id v] @results
           [row {:keys [result div listener]}] v
           ; TODO: Feature toggle
-          :let [_ (prn :DEST? (.-isDestroyed ^js result) div)]
           :when (or (and (not div) (not (some-> result .-view .-view .-isConnected)))
-                    (and (.-isDestroyed ^js result) (or (= true (.-isDestroyed ^js result))
-                                                        (.isDestroyed ^js result))))]
+                    (destroyed? result))]
     ; TODO: Remove Ink, this will be default
     (when div
       (.dispose ^js listener))
@@ -66,7 +69,7 @@
         dispose (.onDidChange marker #(update-marker-on-result! % editor))
         result (get-result editor r2)]
     ; TODO: Remove ink, this will be default
-    (when (and result (.-isDestroyed result))
+    (when (destroyed? result)
       (.destroy result)
       (.dispose (get-in @results [(.-id editor) r2 :listener])))
 

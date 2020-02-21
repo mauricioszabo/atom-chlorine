@@ -6,6 +6,9 @@
 * Auto-import
 * Clean unused imports
 
+### 0.4.10
+- Fixes https://github.com/mauricioszabo/atom-chlorine/issues/156
+
 ### 0.4.9
 - Fix for CSS of Ink inline results, and some edge-cases that could throw exceptions
 
