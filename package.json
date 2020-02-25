@@ -1,9 +1,20 @@
 {
   "name": "chlorine",
   "main": "./lib/main",
-  "version": "0.4.10",
+  "version": "0.4.11",
   "description": "Socket REPL client for Clojure and ClojureScript",
-  "keywords": [],
+  "keywords": [
+    "clojure",
+    "clojurescript",
+    "clojureclr",
+    "clojerl",
+    "babashka",
+    "lumo",
+    "plank",
+    "joker",
+    "repl",
+    "interactive"
+  ],
   "repository": "https://github.com/mauricioszabo/atom-chlorine",
   "license": "MIT",
   "engines": {
