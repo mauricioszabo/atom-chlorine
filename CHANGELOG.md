@@ -6,6 +6,9 @@
 * Auto-import
 * Clean unused imports
 
+### 0.4.12
+- Redirecting `*test-out*` to the right output
+
 ### 0.4.11
 - Fixes "Attempting to call unbound fn: #'unrepl.core/write" (https://github.com/mauricioszabo/atom-chlorine/issues/158)
 
