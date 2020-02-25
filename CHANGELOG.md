@@ -6,6 +6,9 @@
 * Auto-import
 * Clean unused imports
 
+### 0.4.11
+- Fixes "Attempting to call unbound fn: #'unrepl.core/write" (https://github.com/mauricioszabo/atom-chlorine/issues/158)
+
 ### 0.4.10
 - Fixes https://github.com/mauricioszabo/atom-chlorine/issues/156
 
