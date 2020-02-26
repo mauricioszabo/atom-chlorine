@@ -27,11 +27,7 @@
     (clj->js {:connect-clojure-socket-repl conn/connect-socket!
               :connect-socket-repl conn/connect-socket!
               :clear-inline-results repl/clear-inline!
-              :source-for-var repl/source-for-var!
               :clear-console console/clear
-
-              :run-tests-in-ns repl/run-tests-in-ns!
-              :run-test-for-var repl/run-test-at-cursor!
 
               :inspect-block repl/inspect-block!
               :inspect-top-block repl/inspect-top-block!
