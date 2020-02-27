@@ -43,7 +43,7 @@
                                (decide-command k command)))]]
     (.add ^js @commands-subs disp)))
 
-(s/defn ^:private get-editor-data :- schemas/EditorData []
+(s/defn get-editor-data :- schemas/EditorData []
   (when-let [editor (atom/current-editor)]
     (let [range (.getSelectedBufferRange editor)
           start (.-start range)
