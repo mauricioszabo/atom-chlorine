@@ -1,6 +1,8 @@
 (ns chlorine.features.refresh
   (:require [chlorine.state :refer [state]]
             [chlorine.ui.atom :as atom]
+            [chlorine.ui.console :as console]
+            [repl-tooling.editor-helpers :as helpers]
             [chlorine.repl :as repl]))
 
 (defn full-command []
@@ -24,18 +26,26 @@
 
 (defn- refresh-editor [editor mode]
   (when-not (repl/need-cljs? editor)
-    (let [ns-name (repl/ns-for editor)
+    (let [evaluate (-> @state :tooling-state deref :editor/features :eval)
+          editor-data (repl/get-editor-data)
+          [_ ns-name] (helpers/ns-range-for (:contents editor-data)
+                                            (-> editor-data :range first))
           code (if (= :simple mode)
                  (str "(do (require '[" ns-name " :reload :all]) :ok)")
                  (full-command))]
-      (repl/evaluate-aux editor ns-name nil nil nil code
-                         #(if (-> % :result (= :ok))
-                            (do
-                              (swap! state assoc-in [:refresh :needs-clear?] false)
-                              (atom/info "Refresh Successful" ""))
-                            (do
-                              (swap! state assoc-in [:refresh :needs-clear?] true)
-                              (atom/warn "Failed to refresh" (:error %))))))))
+      (.. (evaluate code {})
+          (then #(if (-> % :result (= :ok))
+                   (do
+                     (swap! state assoc-in [:refresh :needs-clear?] false)
+                     (atom/info "Refresh Successful" ""))
+                   (do
+                     (swap! state assoc-in [:refresh :needs-clear?] true)
+                     (atom/warn "Failed to refresh" (:result %)))))
+          (catch (fn [result]
+                   (swap! state assoc-in [:refresh :needs-clear?] true)
+                   (console/result {:id (gensym "refresh")
+                                    :editor-data editor-data
+                                    :result result})))))))
 
 (defn run-refresh! []
   (refresh-editor (.. js/atom -workspace getActiveTextEditor)
