@@ -1,6 +1,7 @@
 (ns chlorine.features.code
   (:require [chlorine.ui.atom :as atom]
             [chlorine.repl :as repl]
+            [repl-tooling.editor-helpers :as helpers]
             [chlorine.state :as state]
             [repl-tooling.features.definition :as definition]
             [repl-tooling.editor-integration.evaluation :as e-eval]))
@@ -22,15 +23,12 @@
     (.. js/atom -workspace (open file-name #js {:initialLine line}))))
 
 (defn goto-var []
-  (let [editor (atom/current-editor)
-        var (atom/current-var editor)
-        namespace (repl/ns-for editor)
+  (let [{:keys [contents range editor filename]} (repl/get-editor-data)
+        [_ var] (helpers/current-var contents (first range))
+        [_ namespace] (helpers/ns-range-for contents (first range))
         st (:tooling-state @state/state)
         aux (:clj/aux @st)
-        repl (e-eval/repl-for (:editor/callbacks @st)
-                              st
-                              (.getPath editor)
-                              true)]
+        repl (e-eval/repl-for (:editor/callbacks @st) st filename false)]
     (when-not
       (some-> repl (definition/find-var-definition aux namespace var)
               (.then (fn [info]
