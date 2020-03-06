@@ -9,7 +9,6 @@
             [repl-tooling.editor-integration.evaluation :as e-eval]
             ["atom" :refer [CompositeDisposable]]
             [repl-tooling.editor-integration.schemas :as schemas]
-            [chlorine.features.code :as code]
             [schema.core :as s]))
 
 (defonce ^:private commands-subs (atom (CompositeDisposable.)))
@@ -101,6 +100,22 @@
                              .getDirectories
                              (map #(.getPath ^js %)))))
 
+(defn- open-ro-editor [file-name line contents]
+  (.. js/atom
+      -workspace
+      (open file-name #js {:initialLine line})
+      (then #(doto ^js %
+                   (aset "isModified" (constantly false))
+                   (aset "save" (fn [ & _] (atom/warn "Can't save readonly editor" "")))
+                   (.setText contents)
+                   (.setReadOnly true)
+                   (.setCursorBufferPosition #js [line 0])))))
+
+(defn- open-editor [{:keys [file-name line contents]}]
+  (if contents
+    (open-ro-editor file-name line contents)
+    (.. js/atom -workspace (open file-name #js {:initialLine line}))))
+
 (defn connect-socket! [host port]
   (let [p (connection/connect!
            host port
@@ -117,7 +132,7 @@
                                                 (map second)))
             :on-copy on-copy!
             :editor-data get-editor-data
-            :open-editor code/open-editor
+            :open-editor open-editor
             :get-config get-config
             :notify notify!
             :prompt prompt!})]

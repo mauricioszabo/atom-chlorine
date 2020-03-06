@@ -40,7 +40,12 @@
                      (atom/info "Refresh Successful" ""))
                    (do
                      (swap! state assoc-in [:refresh :needs-clear?] true)
-                     (atom/warn "Failed to refresh" (:result %)))))
+                     (atom/warn "Failed to refresh" nil)
+                     (console/result {:id (gensym "refresh")
+                                      :editor-data editor-data
+                                      :result (-> %
+                                                  (dissoc :result)
+                                                  (assoc :error (:result %)))}))))
           (catch (fn [result]
                    (swap! state assoc-in [:refresh :needs-clear?] true)
                    (console/result {:id (gensym "refresh")
