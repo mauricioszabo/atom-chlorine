@@ -34,8 +34,6 @@
               :refresh-namespaces refresh/run-refresh!
               :toggle-refresh-mode refresh/toggle-refresh})))
 
-              ; :go-to-var-definition code/goto-var})))
-
 (def aux #js {:deps install-dependencies-maybe
               :reload aux/reload-subscriptions!
               :observe_editor observe-editors
