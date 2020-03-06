@@ -9,6 +9,7 @@
             [repl-tooling.editor-integration.evaluation :as e-eval]
             ["atom" :refer [CompositeDisposable]]
             [repl-tooling.editor-integration.schemas :as schemas]
+            [chlorine.features.code :as code]
             [schema.core :as s]))
 
 (defonce ^:private commands-subs (atom (CompositeDisposable.)))
@@ -105,7 +106,6 @@
            host port
            {:on-stdout console/stdout
             :on-stderr console/stderr
-            ; :on-result console/result
             :on-disconnect handle-disconnect!
             :on-start-eval create-inline-result!
             :on-eval (fn [res]
@@ -117,6 +117,7 @@
                                                 (map second)))
             :on-copy on-copy!
             :editor-data get-editor-data
+            :open-editor code/open-editor
             :get-config get-config
             :notify notify!
             :prompt prompt!})]
