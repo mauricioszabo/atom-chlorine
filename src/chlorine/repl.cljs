@@ -100,21 +100,23 @@
                              .getDirectories
                              (map #(.getPath ^js %)))))
 
-(defn- open-ro-editor [file-name line contents]
+(defn- open-ro-editor [file-name line col contents]
   (.. js/atom
       -workspace
-      (open file-name #js {:initialLine line})
+      (open file-name #js {:initialLine line
+                           :initialColumn col})
       (then #(doto ^js %
                    (aset "isModified" (constantly false))
                    (aset "save" (fn [ & _] (atom/warn "Can't save readonly editor" "")))
                    (.setText contents)
                    (.setReadOnly true)
-                   (.setCursorBufferPosition #js [line 0])))))
+                   (.setCursorBufferPosition #js [line (or col 0)])))))
 
-(defn- open-editor [{:keys [file-name line contents]}]
+(defn- open-editor [{:keys [file-name line contents column]}]
   (if contents
-    (open-ro-editor file-name line contents)
-    (.. js/atom -workspace (open file-name #js {:initialLine line}))))
+    (open-ro-editor file-name line column contents)
+    (.. js/atom -workspace (open file-name #js {:initialLine line
+                                                :initialColumn column}))))
 
 (defn connect-socket! [host port]
   (let [p (connection/connect!
