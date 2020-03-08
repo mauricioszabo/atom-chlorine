@@ -5,7 +5,6 @@
             [chlorine.features.refresh :as refresh]
             [chlorine.configs :as configs]
             [chlorine.ui.console :as console]
-            [chlorine.features.code :as code]
             [schema.core :as s]))
 
 (def config (configs/get-configs))
@@ -27,19 +26,13 @@
     (clj->js {:connect-clojure-socket-repl conn/connect-socket!
               :connect-socket-repl conn/connect-socket!
               :clear-inline-results repl/clear-inline!
-              :source-for-var repl/source-for-var!
               :clear-console console/clear
-
-              :run-tests-in-ns repl/run-tests-in-ns!
-              :run-test-for-var repl/run-test-at-cursor!
 
               :inspect-block repl/inspect-block!
               :inspect-top-block repl/inspect-top-block!
 
               :refresh-namespaces refresh/run-refresh!
-              :toggle-refresh-mode refresh/toggle-refresh
-
-              :go-to-var-definition code/goto-var})))
+              :toggle-refresh-mode refresh/toggle-refresh})))
 
 (def aux #js {:deps install-dependencies-maybe
               :reload aux/reload-subscriptions!

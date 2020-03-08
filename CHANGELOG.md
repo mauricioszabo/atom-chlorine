@@ -6,6 +6,12 @@
 * Auto-import
 * Clean unused imports
 
+### 0.4.13
+- When refresh fails, show the stacktrace on the console
+- Clickable stacktraces for Clojure and Shadow-CLJS
+- Stacktraces on ClojureScript will use source-maps to parse their errors
+- Experimental features fix: don't generate two inline results for the same line
+
 ### 0.4.12
 - Redirecting `*test-out*` to the right output
 

@@ -73,6 +73,10 @@
       (.destroy result)
       (.dispose (get-in @results [(.-id editor) r2 :listener])))
 
+    ; TODO: After removing ink, this `when` will always be true
+    (when (->> result str (re-find #"^\[Marker"))
+      (some-> result .destroy))
+
     (swap! results assoc-in [(.-id editor) r2]
            {:result marker :div div :listener dispose})
     (swap! atom-results update (.-id editor) conj {:result marker :listener dispose})

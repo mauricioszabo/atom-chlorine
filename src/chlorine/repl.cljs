@@ -43,7 +43,7 @@
                                (decide-command k command)))]]
     (.add ^js @commands-subs disp)))
 
-(s/defn ^:private get-editor-data :- schemas/EditorData []
+(s/defn get-editor-data :- schemas/EditorData []
   (when-let [editor (atom/current-editor)]
     (let [range (.getSelectedBufferRange editor)
           start (.-start range)
@@ -100,12 +100,29 @@
                              .getDirectories
                              (map #(.getPath ^js %)))))
 
+(defn- open-ro-editor [file-name line col contents]
+  (.. js/atom
+      -workspace
+      (open file-name #js {:initialLine line
+                           :initialColumn col})
+      (then #(doto ^js %
+                   (aset "isModified" (constantly false))
+                   (aset "save" (fn [ & _] (atom/warn "Can't save readonly editor" "")))
+                   (.setText contents)
+                   (.setReadOnly true)
+                   (.setCursorBufferPosition #js [line (or col 0)])))))
+
+(defn- open-editor [{:keys [file-name line contents column]}]
+  (if contents
+    (open-ro-editor file-name line column contents)
+    (.. js/atom -workspace (open file-name #js {:initialLine line
+                                                :initialColumn column}))))
+
 (defn connect-socket! [host port]
   (let [p (connection/connect!
            host port
            {:on-stdout console/stdout
             :on-stderr console/stderr
-            ; :on-result console/result
             :on-disconnect handle-disconnect!
             :on-start-eval create-inline-result!
             :on-eval (fn [res]
@@ -117,6 +134,7 @@
                                                 (map second)))
             :on-copy on-copy!
             :editor-data get-editor-data
+            :open-editor open-editor
             :get-config get-config
             :notify notify!
             :prompt prompt!})]
@@ -163,85 +181,6 @@
                             {:namespace ns-name :row row :col col :filename filename
                              :pass opts}
                             #(-> % helpers/parse-result callback))))))
-
-(defn eval-and-present
-  ([^js editor ns-name filename ^js range code]
-   (eval-and-present editor ns-name filename range code {}))
-  ([^js editor ns-name filename ^js range code opts]
-   (let [row (.. range -start -row)
-         col (.. range -start -column)
-         result (inline/new-result editor (.. range -end -row))]
-
-     (if (need-cljs? editor)
-       (eval-cljs editor ns-name filename row col code result opts
-                  #(inline/parse-and-inline editor (.. range -end -row) %))
-       (some-> @state :tooling-state deref :clj/repl
-               (eval/evaluate code
-                              {:namespace ns-name :row row :col col :filename filename
-                               :pass opts}
-                              #(inline/parse-and-inline editor (.. range -end -row) %)))))))
-
-; FIXME: Remove this
-(def ^:private EditorUtils (js/require "./editor-utils"))
-; FIXME: Remove this
-(defn ns-for [^js editor]
-  (.. EditorUtils (findNsDeclaration editor)))
-
-(defn run-tests-in-ns! []
-  (let [editor (atom/current-editor)
-        pos (.getCursorBufferPosition editor)]
-    (evaluate-aux editor
-                  (ns-for editor)
-                  (.getFileName editor)
-                  (.. pos -row)
-                  (.. pos -column)
-                  "(clojure.test/run-tests)"
-                  #(let [{:keys [test pass fail error]} (:result %)]
-                     (atom/info "(clojure.test/run-tests)"
-                                (str "Ran " test " test"
-                                     (when-not (= 1 test) "s")
-                                     (when-not (zero? pass)
-                                       (str ", " pass " assertion"
-                                            (when-not (= 1 pass) "s")
-                                            " passed"))
-                                     (when-not (zero? fail)
-                                       (str ", " fail " failed"))
-                                     (when-not (zero? error)
-                                       (str ", " error " errored"))
-                                     "."))))))
-
-(defn run-test-at-cursor! []
-  (let [editor (atom/current-editor)
-        pos  (.getCursorBufferPosition editor)
-        s    (atom/current-var editor)
-        code (str "(do"
-                  " (clojure.test/test-vars [#'" s "])"
-                  " (println \"Tested\" '" s "))")]
-    (evaluate-aux editor
-                  (ns-for editor)
-                  (.getFileName editor)
-                  (.. pos -row)
-                  (.. pos -column)
-                  code
-                  #(atom/info (str "Tested " s)
-                              "See REPL for any failures."))))
-
-(defn source-for-var! []
-  (let [editor (atom/current-editor)
-        pos  (.getCursorBufferPosition editor)
-        s    (atom/current-var editor)
-        code (str "(do"
-                  " (require 'clojure.repl)"
-                  " (clojure.repl/source " s "))")]
-    (if (need-cljs? editor)
-      (atom/warn "Source For Var is only supported for Clojure" "")
-      (evaluate-aux editor
-                    (ns-for editor)
-                    (.getFileName editor)
-                    (.. pos -row)
-                    (.. pos -column)
-                    code
-                    identity))))
 
 (defn- txt-in-range []
   (let [{:keys [contents range]} (get-editor-data)]
