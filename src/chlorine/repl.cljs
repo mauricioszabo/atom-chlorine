@@ -100,11 +100,10 @@
                              .getDirectories
                              (map #(.getPath ^js %)))))
 
-(defn- open-ro-editor [file-name line col contents]
+(defn- open-ro-editor [file-name line col position contents]
   (.. js/atom
       -workspace
-      (open file-name #js {:initialLine line
-                           :initialColumn col})
+      (open file-name position)
       (then #(doto ^js %
                    (aset "isModified" (constantly false))
                    (aset "save" (fn [ & _] (atom/warn "Can't save readonly editor" "")))
@@ -113,10 +112,11 @@
                    (.setCursorBufferPosition #js [line (or col 0)])))))
 
 (defn- open-editor [{:keys [file-name line contents column]}]
-  (if contents
-    (open-ro-editor file-name line column contents)
-    (.. js/atom -workspace (open file-name #js {:initialLine line
-                                                :initialColumn column}))))
+  (let [position (clj->js (cond-> {:initialLine line}
+                                  column (assoc :initialColumn column)))]
+    (if contents
+      (open-ro-editor file-name line column position contents)
+      (.. js/atom -workspace (open file-name position)))))
 
 (defn connect-socket! [host port]
   (let [p (connection/connect!
