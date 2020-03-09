@@ -6,6 +6,9 @@
 * Auto-import
 * Clean unused imports
 
+### 0.4.14
+- First try to fix opening an empty editor on MacOSX
+
 ### 0.4.13
 - When refresh fails, show the stacktrace on the console
 - Clickable stacktraces for Clojure and Shadow-CLJS
