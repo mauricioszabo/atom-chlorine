@@ -1,5 +1,5 @@
 (ns chlorine.ui.inline-results
-  (:require [reagent.core :as r]
+  (:require [reagent.dom :as rdom]
             [repl-tooling.editor-integration.renderer :as render]
             [chlorine.state :refer [state]]))
 
@@ -91,7 +91,7 @@
                 (create-div!))]
     (when (-> parsed-ratom meta :error) (.. div -classList (add "error")))
     (.. div -classList (add "result"))
-    (r/render [:div [render/view-for-result parsed-ratom]] div)
+    (rdom/render [:div [render/view-for-result parsed-ratom]] div)
     div))
 
 (defn update-with-result [editor row parsed-ratom]

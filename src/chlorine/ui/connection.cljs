@@ -1,5 +1,6 @@
 (ns chlorine.ui.connection
   (:require [reagent.core :as r]
+            [reagent.dom :as rdom]
             [chlorine.repl :as repl]
             [chlorine.state :refer [state]]
             [chlorine.ui.atom :as atom]
@@ -49,7 +50,7 @@
                       (str "/.shadow-cljs/socket-repl.port"))]
     (when (existsSync port-file)
       (swap! local-state assoc :port (-> port-file readFileSync .toString int)))
-    (r/render [view] div)
+    (rdom/render [view] div)
     (aux/save-focus! div)
     (doseq [elem (-> div (.querySelectorAll "input") as-clj)]
       (aset elem "onkeydown" (partial treat-key cmd panel)))))
