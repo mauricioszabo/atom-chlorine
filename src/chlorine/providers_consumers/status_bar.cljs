@@ -1,5 +1,5 @@
 (ns chlorine.providers-consumers.status-bar
-  (:require [reagent.core :as r]
+  (:require [reagent.dom :as rdom]
             [chlorine.state :refer [state]]))
 
 (defonce status-bar (atom nil))
@@ -26,4 +26,4 @@
     (.. div -classList (add "inline-block" "chlorine"))
     (reset! status-bar-tile (. ^js @status-bar
                               (addRightTile #js {:item div :priority 101})))
-    (r/render [view] div)))
+    (rdom/render [view] div)))

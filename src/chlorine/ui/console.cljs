@@ -1,5 +1,6 @@
 (ns chlorine.ui.console
   (:require [reagent.core :as r]
+            [reagent.dom :as rdom]
             [chlorine.utils :as aux]
             [repl-tooling.editor-integration.renderer :as render]
             [chlorine.state :refer [state]]
@@ -72,9 +73,9 @@
 
 (defn register-console! [^js subs]
   (let [scrolled? (atom true)]
-    (r/render [(with-meta console-view
-                 {:component-will-update #(reset! scrolled? (all-scrolled?))
-                  :component-did-update #(scroll-to-end! scrolled?)})]
+    (rdom/render [(with-meta console-view
+                    {:component-will-update #(reset! scrolled? (all-scrolled?))
+                     :component-did-update #(scroll-to-end! scrolled?)})]
               div))
   (.add subs
         (.. js/atom -workspace
