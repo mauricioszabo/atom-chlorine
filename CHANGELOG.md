@@ -6,6 +6,9 @@
 * Auto-import
 * Clean unused imports
 
+### 0.4.15
+- Fixed issue with GOTO Var Definition when the current file's full path is too long.
+
 ### 0.4.14
 - First try to fix opening an empty editor on MacOSX
 
