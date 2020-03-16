@@ -6,6 +6,9 @@
 * Auto-import
 * Clean unused imports
 
+### 0.4.16
+- Fixed connection with Babashka
+
 ### 0.4.15
 - Fixed issue with GOTO Var Definition when the current file's full path is too long.
 
