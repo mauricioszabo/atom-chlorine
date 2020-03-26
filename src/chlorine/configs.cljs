@@ -2,7 +2,7 @@
   (:require [chlorine.state :refer [configs state]]
             [clojure.walk :as walk]
             [chlorine.utils :as aux]
-            [check.core :refer-macros [check]]
+            ; [check.core :refer-macros [check]]
             [clojure.test]))
 
 (defn- propagate-to-config [new-value]
@@ -30,16 +30,16 @@
                                       :default (:default v)}
                                      (vector? (:type v)) (assoc :enum (:type v)))]))
          (into {}))))
-
-(when aux/TESTS
-  (check (transform-config {:foo {:type [:a :b] :default :a
-                                  :description "Some Foo"}})
-         => {:foo {:type :string :enum [:a :b] :default :a
-                             :title "Some Foo"}})
-
-  (check (transform-config {:bar {:type :boolean :default false :description "BAR"}})
-         => {:bar {:type :boolean :default false :title "BAR"}}))
-
+;
+; (when aux/TESTS
+;   (check (transform-config {:foo {:type [:a :b] :default :a
+;                                   :description "Some Foo"}})
+;          => {:foo {:type :string :enum [:a :b] :default :a
+;                              :title "Some Foo"}})
+;
+;   (check (transform-config {:bar {:type :boolean :default false :description "BAR"}})
+;          => {:bar {:type :boolean :default false :title "BAR"}}))
+;
 (defn get-configs []
   (-> configs
       transform-config
