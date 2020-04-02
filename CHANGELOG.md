@@ -6,6 +6,9 @@
 * Auto-import
 * Clean unused imports
 
+### 0.5.0
+- Alpha support for nREPL
+
 ### 0.4.16
 - Fixed connection with Babashka
 
