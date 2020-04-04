@@ -6,6 +6,10 @@
 * Auto-import
 * Clean unused imports
 
+### 0.5.1
+- Simple fix for nREPL on slower sockets
+- (Possible) load-file fix
+
 ### 0.5.0
 - Alpha support for nREPL
 
