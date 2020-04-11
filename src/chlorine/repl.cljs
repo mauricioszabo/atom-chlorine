@@ -112,7 +112,7 @@
                    (.setCursorBufferPosition #js [line (or col 0)])))))
 
 (defn- open-editor [{:keys [file-name line contents column]}]
-  (let [position (clj->js (cond-> {:initialLine line}
+  (let [position (clj->js (cond-> {:initialLine line :searchAllPanes true}
                                   column (assoc :initialColumn column)))]
     (if contents
       (open-ro-editor file-name line column position contents)
