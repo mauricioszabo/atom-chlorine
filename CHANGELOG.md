@@ -6,6 +6,11 @@
 * Auto-import
 * Clean unused imports
 
+### 0.5.2
+- Faster nREPL messages parsing
+- Load-file now prints the stacktrace when it fails to load
+- Fixed paths on Windows, so goto var definition and clicking on stacktraces will work
+
 ### 0.5.1
 - Simple fix for nREPL on slower sockets
 - (Possible) load-file fix
