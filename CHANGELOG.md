@@ -6,6 +6,9 @@
 * Auto-import
 * Clean unused imports
 
+### 0.5.3
+- Fixed paths on dar*win* systems
+
 ### 0.5.2
 - Faster nREPL messages parsing
 - Load-file now prints the stacktrace when it fails to load
