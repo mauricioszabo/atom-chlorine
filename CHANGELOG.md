@@ -6,6 +6,10 @@
 * Auto-import
 * Clean unused imports
 
+### 0.5.4
+- Loading tests on full refresh
+- Fixed parsing of namespaces with metadata, and quotes (the kind you get when using clj-kondo)
+
 ### 0.5.3
 - Fixed paths on dar*win* systems
 
