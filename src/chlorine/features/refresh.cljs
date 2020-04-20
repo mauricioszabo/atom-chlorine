@@ -10,12 +10,10 @@
     '(do
        (clojure.core/require '[clojure.tools.namespace.repl])
        (clojure.core/require '[clojure.test])
-       (clojure.core/alter-var-root #'clojure.test/*load-tests* (clojure.core/constantly false))
        (clojure.tools.namespace.repl/clear)
        (clojure.tools.namespace.repl/refresh-all))
     '(do
        (clojure.core/require '[clojure.tools.namespace.repl])
-       (clojure.core/alter-var-root #'clojure.test/*load-tests* (clojure.core/constantly false))
        (clojure.tools.namespace.repl/refresh))))
 
 (defn- refresh-editor [editor mode]
