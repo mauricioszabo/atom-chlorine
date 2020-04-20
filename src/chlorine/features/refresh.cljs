@@ -10,19 +10,13 @@
     '(do
        (clojure.core/require '[clojure.tools.namespace.repl])
        (clojure.core/require '[clojure.test])
-       (try
-         (clojure.core/alter-var-root #'clojure.test/*load-tests* (clojure.core/constantly false))
-         (clojure.tools.namespace.repl/clear)
-         (clojure.tools.namespace.repl/refresh-all)
-         (finally
-           (clojure.core/alter-var-root #'clojure.test/*load-tests* (clojure.core/constantly true)))))
+       (clojure.core/alter-var-root #'clojure.test/*load-tests* (clojure.core/constantly false))
+       (clojure.tools.namespace.repl/clear)
+       (clojure.tools.namespace.repl/refresh-all))
     '(do
        (clojure.core/require '[clojure.tools.namespace.repl])
-       (try
-         (clojure.core/alter-var-root #'clojure.test/*load-tests* (clojure.core/constantly false))
-         (clojure.tools.namespace.repl/refresh)
-         (finally
-           (clojure.core/alter-var-root #'clojure.test/*load-tests* (clojure.core/constantly true)))))))
+       (clojure.core/alter-var-root #'clojure.test/*load-tests* (clojure.core/constantly false))
+       (clojure.tools.namespace.repl/refresh))))
 
 (defn- refresh-editor [editor mode]
   (when-not (repl/need-cljs? editor)
