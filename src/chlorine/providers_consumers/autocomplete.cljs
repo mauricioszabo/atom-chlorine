@@ -12,7 +12,7 @@
    :type type
    :replacementPrefix prefix})
 
-(defn suggestions [{:keys [^js editor ^js bufferPosition]}]
+(defn suggestions [{:keys [^js editor]}]
   (let [prefix (.. editor (getWordUnderCursor #js {:wordRegex clj-var-regex}))]
     (when (-> prefix count (>= (min-word-size)))
       (when-let [complete (some-> @state :tooling-state deref :editor/features :autocomplete)]

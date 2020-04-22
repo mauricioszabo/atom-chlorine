@@ -17,8 +17,8 @@
   (get-in @results [(.-id editor) row :result]))
 
 (defn all-parsed-results []
-  (for [[editor-id v] @results
-        [row {:keys [parsed-ratom]}] v
+  (for [[_ v] @results
+        [_ {:keys [parsed-ratom]}] v
         :when parsed-ratom]
     parsed-ratom))
 

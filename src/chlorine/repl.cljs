@@ -4,9 +4,9 @@
             [repl-tooling.editor-helpers :as helpers]
             [chlorine.ui.inline-results :as inline]
             [chlorine.ui.console :as c-console]
+            [chlorine.ui.atom :as atom]
             [repl-tooling.editor-integration.renderer.console :as console]
             [repl-tooling.editor-integration.connection :as connection]
-            [chlorine.ui.atom :as atom]
             [repl-tooling.editor-integration.evaluation :as e-eval]
             ["atom" :refer [CompositeDisposable]]
             [repl-tooling.editor-integration.schemas :as schemas]
@@ -15,8 +15,9 @@
 (defonce ^:private commands-subs (atom (CompositeDisposable.)))
 
 (defn- handle-disconnect! []
-  (let [repls (:repls @state)]
-    (if (or (:clj-eval repls) (:cljs-eval repls))
+  (let [repls (:repls @state)
+        any-repl (or (:clj-eval repls) (:cljs-eval repls))]
+    (when any-repl
       (atom/info "Disconnected from REPLs" "")))
 
   (swap! state assoc
@@ -27,7 +28,7 @@
   (.dispose ^js @commands-subs)
   (reset! commands-subs (CompositeDisposable.)))
 
-(defn- decide-command [cmd-name command]
+(defn- decide-command [command]
   (let [old-cmd (:old-command command)
         new-cmd (:command command)]
     (fn []
@@ -41,7 +42,7 @@
                          .-commands
                          (.add "atom-text-editor"
                                (str "chlorine:" (name k))
-                               (decide-command k command)))]]
+                               (decide-command command)))]]
     (.add ^js @commands-subs disp)))
 
 (s/defn get-editor-data :- schemas/EditorData []
