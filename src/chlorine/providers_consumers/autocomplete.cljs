@@ -34,8 +34,3 @@
 
          :getSuggestions (fn [data]
                            (-> data js->clj walk/keywordize-keys suggestions clj->js))}))
-
-   ; # (optional): (*experimental*) called when user the user selects a suggestion for the purpose of loading additional information about the suggestion.
-   ; getSuggestionDetailsOnSelect: (suggestion) ->
-   ; new Promise (resolve) ->
-   ; resolve(newSuggestion)

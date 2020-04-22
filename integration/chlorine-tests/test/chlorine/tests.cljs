@@ -1,9 +1,8 @@
 (ns chlorine.tests
   (:require [chlorine.utils :refer-macros [async async-testing]]
-            [clojure.test :refer [is deftest run-all-tests run-tests] :as test]
+            [clojure.test :refer [deftest run-tests] :as test]
             [check.core :refer-macros [check]]
-            [promesa.core :as p]
-            ["remote" :as remote]))
+            [promesa.core :as p]))
 
 (defn- await-for [fun]
   (js/Promise.
