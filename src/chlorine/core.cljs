@@ -4,7 +4,7 @@
             [chlorine.repl :as repl]
             [chlorine.features.refresh :as refresh]
             [chlorine.configs :as configs]
-            [chlorine.ui.console :as console]
+            [repl-tooling.editor-integration.renderer.console :as console]
             [schema.core :as s]))
 
 (def config (configs/get-configs))

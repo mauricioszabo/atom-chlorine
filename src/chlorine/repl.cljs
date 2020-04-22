@@ -3,7 +3,8 @@
             [chlorine.state :refer [state]]
             [repl-tooling.editor-helpers :as helpers]
             [chlorine.ui.inline-results :as inline]
-            [chlorine.ui.console :as console]
+            [chlorine.ui.console :as c-console]
+            [repl-tooling.editor-integration.renderer.console :as console]
             [repl-tooling.editor-integration.connection :as connection]
             [chlorine.ui.atom :as atom]
             [repl-tooling.editor-integration.evaluation :as e-eval]
@@ -126,7 +127,7 @@
             :on-disconnect handle-disconnect!
             :on-start-eval create-inline-result!
             :on-eval (fn [res]
-                       (console/result res)
+                       (c-console/result res)
                        (update-inline-result! res))
             :get-rendered-results #(concat (inline/all-parsed-results)
                                            (->> @console/out-state
@@ -141,8 +142,8 @@
 
     (.then p (fn [st]
                (when st
-                 (console/open-console (-> @state :config :console-pos)
-                                       #(connection/disconnect!))
+                 (c-console/open-console (-> @state :config :console-pos)
+                                         #(connection/disconnect!))
                  (swap! state #(-> %
                                    (assoc-in [:repls :clj-eval] (:clj/repl @st))
                                    (assoc-in [:repls :clj-aux] (:clj/aux @st))
