@@ -3,6 +3,7 @@
             [chlorine.ui.atom :as atom]
             [chlorine.ui.console :as console]
             [repl-tooling.editor-helpers :as helpers]
+            [repl-tooling.editor-integration.evaluation :as e-eval]
             [chlorine.repl :as repl]))
 
 (defn full-command []
@@ -17,7 +18,7 @@
        (clojure.tools.namespace.repl/refresh))))
 
 (defn- refresh-editor [editor mode]
-  (when-not (repl/need-cljs? editor)
+  (when-not (e-eval/need-cljs? (:config @state) (.getFileName editor))
     (let [evaluate (-> @state :tooling-state deref :editor/features :eval)
           editor-data (repl/get-editor-data)
           [_ ns-name] (helpers/ns-range-for (:contents editor-data)

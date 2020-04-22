@@ -1,13 +1,11 @@
 (ns chlorine.repl
-  (:require [repl-tooling.eval :as eval]
-            [chlorine.state :refer [state]]
+  (:require [chlorine.state :refer [state]]
             [repl-tooling.editor-helpers :as helpers]
             [chlorine.ui.inline-results :as inline]
             [chlorine.ui.console :as c-console]
             [chlorine.ui.atom :as atom]
             [repl-tooling.editor-integration.renderer.console :as console]
             [repl-tooling.editor-integration.connection :as connection]
-            [repl-tooling.editor-integration.evaluation :as e-eval]
             ["atom" :refer [CompositeDisposable]]
             [repl-tooling.editor-integration.schemas :as schemas]
             [schema.core :as s]))
@@ -154,35 +152,6 @@
                                           ; code to REPL-Tooling little by little
                                           :tooling-state st)))
                  (-> @st :editor/commands register-commands!))))))
-
-(defn need-cljs? [editor]
-  (e-eval/need-cljs? (:config @state) (.getFileName editor)))
-
-(defn- eval-cljs [editor ns-name filename row col code ^js result opts callback]
-  (if-let [repl (some-> @state :tooling-state deref :cljs/repl)]
-    (eval/evaluate repl code
-                   {:namespace ns-name :row row :col col :filename filename
-                    :pass opts}
-                   callback)
-    (do
-      (some-> result .destroy)
-      (atom/error "REPL not connected"
-                  (str "REPL not connected for ClojureScript.\n\n"
-                       "You can connect a repl using "
-                       "'Connect ClojureScript Socket REPL' command,"
-                       "or 'Connect a self-hosted ClojureScript' command")))))
-
-(defn evaluate-aux
-  ([^js editor ns-name filename row col code callback]
-   (evaluate-aux editor ns-name filename row col code {} callback))
-  ([^js editor ns-name filename row col code opts callback]
-   (if (need-cljs? editor)
-     (eval-cljs editor ns-name filename row col code nil opts #(-> % helpers/parse-result callback))
-     (some-> @state :tooling-state deref :clj/aux
-             (eval/evaluate code
-                            {:namespace ns-name :row row :col col :filename filename
-                             :pass opts}
-                            #(-> % helpers/parse-result callback))))))
 
 (defn- txt-in-range []
   (let [{:keys [contents range]} (get-editor-data)]
