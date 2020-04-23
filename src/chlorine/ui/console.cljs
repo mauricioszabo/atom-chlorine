@@ -29,19 +29,16 @@
                                               :activateItem false})
         (then #(.focus active)))))
 
-(defn console-view []
-  [console/console-view "chlorine"])
-
 (defn register-console! [^js subs]
-  (let [scrolled? (atom true)]
-    (rdom/render [(with-meta console-view
-                    {:component-will-update #(reset! scrolled? (console/all-scrolled?))
-                     :component-did-update #(console/scroll-to-end! scrolled?)})]
-              console/div))
-  (.add subs
-        (.. js/atom -workspace
-            (addOpener (fn [uri] (when (= uri "atom://chlorine-terminal") console)))))
-  (.add subs (.. js/atom -views (addViewProvider Console (constantly console/div)))))
+  (let [scrolled? (atom true)
+        console (with-meta console/console-view
+                  {:get-snapshot-before-update #(reset! scrolled? (console/all-scrolled?))
+                   :component-did-update #(console/scroll-to-end! scrolled?)})]
+    (rdom/render [console "native-key-bindings"] console/div)
+    (.add subs
+          (.. js/atom -workspace
+              (addOpener (fn [uri] (when (= uri "atom://chlorine-terminal") console)))))
+    (.add subs (.. js/atom -views (addViewProvider Console (constantly console/div))))))
 
 (defonce registered
   (register-console! @aux/subscriptions))
