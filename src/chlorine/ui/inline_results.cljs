@@ -1,5 +1,6 @@
 (ns chlorine.ui.inline-results
   (:require [reagent.dom :as rdom]
+            [promesa.core :as p]
             [repl-tooling.editor-integration.renderer :as render]
             [chlorine.state :refer [state]]))
 
@@ -105,5 +106,6 @@
   (update-with-result editor row parsed-ratom))
 
 (defn parse-and-inline [editor row parsed-result]
-  (let [parse (:parse @state)]
-    (inline-result editor row (parse parsed-result))))
+  (p/let [parse (:parse @state)
+          res (parse parsed-result)]
+    (inline-result editor row res)))
