@@ -4,6 +4,7 @@
             [chlorine.ui.inline-results :as inline]
             [chlorine.ui.console :as c-console]
             [chlorine.ui.atom :as atom]
+            [promesa.core :as p]
             [repl-tooling.editor-integration.renderer.console :as console]
             [repl-tooling.editor-integration.connection :as connection]
             ["atom" :refer [CompositeDisposable]]
@@ -84,10 +85,11 @@
       (inline/new-inline-result editor range))))
 
 (defn- update-inline-result! [{:keys [range editor-data] :as result}]
-  (let [editor (:editor editor-data)
-        parse (-> @state :tooling-state deref :editor/features :result-for-renderer)]
+  (p/let [editor (:editor editor-data)
+          parse (-> @state :tooling-state deref :editor/features :result-for-renderer)
+          res (parse result)]
     (when editor
-      (inline/inline-result editor (-> range last first) (parse result)))))
+      (inline/inline-result editor (-> range last first) res))))
 
 (defn- on-copy! [txt]
   (.. js/atom -clipboard (write txt))
