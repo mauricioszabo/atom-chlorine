@@ -49,6 +49,26 @@ div.result-overlay.result, div.repl-tooling.result {
   .tag.children {
     margin-left: 0;
   }
+
+  // Interactive results
+  div.rows {
+    display: flex;
+    flex-direction: column;
+  }
+  div.cols {
+    display: flex;
+    flex-direction: row;
+  }
+  div.title {
+    font-weight: 800;
+  }
+  div.pre {
+    white-space: pre;
+  }
+  div.space {
+    opacity: 0.1;
+    margin: 0.6em;
+  }
 }
 
 @keyframes spin {
@@ -216,7 +236,7 @@ div.repl-tooling.console {
       padding-right: 20px;
       .output,.err,.result {
         border-bottom: 1px solid rgba(171, 178, 191, 0.25);
-          padding-top: 4px;
+        padding-top: 4px;
         padding-bottom: 10px;
       }
     }
