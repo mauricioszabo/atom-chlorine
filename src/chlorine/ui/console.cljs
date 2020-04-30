@@ -34,7 +34,7 @@
         con (with-meta console/console-view
               {:get-snapshot-before-update #(reset! scrolled? (console/all-scrolled?))
                :component-did-update #(console/scroll-to-end! scrolled?)})]
-    (rdom/render [con] console/div)
+    (rdom/render [con "native-key-bindings"] console/div)
     (.add subs
           (.. js/atom -workspace
               (addOpener (fn [uri] (when (= uri "atom://chlorine-terminal") console)))))
