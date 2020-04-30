@@ -63,12 +63,18 @@ div.result-overlay.result, div.repl-tooling.result {
     font-weight: 800;
   }
   div.pre {
-    white-space: pre;
+    white-space: pre-wrap;
   }
   div.space {
     opacity: 0.1;
     margin: 0.6em;
   }
+  select {
+    background-color: @syntax-selection-color;
+    color: @syntax-text-color;
+    border: 1px single @syntax-selection-color;
+  }
+
 }
 
 @keyframes spin {
