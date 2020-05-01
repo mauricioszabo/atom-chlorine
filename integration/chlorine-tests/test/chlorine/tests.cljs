@@ -42,7 +42,7 @@
   (find-element-inside-editor "div" match))
 
 (defn- find-inside-console [match]
-  (find-element "div.chlorine.console div" match))
+  (find-element "div.repl-tooling.console div" match))
 
 (defn exist? [some-string]
   #(not (nil? %)))
