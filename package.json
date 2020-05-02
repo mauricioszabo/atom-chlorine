@@ -26,7 +26,7 @@
     "ink"
   ],
   "dependencies": {
-    "atom-package-deps": "^5.1.0"
+    "leaflet": "1.6.0"
   },
   "activationCommands": {
     "atom-workspace": [
@@ -58,8 +58,14 @@
     }
   },
   "devDependencies": {
-    "ansi_up": "^4.0.4",
+    "ag-grid-community": "22.1.1",
+    "ag-grid-react": "22.1.1",
     "atom-package-deps": "^5.1.0",
+    "react-dom-factories": "1.0.2",
+    "react-leaflet": "2.6.3",
+    "react-player": "1.15.3",
+    "react-sparklines": "1.7.0",
+    "ansi_up": "^4.0.4",
     "create-react-class": "^15.6.3",
     "grim": "^2.0.2",
     "react": "^16.13.1",
