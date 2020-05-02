@@ -38,6 +38,71 @@ Example of the above code running:
 
 ![Getting Schema](./get-schema.gif)
 
+
+## Interactive results
+
+Chlorine also supports "interactive results". The idea is to hook up on Reagent commands and be able to render arbitrary HTML, rendered based on a "state" `atom`. When you change that state, the page will react accordingly.
+
+To render an interactive result, you must render a map that contains, at least, `:html` key. That key will be interpreted as a Hiccup format, using [reagent](http://reagent-project.github.io/) library. For example, suppose you want to add a command that, when you evaluate a code, it'll not evaluate anything and just return the code on the result:
+
+```javascript
+atom.packages.activatePackage('chlorine').then(package => {
+  const pkg = package.mainModule
+
+  atom.commands.add('atom-text-editor', 'chlorine:re-print', function() {
+    const result = pkg.ext.get_block()
+    if(result.text) {
+      const cmd = `{:html (pr-str (quote ${result.text}))}`
+      pkg.ext.evaluate_interactive(cmd, result.range)
+    }
+  })
+})
+```
+
+When you evaluate this code, you can have a result like this one:
+
+![Interactive "print" render](interactive-1.jpg)
+
+But the magic is that you can send `:state` and `:fns` keys to the interactive renderer, and it'll bind variables to you: `?state` will be the "current state" of the app, and every keyword you bind on the `:fns` map will be transformed into a function that you can call. So, for example, suppose you want to render a "counter" button, one that when you click, it'll update the current counter by one. The full code is the following (you can copy-paste it on the Devtools, in Atom, to evaluate it):
+
+```js
+pkg = atom.packages.getActivePackage('chlorine').mainModule
+pkg.ext.evaluate_interactive(`
+  '{:html [:div "Clicked " [:button {:on-click ?incr} ?state] " times" ]
+    :state 0
+    :fns {:incr (fn [_ s] (inc s))}}`
+  , [[3, 0], [3, 0]]
+)
+```
+
+This will render, just below line 4 (the `3` on the range part), the following HTML:
+
+![Interactive renderer - counter](interactive-counter.gif)
+
+To explain each phase:
+1. Everything is quoted - this is because the code will be evaluated to return the `:html`-containing map. If you didn't quote it, it'll try to evaluate `?state`, for example, and evaluation will fail
+1. `?state` will be bound to the `:state` key, and it'll be passed as second parameter to callback functions
+1. `:fns` is a map. In this case, it have only one key: `:incr`. This will bind the `?incr` variable to this function. It receives two parameters: the current element's data, and the current state. It needs to return a new state, and the page will react accordingly. Each callback can also receive more parameters, so you can configure everything
+
+So, a more complex example: in this new one, we'll bind the `?hello` function to one that will receive an additional parameters (in our case, it'll always be `"Hello") and we'll use the current element's data in our callback:
+
+```js
+pkg.ext.evaluate_interactive(`
+  '{:html [:div.rows
+          [:div [:input {:type "text" :on-change (?hello "Hello") :value (:in ?state)}]]
+          [:div (:msg ?state)]]
+   :state {:in "" :msg "Type Something..."}
+   :fns {:hello (fn [e s prefix] (assoc s
+                                        :in (:value e)
+                                        :msg (str prefix ", " (:value e))))}}`
+  , [[1, 0], [1, 0]]
+)
+```
+
+The code above will render the result below, just after the second line:
+
+![Input interactive](input-interactive.gif)
+
 ## API
 
 Once you've got the package's `mainModule`, inside `.ext` there are the following commands to help you extend functionality:
@@ -50,6 +115,7 @@ Once you've got the package's `mainModule`, inside `.ext` there are the followin
 
 All the above commands return `{text: string? range: array?}`. If both are `null`, it means that the current cursor position/selection does not point to a valid Clojure form or var (maybe it's a whitespace, or maybe it's inside a comment, for example). If one is present, the other will be present too.
 
-`range` is a 2x2 array containing: `[[startRow, startCol], [endRow, endCol]]`. If both start and end are equal, it means that there's nothing selected.
+`range` is a 2x2 array containing: `[[startRow, startCol], [endRow, endCol]]`. If both start and end are equal, it means that there's nothing selected. It is also 0-based, which means that the first line is `0`, the second is `1`, and so on; the same is true for columns - the first one is `0`, the second one is `1`, etc.
 
 * `pkg.ext.evaluate_and_present(code, range)` will evaluate the `code`, inside the current `range`, and it'll render on the screen. It expects the code to evaluate, and the current range (so it knows where to render on the screen).
+* `pkg.ext.evaluate_interactive(code, range)` will evaluate the `code`, inside the current `range`, and it'll render on the screen, using the "interactive renderer". It als expects the code to evaluate, and the current range (so it knows where to render on the screen).
