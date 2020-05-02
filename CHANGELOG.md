@@ -6,6 +6,11 @@
 * Auto-import
 * Clean unused imports
 
+### 0.6.0
+- Interactive results (see [documentation](docs/extending.md))
+- First support for `info` command, if "Orchard" is on classpath
+- Code refactoring, fixed issues
+
 ### 0.5.4
 - Loading tests on full refresh
 - Fixed parsing of namespaces with metadata, and quotes (the kind you get when using clj-kondo)
