@@ -1,12 +1,12 @@
 (ns chlorine.repl
-  (:require [repl-tooling.eval :as eval]
-            [chlorine.state :refer [state]]
+  (:require [chlorine.state :refer [state]]
             [repl-tooling.editor-helpers :as helpers]
             [chlorine.ui.inline-results :as inline]
-            [chlorine.ui.console :as console]
-            [repl-tooling.editor-integration.connection :as connection]
+            [chlorine.ui.console :as c-console]
             [chlorine.ui.atom :as atom]
-            [repl-tooling.editor-integration.evaluation :as e-eval]
+            [promesa.core :as p]
+            [repl-tooling.editor-integration.renderer.console :as console]
+            [repl-tooling.editor-integration.connection :as connection]
             ["atom" :refer [CompositeDisposable]]
             [repl-tooling.editor-integration.schemas :as schemas]
             [schema.core :as s]))
@@ -14,8 +14,9 @@
 (defonce ^:private commands-subs (atom (CompositeDisposable.)))
 
 (defn- handle-disconnect! []
-  (let [repls (:repls @state)]
-    (if (or (:clj-eval repls) (:cljs-eval repls))
+  (let [repls (:repls @state)
+        any-repl (or (:clj-eval repls) (:cljs-eval repls))]
+    (when any-repl
       (atom/info "Disconnected from REPLs" "")))
 
   (swap! state assoc
@@ -26,7 +27,7 @@
   (.dispose ^js @commands-subs)
   (reset! commands-subs (CompositeDisposable.)))
 
-(defn- decide-command [cmd-name command]
+(defn- decide-command [command]
   (let [old-cmd (:old-command command)
         new-cmd (:command command)]
     (fn []
@@ -40,7 +41,7 @@
                          .-commands
                          (.add "atom-text-editor"
                                (str "chlorine:" (name k))
-                               (decide-command k command)))]]
+                               (decide-command command)))]]
     (.add ^js @commands-subs disp)))
 
 (s/defn get-editor-data :- schemas/EditorData []
@@ -84,10 +85,11 @@
       (inline/new-inline-result editor range))))
 
 (defn- update-inline-result! [{:keys [range editor-data] :as result}]
-  (let [editor (:editor editor-data)
-        parse (-> @state :tooling-state deref :editor/features :result-for-renderer)]
+  (p/let [editor (:editor editor-data)
+          parse (-> @state :tooling-state deref :editor/features :result-for-renderer)
+          res (parse result)]
     (when editor
-      (inline/inline-result editor (-> range last first) (parse result)))))
+      (inline/inline-result editor (-> range last first) res))))
 
 (defn- on-copy! [txt]
   (.. js/atom -clipboard (write txt))
@@ -126,7 +128,7 @@
             :on-disconnect handle-disconnect!
             :on-start-eval create-inline-result!
             :on-eval (fn [res]
-                       (console/result res)
+                       (c-console/result res)
                        (update-inline-result! res))
             :get-rendered-results #(concat (inline/all-parsed-results)
                                            (->> @console/out-state
@@ -141,8 +143,8 @@
 
     (.then p (fn [st]
                (when st
-                 (console/open-console (-> @state :config :console-pos)
-                                       #(connection/disconnect!))
+                 (c-console/open-console (-> @state :config :console-pos)
+                                         #(connection/disconnect!))
                  (swap! state #(-> %
                                    (assoc-in [:repls :clj-eval] (:clj/repl @st))
                                    (assoc-in [:repls :clj-aux] (:clj/aux @st))
@@ -152,35 +154,6 @@
                                           ; code to REPL-Tooling little by little
                                           :tooling-state st)))
                  (-> @st :editor/commands register-commands!))))))
-
-(defn need-cljs? [editor]
-  (e-eval/need-cljs? (:config @state) (.getFileName editor)))
-
-(defn- eval-cljs [editor ns-name filename row col code ^js result opts callback]
-  (if-let [repl (some-> @state :tooling-state deref :cljs/repl)]
-    (eval/evaluate repl code
-                   {:namespace ns-name :row row :col col :filename filename
-                    :pass opts}
-                   callback)
-    (do
-      (some-> result .destroy)
-      (atom/error "REPL not connected"
-                  (str "REPL not connected for ClojureScript.\n\n"
-                       "You can connect a repl using "
-                       "'Connect ClojureScript Socket REPL' command,"
-                       "or 'Connect a self-hosted ClojureScript' command")))))
-
-(defn evaluate-aux
-  ([^js editor ns-name filename row col code callback]
-   (evaluate-aux editor ns-name filename row col code {} callback))
-  ([^js editor ns-name filename row col code opts callback]
-   (if (need-cljs? editor)
-     (eval-cljs editor ns-name filename row col code nil opts #(-> % helpers/parse-result callback))
-     (some-> @state :tooling-state deref :clj/aux
-             (eval/evaluate code
-                            {:namespace ns-name :row row :col col :filename filename
-                             :pass opts}
-                            #(-> % helpers/parse-result callback))))))
 
 (defn- txt-in-range []
   (let [{:keys [contents range]} (get-editor-data)]

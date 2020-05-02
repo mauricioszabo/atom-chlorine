@@ -1,10 +1,8 @@
 (ns chlorine.ui.console
-  (:require [reagent.core :as r]
-            [reagent.dom :as rdom]
+  (:require [reagent.dom :as rdom]
+            [repl-tooling.editor-integration.renderer.console :as console]
             [chlorine.utils :as aux]
-            [repl-tooling.editor-integration.renderer :as render]
-            [chlorine.state :refer [state]]
-            ["ansi_up" :default Ansi]))
+            [chlorine.state :refer [state]]))
 
 (defonce ^:private console-pair
   (do
@@ -31,78 +29,19 @@
                                               :activateItem false})
         (then #(.focus active)))))
 
-(defonce out-state
-  (r/atom []))
-
-(defn- rendered-content [parsed-ratom]
-  (let [error? (-> parsed-ratom meta :error)]
-    [:div {:class ["result" "chlorine" (when error? "error")]}
-     [render/view-for-result parsed-ratom]]))
-
-(defonce ansi (new Ansi))
-(defn- cell-for [[out-type object] idx]
-  (let [kind (out-type {:stdout :output :stderr :err :result :result})
-        icon (out-type {:stdout "icon-quote" :stderr "icon-alert" :result "icon-code"})]
-    [:div.cell {:key idx}
-     [:div.gutter [:span {:class ["icon" icon]}]]
-     (if (= out-type :result)
-       [:div.content [rendered-content object]]
-       (let [html (. ansi ansi_to_html object)]
-         [:div.content [:div {:class kind :dangerouslySetInnerHTML #js {:__html html}}]]))]))
-
-(defn console-view []
-  [:div.chlorine.console.native-key-bindings {:tabindex 1}
-   [:<> (map cell-for @out-state (range))]])
-
-(defonce div (. js/document createElement "div"))
-
-(defn- chlorine-elem []
-  (. div (querySelector "div.chlorine")))
-
-(defn- all-scrolled? []
-  (let [chlorine (chlorine-elem)
-        chlorine-height (.-scrollHeight chlorine)
-        parent-height (.. div -clientHeight)
-        offset (- chlorine-height parent-height)
-        scroll-pos (.-scrollTop chlorine)]
-    (>= scroll-pos offset)))
-(defn- scroll-to-end! [scrolled?]
-  (let [chlorine (chlorine-elem)]
-    (when @scrolled?
-      (set! (.-scrollTop chlorine) (.-scrollHeight chlorine)))))
-
 (defn register-console! [^js subs]
-  (let [scrolled? (atom true)]
-    (rdom/render [(with-meta console-view
-                    {:component-will-update #(reset! scrolled? (all-scrolled?))
-                     :component-did-update #(scroll-to-end! scrolled?)})]
-              div))
-  (.add subs
-        (.. js/atom -workspace
-            (addOpener (fn [uri] (when (= uri "atom://chlorine-terminal") console)))))
-  (.add subs (.. js/atom -views (addViewProvider Console (constantly div)))))
+  (let [scrolled? (atom true)
+        con (with-meta console/console-view
+              {:get-snapshot-before-update #(reset! scrolled? (console/all-scrolled?))
+               :component-did-update #(console/scroll-to-end! scrolled?)})]
+    (rdom/render [con "native-key-bindings"] console/div)
+    (.add subs
+          (.. js/atom -workspace
+              (addOpener (fn [uri] (when (= uri "atom://chlorine-terminal") console)))))
+    (.add subs (.. js/atom -views (addViewProvider Console (constantly console/div))))))
 
 (defonce registered
   (register-console! @aux/subscriptions))
 
-(defn clear []
-  (reset! out-state []))
-
-(defn- append-text [stream text]
-  (let [[old-stream old-text] (peek @out-state)]
-    (if (= old-stream stream)
-      (swap! out-state #(-> % pop (conj [stream (str old-text text)])))
-      (swap! out-state conj [stream text]))))
-
-(defn stdout [txt]
-  (append-text :stdout txt))
-
-(defn stderr [txt]
-  (append-text :stderr txt))
-
-(defn- parse-result [result]
-  (let [parse (:parse @state)]
-    (parse result)))
-
 (defn result [parsed-result]
-  (swap! out-state conj [:result (parse-result parsed-result)]))
+  (console/result parsed-result (:parse @state)))

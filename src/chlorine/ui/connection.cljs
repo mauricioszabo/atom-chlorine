@@ -17,14 +17,14 @@
    [:div.block
     [:label "Host: "]
     [:input.input-text {:type "text"
-                        :tabindex "1"
+                        :tab-index "1"
                         :value (:hostname @local-state)
                         :on-change #(swap! local-state assoc :hostname (-> % .-target .-value))
                         :on-focus #(-> % .-target .select)}]]
    [:div.block
     [:label "Port: "]
     [:input.input-text {:type "text"
-                        :tabindex "2"
+                        :tab-index "2"
                         :placeholder "port"
                         :value (:port @local-state)
                         :on-change #(swap! local-state assoc :port (-> % .-target .-value int))

@@ -4,8 +4,7 @@
             [chlorine.repl :as repl]
             [chlorine.features.refresh :as refresh]
             [chlorine.configs :as configs]
-            [chlorine.ui.console :as console]
-            [schema.core :as s]))
+            [repl-tooling.editor-integration.renderer.console :as console]))
 
 (def config (configs/get-configs))
 
@@ -23,8 +22,7 @@
 
 (def commands
   (fn []
-    (clj->js {:connect-clojure-socket-repl conn/connect-socket!
-              :connect-socket-repl conn/connect-socket!
+    (clj->js {:connect-socket-repl conn/connect-socket!
               :clear-inline-results repl/clear-inline!
               :clear-console console/clear
 
@@ -50,6 +48,3 @@
     (.activate main)
     (.. js/atom -notifications (addSuccess "Reloaded Chlorine"))
     (println "Reloaded")))
-
-#_
-(s/set-fn-validation! js/goog.DEBUG)
