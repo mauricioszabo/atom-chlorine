@@ -63,7 +63,7 @@ When you evaluate this code, you can have a result like this one:
 
 ![Interactive "print" render](interactive-1.jpg)
 
-But the magic is that you can send `:state` and `:fns` keys to the interactive renderer, and it'll bind variables to you: `?state` will be the "current state" of the app, and every keyword you bind on the `:fns` map will be transformed into a function that you can call. So, for example, suppose you want to render a "counter" button, one that when you click, it'll update the current counter by one. The full code is the following (you can copy-paste it on the Devtools, in Atom, to evaluate it):
+But the interesting part is that you can send `:state` and `:fns` keys to the interactive renderer, and it'll bind variables to you: `?state` will be the "current state" of the app, and every keyword you bind on the `:fns` map will be transformed into a function that you can call. So, for example, suppose you want to render a "counter" button, one that when you click, it'll update the current counter by one. The full code is the following (you can copy-paste it on the Devtools, in Atom, to evaluate it):
 
 ```js
 pkg = atom.packages.getActivePackage('chlorine').mainModule
