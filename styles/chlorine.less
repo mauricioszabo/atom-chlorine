@@ -51,6 +51,9 @@ div.result-overlay.result, div.repl-tooling.result {
   }
 
   // Interactive results
+  div.error {
+    color: @text-color-error;
+  }
   div.rows {
     display: flex;
     flex-direction: column;
@@ -74,7 +77,19 @@ div.result-overlay.result, div.repl-tooling.result {
     color: @syntax-text-color;
     border: 1px single @syntax-selection-color;
   }
-
+  button {
+    background-color: @syntax-selection-color;
+    color: @syntax-text-color;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+    border-width: 1px;
+    border-radius: 3px;
+  }
+  input[type=text] {
+    border: 0px @syntax-selection-color;
+    border-radius: 1px;
+    border: 0px solid @pane-item-border-color;
+  }
 }
 
 @keyframes spin {

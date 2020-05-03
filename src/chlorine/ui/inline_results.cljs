@@ -65,7 +65,7 @@
                  (clj->js [[r1 c1] [r2 c2]])
                  #js {:invalidate "inside"})
         div (doto (. js/document createElement "div")
-                  (aset "classList" "chlorine result-overlay")
+                  (aset "classList" "chlorine result-overlay native-key-bindings")
                   (aset "innerHTML" "<div><span class='chlorine icon loading'></span></div>"))
         dispose (.onDidChange marker #(update-marker-on-result! % editor))
         result (get-result editor r2)]
