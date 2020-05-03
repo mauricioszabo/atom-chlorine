@@ -6,6 +6,9 @@
 * Auto-import
 * Clean unused imports
 
+### 0.6.1
+- Fixed connection for other Clojure implementations like Clojerl, Joker, etc.
+
 ### 0.6.0
 - Interactive results (see [documentation](docs/extending.md))
 - First support for `info` command, if "Orchard" is on classpath
