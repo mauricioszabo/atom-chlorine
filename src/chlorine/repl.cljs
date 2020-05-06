@@ -20,6 +20,7 @@
       (atom/info "Disconnected from REPLs" "")))
 
   (swap! state assoc
+         :tooling-state nil
          :repls {:clj-eval nil
                  :cljs-eval nil
                  :clj-aux nil}
