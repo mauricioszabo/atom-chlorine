@@ -19,31 +19,33 @@
 
 (defn- refresh-editor [editor mode]
   (when-not (e-eval/need-cljs? (:config @state) (.getFileName editor))
-    (let [evaluate (-> @state :tooling-state deref :editor/features :eval)
-          editor-data (repl/get-editor-data)
-          [_ ns-name] (helpers/ns-range-for (:contents editor-data)
-                                            (-> editor-data :range first))
-          code (if (= :simple mode)
-                 (str "(do (require '[" ns-name " :reload :all]) :ok)")
-                 (full-command))]
-      (.. (evaluate code {})
-          (then #(if (-> % :result (= :ok))
-                   (do
-                     (swap! state assoc-in [:refresh :needs-clear?] false)
-                     (atom/info "Refresh Successful" ""))
-                   (do
+    (when-let [evaluate (some-> @state :tooling-state deref :editor/features :eval)]
+      (let [editor-data (repl/get-editor-data)
+            [_ ns-name] (helpers/ns-range-for (:contents editor-data)
+                                              (-> editor-data :range first))
+            code (if (= :simple mode)
+                   (str "(do (require '[" ns-name " :reload :all]) :ok)")
+                   (full-command))]
+        (.. (evaluate code {})
+            (then #(if (-> % :result (= :ok))
+                     (do
+                       (swap! state assoc-in [:refresh :needs-clear?] false)
+                       (atom/info "Refresh Successful" ""))
+                     (do
+                       (swap! state assoc-in [:refresh :needs-clear?] true)
+                       (atom/warn "Failed to refresh" nil)
+                       (console/result {:id (gensym "refresh")
+                                        :editor-data editor-data
+                                        :repl (-> @state :tooling-state deref :clj/aux)
+                                        :result (-> %
+                                                    (dissoc :result)
+                                                    (assoc :error (:result %)))}))))
+            (catch (fn [result]
                      (swap! state assoc-in [:refresh :needs-clear?] true)
-                     (atom/warn "Failed to refresh" nil)
                      (console/result {:id (gensym "refresh")
                                       :editor-data editor-data
-                                      :result (-> %
-                                                  (dissoc :result)
-                                                  (assoc :error (:result %)))}))))
-          (catch (fn [result]
-                   (swap! state assoc-in [:refresh :needs-clear?] true)
-                   (console/result {:id (gensym "refresh")
-                                    :editor-data editor-data
-                                    :result result})))))))
+                                      :repl (-> @state :tooling-state deref :clj/aux)
+                                      :result result}))))))))
 
 (defn run-refresh! []
   (refresh-editor (.. js/atom -workspace getActiveTextEditor)
