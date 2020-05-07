@@ -6,8 +6,9 @@
 * Auto-import
 * Clean unused imports
 
-### 0.6.1
-- Fixed connection for other Clojure implementations like Clojerl, Joker, etc.
+### NEXT
+- Fixed core Clojerl exception
+- Fixed saving file when Clojure is disconnected and auto-refresh is turned on (Fixes https://github.com/mauricioszabo/atom-chlorine/issues/179)
 
 ### 0.6.0
 - Interactive results (see [documentation](docs/extending.md))
