@@ -9,6 +9,9 @@
 ### NEXT
 - Fixed core Clojerl exception
 - Fixed saving file when Clojure is disconnected and auto-refresh is turned on (Fixes https://github.com/mauricioszabo/atom-chlorine/issues/179)
+- More commands comming from Orchard:
+  - find-usages
+  - clojure-doc-for-var
 
 ### 0.6.0
 - Interactive results (see [documentation](docs/extending.md))
