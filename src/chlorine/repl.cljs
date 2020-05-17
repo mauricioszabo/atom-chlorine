@@ -178,13 +178,15 @@
 
 (defn evaluate-and-present [code range]
   (when-let [command (some-> @state :tooling-state deref
-                             :editor/features :eval-and-render)]
-    (command code (js->clj range))))
+                             :editor/features :evaluate-and-render)]
+    (command (js->clj {:text code :range range}))))
 
 (defn evaluate-interactive [code range]
   (when-let [command (some-> @state :tooling-state deref
-                             :editor/features :eval-and-render)]
-    (command code (js->clj range) {:aux true :interactive true})))
+                             :editor/features :evaluate-and-render)]
+    (command (js->clj {:text code
+                       :range range
+                       :pass {:aux true :interactive true}}))))
 
 (defn wrap-in-rebl-submit
   "Clojure 1.10 only, require REBL on the classpath (and UI open)."
