@@ -88,6 +88,17 @@ Chlorine also supports "interactive results". The idea is to hook up on Reagent 
 
 To render an interactive result, you must render a map that contains, at least, `:html` key. That key will be interpreted as a Hiccup format, using [reagent](http://reagent-project.github.io/) library. For example, suppose you want to add a command that, when you evaluate a code, it'll not evaluate anything and just return the code on the result:
 
+**In ClojureScript**:
+```clojure
+(defn re-print []
+  (let [res (editor/get-block)]
+    (when res
+      (-> res
+          (update :text #(str "{:html (pr-str (quote " % "))}"))
+          (editor/eval-interactive)))))
+```
+
+**In Javascript**:
 ```javascript
 atom.packages.activatePackage('chlorine').then(package => {
   const pkg = package.mainModule
@@ -108,6 +119,19 @@ When you evaluate this code, you can have a result like this one:
 
 But the interesting part is that you can send `:state` and `:fns` keys to the interactive renderer, and it'll bind variables to you: `?state` will be the "current state" of the app, and every keyword you bind on the `:fns` map will be transformed into a function that you can call. So, for example, suppose you want to render a "counter" button, one that when you click, it'll update the current counter by one. The full code is the following (you can copy-paste it on the Devtools, in Atom, to evaluate it):
 
+**In ClojureScript**:
+```clojure
+(defn counter []
+  (editor/eval-interactive
+   {:text (str ''{:html [:div "Clicked "
+                         [:button {:on-click ?incr} ?state]
+                         " times"]
+                  :state 0
+                  :fns {:incr (fn [_ s] (inc s))}`})
+    :range [[3 0] [3 0]]}))
+```
+
+**In Javascript**:
 ```js
 pkg = atom.packages.getActivePackage('chlorine').mainModule
 pkg.ext.evaluate_interactive(`
@@ -129,6 +153,26 @@ To explain each phase:
 
 So, a more complex example: in this new one, we'll bind the `?hello` function to one that will receive an additional parameters (in our case, it'll always be `"Hello") and we'll use the current element's data in our callback:
 
+**In ClojureScript**:
+```clojure
+(defn hello []
+  (editor/eval-interactive
+   {:text (str ''{:html
+                  [:div.rows
+                   [:div [:input {:type "text"
+                                  :on-change (?hello "Hello")
+                                  :value (:in ?state)}]]
+                   [:div (:msg ?state)]]
+                  :state {:in "" :msg "Type Something..."}
+                  :fns {:hello (fn [e s prefix]
+                                 (assoc
+                                  s
+                                  :in (:value e)
+                                  :msg (str prefix ", " (:value e))))}})
+    :range [[3 0] [3 0]]}))
+```
+
+**In Javascript**:
 ```js
 pkg.ext.evaluate_interactive(`
   '{:html [:div.rows
