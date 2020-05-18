@@ -7,9 +7,10 @@
             [promesa.core :as p]
             [repl-tooling.editor-integration.renderer.console :as console]
             [repl-tooling.editor-integration.connection :as connection]
-            ["atom" :refer [CompositeDisposable]]
             [repl-tooling.editor-integration.schemas :as schemas]
-            [schema.core :as s]))
+            [schema.core :as s]
+            ["atom" :refer [CompositeDisposable]]
+            ["path" :refer [join]]))
 
 (defonce ^:private commands-subs (atom (CompositeDisposable.)))
 
@@ -25,8 +26,7 @@
                  :cljs-eval nil
                  :clj-aux nil}
          :connection nil)
-  (.dispose ^js @commands-subs)
-  (reset! commands-subs (CompositeDisposable.)))
+  (.dispose ^js @commands-subs))
 
 (defn- decide-command [command]
   (let [old-cmd (:old-command command)
@@ -37,6 +37,8 @@
         (new-cmd)))))
 
 (defn- register-commands! [commands]
+  (.dispose ^js @commands-subs)
+  (reset! commands-subs (CompositeDisposable.))
   (doseq [[k command] commands
           :let [disp (-> js/atom
                          .-commands
@@ -125,6 +127,8 @@
   (let [p (connection/connect!
            host port
            {:on-stdout console/stdout
+            :config-file-path (join (.getConfigDirPath js/atom) "chlorine-config.cljs")
+            :register-commands register-commands!
             :on-stderr console/stderr
             :on-disconnect handle-disconnect!
             :on-start-eval create-inline-result!
@@ -153,8 +157,7 @@
                                    (assoc :connection {:host host :port port}
                                           ; FIXME: This is just here so we can migrate
                                           ; code to REPL-Tooling little by little
-                                          :tooling-state st)))
-                 (-> @st :editor/commands register-commands!))))))
+                                          :tooling-state st))))))))
 
 (defn- txt-in-range []
   (let [{:keys [contents range]} (get-editor-data)]
@@ -178,13 +181,15 @@
 
 (defn evaluate-and-present [code range]
   (when-let [command (some-> @state :tooling-state deref
-                             :editor/features :eval-and-render)]
-    (command code (js->clj range))))
+                             :editor/features :evaluate-and-render)]
+    (command (js->clj {:text code :range range}))))
 
 (defn evaluate-interactive [code range]
   (when-let [command (some-> @state :tooling-state deref
-                             :editor/features :eval-and-render)]
-    (command code (js->clj range) {:aux true :interactive true})))
+                             :editor/features :evaluate-and-render)]
+    (command (js->clj {:text code
+                       :range range
+                       :pass {:aux true :interactive true}}))))
 
 (defn wrap-in-rebl-submit
   "Clojure 1.10 only, require REBL on the classpath (and UI open)."
