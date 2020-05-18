@@ -2,6 +2,38 @@
 
 It is possible to add support for additional commands not included on Chlorine. Atom supports init scripts where you can configure more commands, change the behavior of the editor, and so on. To do so, just run "Open your Init Script" on the editor's command pallete and you'll se or a Javascript or a CoffeeScript file, where you can use the Atom API to add commands, change behaviors, etc.
 
+There's also an experimental feature to add commands to Chlorine in ClojureScript (using the great [Simple Clojure Interpreter - sci](https://github.com/borkdude/sci/)). If you run `Chlorine: Open Config`, it'll open an empty ClojureScript file for you to add commands to Chlorine. Any "public" `defn` added on this file will be converted to a Chlorine command.
+
+## Extending from ClojureScript
+
+First you'll run `Chlorine: Open Config`. Then, on this file, you'll add functions that will be converted to `Chlorine: ....` commands. For example, to add a command to explain a prismatic schema:
+
+```clojure
+(defn explain-schema []
+  (let [editor-data (editor/get-var)]
+    (when editor-data
+      (-> editor-data
+          (update :text #(str "(if (satisfies? schema.core/Schema " % ") "
+                                  "(schema.core/explain " % ")"
+                                  "(or (:schema (meta (ns-resolve *ns* '" % ")))"
+                                       "\"Is not a schema\"))"))
+          (editor/eval-and-render)))))
+```
+
+Example of the above code running:
+
+![Getting Schema](./get-schema.gif)
+
+Please, notice that **you cannot use** (for now) `when-let`, `if-let`, etc... the reason is that some commands on Chlorine's side return Javascript's promises, and `let` was re-wrired to await for promises to resolve before defining vars.
+
+The current (incomplete) API is:
+* `get-top-block`, `get-block`, `get-var`, `get-selection` - Return the current text refering to top-block, block, current Clojure var, or selection. Will return a map with `:text`, a string containing the current text, an `:range`, a 0-based `[[start-row start-col] [end-row end-col]]` that corresponds to the start and end of the selection/block/var.
+* `get-namespace` - returns the current namespace, with the same format as the above commands. Please notice that while `:text` refers to a string with the current namespace name, `:range` corresponds to the full namespace range - so, it'll include `:require`, `:import`, and so on.
+* `eval-and-render` - will evaluate the current code, and render it on the editor. Expects a map with `:text` (the current code to be evaluated) and `:range` (the place where the evaluation inline result will be rendered).
+* `eval-interactive` - exactly the same as `eval-and-render`, but expects and interactive result. Interactive results are covered ahead on this documentation.
+
+## Extending from Atom's init.coffee or init.js
+
 To add a command on the editor, you first need to wait for the package to activate. Then, you need to pick up the main module, and there's a property that contains code that is meant to be extended. This works better with an example: suppose you want to add support for Prismatic Schema: you want to describe the Schema that currently is under the cursor. You can do that with the following sequence of commands (example in Javascript, please convert to CoffeeScript if necessary):
 
 ```javascript
@@ -33,11 +65,22 @@ atom.packages.activatePackage('chlorine').then(package => {
   })
 })
 ```
+### API
 
-Example of the above code running:
+Once you've got the package's `mainModule`, inside `.ext` there are the following commands to help you extend functionality:
 
-![Getting Schema](./get-schema.gif)
+* `pkg.ext.get_top_block()` will get the current top block of the active text editor.
+* `pkg.ext.get_block()` will get the current block. Please notice that `#(+ 1 2)` will return the anonymous function, not the `(+ 1 2)` and getting top block of `@(:some value)` will deref that current value (but `(deref (:some value))`, if your cursor is pointed inside `:some`, for example, will return the atom).
+* `pkg.ext.get_var()` will get the current var under the cursor. If the editor's position is over a parenthesis, will get the whole form
+* `pkg.ext.get_selection()` will get the current selection in the current editor. Please notice that it may be not a valid Clojure code
+* `pkg.ext.get_namespace()` will get the current namespace name, with the full range of it.
 
+All the above commands return `{text: string? range: array?}`. If both are `null`, it means that the current cursor position/selection does not point to a valid Clojure form or var (maybe it's a whitespace, or maybe it's inside a comment, for example). If one is present, the other will be present too.
+
+`range` is a 2x2 array containing: `[[startRow, startCol], [endRow, endCol]]`. If both start and end are equal, it means that there's nothing selected. It is also 0-based, which means that the first line is `0`, the second is `1`, and so on; the same is true for columns - the first one is `0`, the second one is `1`, etc.
+
+* `pkg.ext.evaluate_and_present(code, range)` will evaluate the `code`, inside the current `range`, and it'll render on the screen. It expects the code to evaluate, and the current range (so it knows where to render on the screen).
+* `pkg.ext.evaluate_interactive(code, range)` will evaluate the `code`, inside the current `range`, and it'll render on the screen, using the "interactive renderer". It als expects the code to evaluate, and the current range (so it knows where to render on the screen).
 
 ## Interactive results
 
@@ -102,20 +145,3 @@ pkg.ext.evaluate_interactive(`
 The code above will render the result below, just after the second line:
 
 ![Input interactive](input-interactive.gif)
-
-## API
-
-Once you've got the package's `mainModule`, inside `.ext` there are the following commands to help you extend functionality:
-
-* `pkg.ext.get_top_block()` will get the current top block of the active text editor.
-* `pkg.ext.get_block()` will get the current block. Please notice that `#(+ 1 2)` will return the anonymous function, not the `(+ 1 2)` and getting top block of `@(:some value)` will deref that current value (but `(deref (:some value))`, if your cursor is pointed inside `:some`, for example, will return the atom).
-* `pkg.ext.get_var()` will get the current var under the cursor. If the editor's position is over a parenthesis, will get the whole form
-* `pkg.ext.get_selection()` will get the current selection in the current editor. Please notice that it may be not a valid Clojure code
-* `pkg.ext.get_namespace()` will get the current namespace name, with the full range of it.
-
-All the above commands return `{text: string? range: array?}`. If both are `null`, it means that the current cursor position/selection does not point to a valid Clojure form or var (maybe it's a whitespace, or maybe it's inside a comment, for example). If one is present, the other will be present too.
-
-`range` is a 2x2 array containing: `[[startRow, startCol], [endRow, endCol]]`. If both start and end are equal, it means that there's nothing selected. It is also 0-based, which means that the first line is `0`, the second is `1`, and so on; the same is true for columns - the first one is `0`, the second one is `1`, etc.
-
-* `pkg.ext.evaluate_and_present(code, range)` will evaluate the `code`, inside the current `range`, and it'll render on the screen. It expects the code to evaluate, and the current range (so it knows where to render on the screen).
-* `pkg.ext.evaluate_interactive(code, range)` will evaluate the `code`, inside the current `range`, and it'll render on the screen, using the "interactive renderer". It als expects the code to evaluate, and the current range (so it knows where to render on the screen).
