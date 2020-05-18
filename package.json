@@ -1,7 +1,7 @@
 {
   "name": "chlorine",
   "main": "./lib/main",
-  "version": "0.6.2",
+  "version": "0.7.0",
   "description": "Socket REPL client for Clojure and ClojureScript",
   "keywords": [
     "clojure",
@@ -59,7 +59,6 @@
   },
   "devDependencies": {
     "ansi_up": "^4.0.4",
-    "atom-package-deps": "^5.1.0",
     "create-react-class": "^15.6.3",
     "grim": "^2.0.2",
     "react": "^16.13.1",
