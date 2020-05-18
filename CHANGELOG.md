@@ -6,6 +6,10 @@
 * Auto-import
 * Clean unused imports
 
+## 0.7.0
+- Performance improvement while parsing Clojure code
+- Runnable config
+
 ### 0.6.2
 - Fixed core Clojerl exception
 - Fixed saving file when Clojure is disconnected and auto-refresh is turned on (Fixes https://github.com/mauricioszabo/atom-chlorine/issues/179)
