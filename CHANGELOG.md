@@ -9,6 +9,7 @@
 ## 0.7.0
 - Performance improvement while parsing Clojure code
 - Runnable config
+- Fixed error trying to connect to ClojureScript socket REPLs
 
 ### 0.6.2
 - Fixed core Clojerl exception
