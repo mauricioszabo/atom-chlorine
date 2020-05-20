@@ -6,6 +6,9 @@
 * Auto-import
 * Clean unused imports
 
+## 0.7.1
+- Fix on `get-selection` for configs in ClojureScript
+
 ## 0.7.0
 - Performance improvement while parsing Clojure code
 - Runnable config
