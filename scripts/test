@@ -16,7 +16,7 @@ sh -c 'sleep 240 && killall atom' &
 
 nohup ffmpeg -video_size 1024x768 -f x11grab -i :80.0 /tmp/junit/out.mpg &
 
-atom --foreground /work/integration/chlorine-tests
+atom --no-sandbox --foreground /work/integration/chlorine-tests
 result=$?
 
 echo -e "(System/exit 0)\n" | nc localhost 3333
