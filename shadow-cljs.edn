@@ -10,7 +10,8 @@
                 [reagent "0.10.0"]
                 [devcards "0.2.5"]
                 [org.rksm/suitable "0.3.2"]
-                [cider/orchard "0.5.8"]]
+                [cider/orchard "0.5.8"]
+                [org.pinkgorilla/gorilla-ui "0.1.31"]]
 
  :builds
  {:dev {:target :node-library
