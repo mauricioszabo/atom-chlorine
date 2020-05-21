@@ -11,7 +11,7 @@
                 [devcards "0.2.5"]
                 [org.rksm/suitable "0.3.2"]
                 [cider/orchard "0.5.8"]
-                [org.pinkgorilla/gorilla-ui "0.1.31"]]
+                [org.pinkgorilla/gorilla-renderable-ui "0.1.33"]]
 
  :builds
  {:dev {:target :node-library
