@@ -58,18 +58,6 @@
     }
   },
   "devDependencies": {
-    "ag-grid-community": "22.1.1",
-    "ag-grid-react": "22.1.1",
-    "highcharts": "8.0.4",
-    "leaflet": "1.6.0",
-    "mathjax": "3.0.5",
-    "react-dom-factories": "1.0.2",
-    "react-leaflet": "2.6.3",
-    "react-player": "1.15.3",
-    "react-sparklines": "1.7.0",
-    "vega": "5.11.1",
-    "vega-embed": "6.7.0",
-    "vega-lite": "4.11.0",
     "ansi_up": "^4.0.4",
     "create-react-class": "^15.6.3",
     "grim": "^2.0.2",
