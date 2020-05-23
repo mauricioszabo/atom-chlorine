@@ -43,7 +43,7 @@
   (doseq [{:keys [result listener]} (get @atom-results (.-id editor))]
     (.destroy ^js result)
     (.dispose ^js listener))
-  (swap! atom-results assoc (.-id editor) []))
+  (swap! atom-results dissoc (.-id editor)))
 
 ; TODO: Remove Ink
 (defn ^js new-result [^js editor row]
@@ -66,7 +66,7 @@
                  #js {:invalidate "inside"})
         div (doto (. js/document createElement "div")
                   (aset "classList" "chlorine result-overlay native-key-bindings")
-                  (aset "innerHTML" "<div><span class='chlorine icon loading'></span></div>"))
+                  (aset "innerHTML" "<div><span class='repl-tooling icon loading'></span></div>"))
         dispose (.onDidChange marker #(update-marker-on-result! % editor))
         result (get-result editor r2)]
     ; TODO: Remove ink, this will be default
