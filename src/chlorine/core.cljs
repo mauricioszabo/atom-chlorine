@@ -4,12 +4,14 @@
             [chlorine.repl :as repl]
             [chlorine.features.refresh :as refresh]
             [chlorine.configs :as configs]
+            [clojure.string :as str]
             [repl-tooling.editor-integration.renderer.console :as console]))
 
 (def config (configs/get-configs))
 
 (defn- subscribe-editor-events [^js editor]
-  (when (-> editor .getGrammar .-scopeName (= "source.clojure"))
+  (when (and (-> editor .getGrammar .-scopeName (= "source.clojure"))
+             (not (str/ends-with? (.getPath editor) "edn")))
     (.add ^js @aux/subscriptions (.onDidSave editor #(refresh/run-editor-refresh!)))))
 
 (defn- observe-editors []
