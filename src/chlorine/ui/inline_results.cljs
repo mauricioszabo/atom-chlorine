@@ -8,10 +8,11 @@
             ["atom" :refer [TextEditor]]))
 
 (defonce ^:private results (atom {}))
-(defonce ^:private markers (atom {}))
 
-(defn- update-marker [id ^js marker ^js dec]
+(defn- update-marker [id, ^js marker, ^js dec]
   (when-not (.isValid marker)
+    (let [div (get-in @results [id :div])]
+      (try (rdom/unmount-component-at-node div) (catch :default _)))
     (swap! results dissoc id)
     (.destroy dec)
     (.destroy marker)))
