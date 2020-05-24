@@ -1,5 +1,6 @@
 (ns chlorine.core
   (:require [chlorine.utils :as aux]
+            [schema.core :as s]
             [chlorine.ui.connection :as conn]
             [chlorine.repl :as repl]
             [chlorine.features.refresh :as refresh]
@@ -48,3 +49,5 @@
     (.activate main)
     (.. js/atom -notifications (addSuccess "Reloaded Chlorine"))
     (println "Reloaded")))
+
+(s/set-fn-validation! (.-DEBUG js/goog))
