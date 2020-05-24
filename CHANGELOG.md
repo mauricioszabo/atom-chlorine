@@ -8,6 +8,8 @@
 
 ## 0.7.1
 - Fix on `get-selection` for configs in ClojureScript
+- Remove Ink
+- Performance fixes on inline results, removed LOTS of memory leaks
 
 ## 0.7.0
 - Performance improvement while parsing Clojure code
