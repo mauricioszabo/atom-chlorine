@@ -7,9 +7,7 @@
 * Clean unused imports
 
 ## NEXT
-- Fixed that tried to run refresn on EDN files
-
-## 0.7.1
+- Fixed that tried to run refresh on EDN files
 - Fix on `get-selection` for configs in ClojureScript
 - Remove Ink
 - Performance fixes on inline results, removed LOTS of memory leaks
