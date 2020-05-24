@@ -64,5 +64,3 @@
   (doseq [[_ {:keys [editor marker]}] @results
           :when (= (.-id curr-editor) (.-id editor))]
     (.destroy ^js marker)))
-
-(defonce ink (atom nil))
