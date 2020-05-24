@@ -81,19 +81,6 @@
                                                          :buttons buttons}))))
        (.onDidDismiss ^js @notification #(fn [] (resolve nil) true))))))
 
-(defn- create-inline-result! [{:keys [range editor-data]}]
-  (when-let [editor (:editor editor-data)]
-    (if (-> @state :config :experimental-features (not= true))
-      (inline/new-result editor (-> range last first))
-      (inline/new-inline-result editor range))))
-
-(defn- update-inline-result! [{:keys [range editor-data] :as result}]
-  (p/let [editor (:editor editor-data)
-          parse (-> @state :tooling-state deref :editor/features :result-for-renderer)
-          res (parse result)]
-    (when editor
-      (inline/inline-result editor (-> range last first) res))))
-
 (defn- on-copy! [txt]
   (.. js/atom -clipboard (write txt))
   (atom/info "Copied result" ""))
@@ -131,10 +118,10 @@
             :register-commands register-commands!
             :on-stderr console/stderr
             :on-disconnect handle-disconnect!
-            :on-start-eval create-inline-result!
+            :on-start-eval #(inline/new-result %)
             :on-eval (fn [res]
                        (c-console/result res)
-                       (update-inline-result! res))
+                       (inline/update-result res))
             :get-rendered-results #(concat (inline/all-parsed-results)
                                            (->> @console/out-state
                                                 (filter (fn [r] (-> r first (= :result))))
