@@ -18,9 +18,6 @@
         (.. js/atom -workspace
             (observeTextEditors subscribe-editor-events))))
 
-(defn- install-dependencies-maybe []
-  (.install (js/require "atom-package-deps") "chlorine"))
-
 (def commands
   (fn []
     (clj->js {:connect-socket-repl conn/connect-socket!
@@ -33,8 +30,7 @@
               :refresh-namespaces refresh/run-refresh!
               :toggle-refresh-mode refresh/toggle-refresh})))
 
-(def aux #js {:deps install-dependencies-maybe
-              :reload aux/reload-subscriptions!
+(def aux #js {:reload aux/reload-subscriptions!
               :observe_editor observe-editors
               :observe_config configs/observe-configs!
               :get_disposable (fn [] @aux/subscriptions)})
