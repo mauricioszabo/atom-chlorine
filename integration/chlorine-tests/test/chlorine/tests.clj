@@ -205,7 +205,7 @@
       (try (api/close-window @editor) (catch Throwable _))
       (api/quit @editor))))
 
-(defn run-all-tests! []
+(defn run-all-tests []
   (let [{:keys [fail error]} (run-tests)]
     (System/exit (+ fail error))))
 

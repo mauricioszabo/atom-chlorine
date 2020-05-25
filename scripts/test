@@ -17,8 +17,8 @@ sh -c 'sleep 240 && killall atom' &
 
 nohup ffmpeg -video_size 1024x768 -f x11grab -i :80.0 /tmp/junit/out.mpg &
 
-cd integration/chlorine-tests/lib/main.js &
-npx shadow-cljs clj-eval "(load-file \"test/chlorine/tests.clj\")(in-ns 'chlorine.tests)(run-all-tests!)" &
+cd integration/chlorine-tests
+npx shadow-cljs clj-eval "(load-file \"test/chlorine/tests.clj\")(in-ns 'chlorine.tests)(run-all-tests)" &
 
 fg %1
 # echo -e "(System/exit 0)\n" | nc localhost 3333
