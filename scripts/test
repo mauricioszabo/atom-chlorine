@@ -12,12 +12,14 @@ for n in {1..35}; do
 done
 
 ls integration/chlorine-tests/lib/main.js &>/dev/null || (docker logs test-server && exit 1)
+node integration/chlorine-tests/lib/main.js &
 sh -c 'sleep 240 && killall atom' &
 
 nohup ffmpeg -video_size 1024x768 -f x11grab -i :80.0 /tmp/junit/out.mpg &
 
-atom --no-sandbox --foreground /work/integration/chlorine-tests
-result=$?
+cd integration/chlorine-tests/lib/main.js &
+npx shadow-cljs clj-eval "(load-file \"test/chlorine/tests.clj\")(in-ns 'chlorine.tests)(run-all-tests!)" &
 
-echo -e "(System/exit 0)\n" | nc localhost 3333
-exit $result
+fg %1
+# echo -e "(System/exit 0)\n" | nc localhost 3333
+# exit $result
