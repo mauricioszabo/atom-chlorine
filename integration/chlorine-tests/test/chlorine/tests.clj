@@ -10,17 +10,10 @@
 (defn- prepare-selenium! []
   (reset! editor
           (api/boot-driver :chrome {:path-browser "./scripts/run-atom"
-                                    ; :capabilities {:chromeOptions {:args ["/tmp/test.clj"]}}
                                     :args [
                                            "--no-sandbox"
                                            "--disable-setuid-sandbox"
                                            "--foreground"]})))
-                                           ; "app:/tmp/test.clj"]}))))
-                                           ; "--app"
-                                           ; " /tmp"
-                                           ; " /tmp/test.clj"
-                                           ; ; "--app"
-                                           ; "/tmp/test.cljs"]})))
 
 (defn- run-worspace-cmd! [command]
   (api/js-execute @editor (str "atom.commands.dispatch("
@@ -118,94 +111,94 @@
     (testing "Clojure"
       (testing "can connect into editor"
         (connect!)
-        (check (has-text? "REPL Connected") => #"Connecteda")))
+        (check (has-text? "REPL Connected") => #"Connecteda"))
 
-    ;   (testing "evaluates code"
-    ;     (eval-file "test.clj" "(str (+ 90 120))")
-    ;     (check (inline-text) => "\"210\""))
-    ;
-    ;   (testing "go to definition of a var"
-    ;     (with-file "test.clj" "defn")
-    ;     (run-editor-cmd! "chlorine:go-to-var-definition")
-    ;     (goto-file "core.clj")
-    ;     (check (editor-text) => #":arglists")
-    ;     (run-editor-cmd! "core:close"))
-    ;
-    ;   (testing "shows definition of var"
-    ;     (with-file "test.clj" "defn")
-    ;     (run-editor-cmd! "chlorine:source-for-var")
-    ;     (wait-for #(re-find #"fdecl" (console-text)))
-    ;     (check (console-text) => #"fdecl"))
-    ;
-    ;   (testing "breaks evaluation"
-    ;     (eval-file "test.clj" "(Thread/sleep 4000)")
-    ;     (wait-for #(do
-    ;                  (run-editor-cmd! "chlorine:break-evaluation")
-    ;                  (re-find #"interrupted" (console-text))))
-    ;     (check (inline-text) => #"Evaluation interrupted"))
-    ;
-    ;   (testing "shows function doc"
-    ;     (eval-file "test.clj" "str")
-    ;     (run-editor-cmd! "chlorine:doc-for-var")
-    ;     (check (inline-text) => #"With no args, returns the empty string. With one arg x, returns"))
-    ;
-    ;   (testing "captures exceptions"
-    ;     (eval-file "test.clj" "(throw (ex-info \"Error Number 1\", {}))")
-    ;     (run-editor-cmd! "chlorine:evaluate-top-block")
-    ;     (check (inline-text) => #"Error Number 1")
-    ;     (check (visible? "div.result-overlay.error") => {}))
-    ;
-    ;   (testing "captures evaluated exceptions"
-    ;     (eval-file "test.clj" "(ex-info \"Error Number 2\", {})")
-    ;     (run-editor-cmd! "chlorine:evaluate-top-block")
-    ;     (check (inline-text) => #"Error Number 2")
-    ;     (check (visible? "div.result-overlay.error") => nil))
-    ;
-    ;   (testing "allows big strings to be represented"
-    ;     (eval-file "test.clj" "(str (range 200))")
-    ;     (check (inline-text) => #"(?m)29[\s\n]*\.\.\."))
-    ;
-    ;   (testing "expands big strings"
-    ;     (click-elision)
-    ;     (wait-for #(re-find #"52" (console-text)))
-    ;     (check (console-text) => #"52 53 54")
-    ;     (goto-file "test.clj")
-    ;     (run-editor-cmd! "chlorine:clear-inline-results"))
-    ;
-    ; ;;; CLOJURESCRIPT!
-    ;   (testing "ClojureScript"
-    ;     (testing "connecting"
-    ;       (run-editor-cmd! "chlorine:connect-embedded")
-    ;       (check (has-text? "Connected to ClojureScript") => #"ClojureScript"))
-    ;
-    ;     (testing "evaluates code"
-    ;       (eval-file "test.cljs" "(str (+ 90 120))")
-    ;       (check (inline-text) => "\"210\""))
-    ;
-    ;     (testing "go to definition of a var"
-    ;       (with-file "test.cljs" "println")
-    ;       (run-editor-cmd! "chlorine:go-to-var-definition")
-    ;       (goto-file "core.cljs")
-    ;       (check (editor-text) => #"Same as print")
-    ;       (run-editor-cmd! "core:close"))
-    ;
-    ;     (testing "captures exceptions"
-    ;       (eval-file "test.cljs" "(throw (ex-info \"Error Number 1\", {}))")
-    ;       (run-editor-cmd! "chlorine:evaluate-top-block")
-    ;       (check (inline-text) => #"Error Number 1")
-    ;       (check (visible? "div.result-overlay.error") => {}))
-    ;
-    ;     (testing "captures non-error exceptions"
-    ;       (eval-file "test.cljs" "(throw \"ERROR\")")
-    ;       (run-editor-cmd! "chlorine:evaluate-top-block")
-    ;       (check (inline-text) => #"ERROR")
-    ;       (check (visible? "div.result-overlay.error") => {}))
-    ;
-    ;     (testing "captures evaluated exceptions"
-    ;       (eval-file "test.cljs" "(ex-info \"Error Number 2\", {})")
-    ;       (run-editor-cmd! "chlorine:evaluate-top-block")
-    ;       (check (inline-text) => #"Error Number 2")
-    ;       (check (visible? "div.result-overlay.error") => nil))))
+      (testing "evaluates code"
+        (eval-file "test.clj" "(str (+ 90 120))")
+        (check (inline-text) => "\"210\""))
+
+      (testing "go to definition of a var"
+        (with-file "test.clj" "defn")
+        (run-editor-cmd! "chlorine:go-to-var-definition")
+        (goto-file "core.clj")
+        (check (editor-text) => #":arglists")
+        (run-editor-cmd! "core:close"))
+
+      (testing "shows definition of var"
+        (with-file "test.clj" "defn")
+        (run-editor-cmd! "chlorine:source-for-var")
+        (wait-for #(re-find #"fdecl" (console-text)))
+        (check (console-text) => #"fdecl"))
+
+      (testing "breaks evaluation"
+        (eval-file "test.clj" "(Thread/sleep 4000)")
+        (wait-for #(do
+                     (run-editor-cmd! "chlorine:break-evaluation")
+                     (re-find #"interrupted" (console-text))))
+        (check (inline-text) => #"Evaluation interrupted"))
+
+      (testing "shows function doc"
+        (eval-file "test.clj" "str")
+        (run-editor-cmd! "chlorine:doc-for-var")
+        (check (inline-text) => #"With no args, returns the empty string. With one arg x, returns"))
+
+      (testing "captures exceptions"
+        (eval-file "test.clj" "(throw (ex-info \"Error Number 1\", {}))")
+        (run-editor-cmd! "chlorine:evaluate-top-block")
+        (check (inline-text) => #"Error Number 1")
+        (check (visible? "div.result-overlay.error") => {}))
+
+      (testing "captures evaluated exceptions"
+        (eval-file "test.clj" "(ex-info \"Error Number 2\", {})")
+        (run-editor-cmd! "chlorine:evaluate-top-block")
+        (check (inline-text) => #"Error Number 2")
+        (check (visible? "div.result-overlay.error") => nil))
+
+      (testing "allows big strings to be represented"
+        (eval-file "test.clj" "(str (range 200))")
+        (check (inline-text) => #"(?m)29[\s\n]*\.\.\."))
+
+      (testing "expands big strings"
+        (click-elision)
+        (wait-for #(re-find #"52" (console-text)))
+        (check (console-text) => #"52 53 54")
+        (goto-file "test.clj")
+        (run-editor-cmd! "chlorine:clear-inline-results"))
+
+    ;;; CLOJURESCRIPT!
+      (testing "ClojureScript"
+        (testing "connecting"
+          (run-editor-cmd! "chlorine:connect-embedded")
+          (check (has-text? "Connected to ClojureScript") => #"ClojureScript"))
+
+        (testing "evaluates code"
+          (eval-file "test.cljs" "(str (+ 90 120))")
+          (check (inline-text) => "\"210\""))
+
+        (testing "go to definition of a var"
+          (with-file "test.cljs" "println")
+          (run-editor-cmd! "chlorine:go-to-var-definition")
+          (goto-file "core.cljs")
+          (check (editor-text) => #"Same as print")
+          (run-editor-cmd! "core:close"))
+
+        (testing "captures exceptions"
+          (eval-file "test.cljs" "(throw (ex-info \"Error Number 1\", {}))")
+          (run-editor-cmd! "chlorine:evaluate-top-block")
+          (check (inline-text) => #"Error Number 1")
+          (check (visible? "div.result-overlay.error") => {}))
+
+        (testing "captures non-error exceptions"
+          (eval-file "test.cljs" "(throw \"ERROR\")")
+          (run-editor-cmd! "chlorine:evaluate-top-block")
+          (check (inline-text) => #"ERROR")
+          (check (visible? "div.result-overlay.error") => {}))
+
+        (testing "captures evaluated exceptions"
+          (eval-file "test.cljs" "(ex-info \"Error Number 2\", {})")
+          (run-editor-cmd! "chlorine:evaluate-top-block")
+          (check (inline-text) => #"Error Number 2")
+          (check (visible? "div.result-overlay.error") => nil))))
     (finally
       (Thread/sleep 1000)
       ; Because, Chome.... :(
