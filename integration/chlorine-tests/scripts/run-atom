@@ -1,0 +1,3 @@
+#!/bin/bash
+
+atom "$@" . /tmp/test.clj /tmp/test.cljs 
