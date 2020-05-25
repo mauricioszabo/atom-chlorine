@@ -115,9 +115,9 @@
                       find-inside-console #"fdecl"))
 
     (async-testing "breaks evaluation"
-      (p/alet [_ (with-clj "(Thread/sleep 2000)")
+      (p/alet [_ (with-clj "(Thread/sleep 4000)")
                _ (evaluate-command "chlorine:evaluate-top-block")
-               _ (p/delay 400)
+               _ (p/delay 1000)
                _ (evaluate-command "chlorine:break-evaluation")
                contents (find-inside-editor #"Evaluation interrupted")]
         (check contents => (exist? "Evaluation interrupted"))))
