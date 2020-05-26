@@ -10,7 +10,8 @@
                 [reagent "0.10.0"]
                 [devcards "0.2.5"]
                 [org.rksm/suitable "0.3.2"]
-                [cider/orchard "0.5.8"]]
+                [cider/orchard "0.5.8"]
+                [org.pinkgorilla/gorilla-renderable-ui "0.1.33"]]
 
  :builds
  {:dev {:target :node-library
@@ -32,10 +33,7 @@
                   chlorine.providers-consumers.autocomplete/provider
 
                   :status-bar-consumer
-                  chlorine.providers-consumers.status-bar/activate
-
-                  :ink-consumer
-                  chlorine.providers-consumers.ink/activate}
+                  chlorine.providers-consumers.status-bar/activate}
 
         :output-dir "lib/js"
         :output-to "lib/cmds.js"

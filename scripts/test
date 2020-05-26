@@ -1,9 +1,7 @@
 #!/bin/bash
 
-#rm -Rf integration/fixture-app/target/
-#cd integration/fixture-app && ./scripts/repl &
+rm integration/chlorine-tests/lib/main.js
 cd /work/integration/chlorine-tests && npm install && npx shadow-cljs watch tests &
-ln -s /work/integration/chlorine-tests /root/.atom/packages/chlorine-tests
 
 for n in {1..35}; do
   ls integration/chlorine-tests/lib/main.js &>/dev/null && break
@@ -12,12 +10,18 @@ for n in {1..35}; do
 done
 
 ls integration/chlorine-tests/lib/main.js &>/dev/null || (docker logs test-server && exit 1)
+node integration/chlorine-tests/lib/main.js &
 sh -c 'sleep 240 && killall atom' &
 
 nohup ffmpeg -video_size 1024x768 -f x11grab -i :80.0 /tmp/junit/out.mpg &
 
-atom --no-sandbox --foreground /work/integration/chlorine-tests
-result=$?
+cd integration/chlorine-tests
 
-echo -e "(System/exit 0)\n" | nc localhost 3333
-exit $result
+echo "--- RUNNING INTEGRATION TESTS ---"
+echo -e "(load-file \"test/chlorine/tests.clj\")(in-ns 'chlorine.tests)(run-all-tests)\n" | nc localhost 3333 &
+# npx shadow-cljs clj-eval "(load-file \"test/chlorine/tests.clj\")(in-ns 'chlorine.tests)(run-all-tests)" &
+
+echo "--- AWAITING RESULTS ---"
+fg %1
+# echo -e "(System/exit 0)\n" | nc localhost 3333
+# exit $result

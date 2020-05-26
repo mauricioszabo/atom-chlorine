@@ -1,0 +1,6 @@
+#!/bin/bash
+
+export ATOM_HOME=/tmp/tests
+mkdir /tmp/tests/packages -p
+ln -s ~/.atom/packages/chlorine /tmp/tests/packages
+npx shadow-cljs watch tests

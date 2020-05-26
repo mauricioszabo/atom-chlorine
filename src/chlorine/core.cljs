@@ -1,5 +1,6 @@
 (ns chlorine.core
   (:require [chlorine.utils :as aux]
+            [schema.core :as s]
             [chlorine.ui.connection :as conn]
             [chlorine.repl :as repl]
             [chlorine.features.refresh :as refresh]
@@ -19,9 +20,6 @@
         (.. js/atom -workspace
             (observeTextEditors subscribe-editor-events))))
 
-(defn- install-dependencies-maybe []
-  (.install (js/require "atom-package-deps") "chlorine"))
-
 (def commands
   (fn []
     (clj->js {:connect-socket-repl conn/connect-socket!
@@ -34,8 +32,7 @@
               :refresh-namespaces refresh/run-refresh!
               :toggle-refresh-mode refresh/toggle-refresh})))
 
-(def aux #js {:deps install-dependencies-maybe
-              :reload aux/reload-subscriptions!
+(def aux #js {:reload aux/reload-subscriptions!
               :observe_editor observe-editors
               :observe_config configs/observe-configs!
               :get_disposable (fn [] @aux/subscriptions)})
@@ -50,3 +47,5 @@
     (.activate main)
     (.. js/atom -notifications (addSuccess "Reloaded Chlorine"))
     (println "Reloaded")))
+
+(s/set-fn-validation! (.-DEBUG js/goog))

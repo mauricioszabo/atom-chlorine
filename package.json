@@ -22,12 +22,6 @@
   "engines": {
     "atom": ">=1.0.0 <2.0.0"
   },
-  "package-deps": [
-    "ink"
-  ],
-  "dependencies": {
-    "atom-package-deps": "^5.1.0"
-  },
   "activationCommands": {
     "atom-workspace": [
       "chlorine:connect-socket-repl"
@@ -49,11 +43,6 @@
     "status-bar": {
       "versions": {
         "^1.0.0": "status_bar_consumer"
-      }
-    },
-    "ink": {
-      "versions": {
-        "^0.1.0": "ink_consumer"
       }
     }
   },

@@ -1,111 +1,67 @@
 (ns chlorine.ui.inline-results
   (:require [reagent.dom :as rdom]
             [promesa.core :as p]
+            [repl-tooling.editor-integration.schemas :as schemas]
+            [schema.core :as s]
             [repl-tooling.editor-integration.renderer :as render]
-            [chlorine.state :refer [state]]))
+            [chlorine.state :refer [state]]
+            ["atom" :refer [TextEditor]]))
 
-(defonce ink (atom nil))
+(defonce ^:private results (atom {}))
 
-; FORMAT:
-; {<editor-id> {<row> {:result <marker-or-ink>
-;                      :div <div>
-;                      :parsed-ratom <ratom>}}}
-(defonce results (atom {}))
-(defonce atom-results (atom {}))
+(defn- update-marker [id, ^js marker, ^js dec]
+  (when-not (.isValid marker)
+    (let [div (get-in @results [id :div])]
+      (try (rdom/unmount-component-at-node div) (catch :default _)))
+    (swap! results dissoc id)
+    (.destroy dec)
+    (.destroy marker)))
 
-(defn get-result [editor row]
-  ; TODO: Remove this, use only div maybe?
-  (get-in @results [(.-id editor) row :result]))
-
-(defn all-parsed-results []
-  (for [[_ v] @results
-        [_ {:keys [parsed-ratom]}] v
-        :when parsed-ratom]
-    parsed-ratom))
-
-(defn- destroyed? [^js result]
-  (and (some-> result .-isDestroyed)
-       (or (= true (.-isDestroyed result))
-           (.isDestroyed result))))
-
-(defn- discard-old-results! []
-  (doseq [[editor-id v] @results
-          [row {:keys [result div listener]}] v
-          ; TODO: Feature toggle
-          :when (or (and (not div) (not (some-> result .-view .-view .-isConnected)))
-                    (destroyed? result))]
-    ; TODO: Remove Ink, this will be default
-    (when div
-      (.dispose ^js listener))
-    (swap! results update editor-id dissoc row)))
-
-(defn clear-results! [^js editor]
-  (doseq [{:keys [result listener]} (get @atom-results (.-id editor))]
-    (.destroy ^js result)
-    (.dispose ^js listener))
-  (swap! atom-results assoc (.-id editor) []))
-
-; TODO: Remove Ink
-(defn ^js new-result [^js editor row]
-  (discard-old-results!)
-  (when-let [InkResult (some-> ^js @ink .-Result)]
-    (let [result (InkResult. editor #js [row row] #js {:type "block"})]
-      (swap! results assoc-in [(.-id editor) row :result] result)
-      result)))
-
-(defn- update-marker-on-result! [^js change ^js editor]
-  (let [old (.. change -oldHeadBufferPosition -row)
-        new (.. change -newHeadBufferPosition -row)]
-    (swap! results update (.-id editor)
-           #(-> % (assoc new (get % old)) (dissoc old)))))
-
-(defn ^js new-inline-result [^js editor [[r1 c1] [r2 c2]]]
-  (discard-old-results!)
-  (let [marker (. editor markBufferRange
-                 (clj->js [[r1 c1] [r2 c2]])
-                 #js {:invalidate "inside"})
-        div (doto (. js/document createElement "div")
-                  (aset "classList" "chlorine result-overlay native-key-bindings")
-                  (aset "innerHTML" "<div><span class='chlorine icon loading'></span></div>"))
-        dispose (.onDidChange marker #(update-marker-on-result! % editor))
-        result (get-result editor r2)]
-    ; TODO: Remove ink, this will be default
-    (when (destroyed? result)
-      (.destroy result)
-      (.dispose (get-in @results [(.-id editor) r2 :listener])))
-
-    ; TODO: After removing ink, this `when` will always be true
-    (when (->> result str (re-find #"^\[Marker"))
-      (some-> result .destroy))
-
-    (swap! results assoc-in [(.-id editor) r2]
-           {:result marker :div div :listener dispose})
-    (swap! atom-results update (.-id editor) conj {:result marker :listener dispose})
-    (. editor decorateMarker marker #js {:type "block" :position "after" :item div})))
-
-(defn- create-div! []
-  (doto (. js/document createElement "div")
-    (.. -classList (add "result" "chlorine"))))
-
-(defn- get-or-create-div! [editor row parsed-ratom]
-  (let [div (or (get-in @results [(.-id editor) row :div])
-                (create-div!))]
-    (when (-> parsed-ratom meta :error) (.. div -classList (add "error")))
-    (.. div -classList (add "result"))
-    (rdom/render [:div [render/view-for-result parsed-ratom]] div)
+(defn- create-result [id editor range]
+  (let [marker ^js (. editor markBufferRange
+                     (clj->js range)
+                     #js {:invalidate "inside"})
+        div (. js/document createElement "div")
+        dec (. ^js editor decorateMarker marker #js {:type "block" :position "after" :item div})]
+    (.onDidChange marker (fn [_] (update-marker id marker dec)))
+    (.onDidDestroy marker (fn [_] (update-marker id marker dec)))
+    (swap! results assoc id {:marker marker :div div :editor editor})
+    (aset marker "__divElement" div)
     div))
 
-(defn update-with-result [editor row parsed-ratom]
-  (when-let [inline-result ^js (get-result editor row)]
-    (swap! results assoc-in [(.-id editor) row :parsed-ratom] parsed-ratom)
-    (let [div (get-or-create-div! editor row parsed-ratom)]
-      (when (.-setContent inline-result)
-        (.setContent inline-result div #js {:error (-> parsed-ratom meta :error)})))))
+(defn- find-result [^js editor range]
+  (-> editor
+      (.findMarkers #js {:endBufferRow (-> range last first)})
+      (->> (filter #(.-__divElement ^js %))
+           first)))
 
-(defn inline-result [^js editor row parsed-ratom]
-  (update-with-result editor row parsed-ratom))
+(s/defn new-result [data :- schemas/EvalData]
+  (let [id (:id data)
+        range (:range data)
+        {:keys [editor]} (:editor-data data)
+        _ (when-let [old-marker (find-result editor range)]
+            (.destroy old-marker))
+        div (create-result id editor range)]
+    (doto div
+      (aset "classList" "chlorine result-overlay native-key-bindings")
+      (aset "innerHTML" "<div><span class='repl-tooling icon loading'></span></div>"))))
 
-(defn parse-and-inline [editor row parsed-result]
-  (p/let [parse (:parse @state)
-          res (parse parsed-result)]
-    (inline-result editor row res)))
+(s/defn update-result [result :- schemas/EvalResult]
+  (let [id (:id result)
+        {:keys [editor range]} (:editor-data result)]
+    (when-let [{:keys [div]} (get @results id)]
+      (let [parse (-> @state :tooling-state deref :editor/features :result-for-renderer)
+            parsed (parse result)]
+        (.. div -classList (add "result" (when (-> parsed meta :error) "error")))
+        (swap! results update id assoc :parsed parsed)
+        (rdom/render [render/view-for-result parsed] div)))))
+
+(defn all-parsed-results []
+  (for [[_ {:keys [parsed]}] @results
+        :when parsed]
+    parsed))
+
+(s/defn clear-results! [curr-editor :- TextEditor]
+  (doseq [[_ {:keys [editor marker]}] @results
+          :when (= (.-id curr-editor) (.-id editor))]
+    (.destroy ^js marker)))
