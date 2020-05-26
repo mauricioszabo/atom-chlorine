@@ -111,7 +111,7 @@
     (testing "Clojure"
       (testing "can connect into editor"
         (connect!)
-        (check (has-text? "REPL Connected") => #"Connecteda"))
+        (check (has-text? "REPL Connected") => #"Connected"))
 
       (testing "evaluates code"
         (eval-file "test.clj" "(str (+ 90 120))")
