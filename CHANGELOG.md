@@ -6,7 +6,7 @@
 * Auto-import
 * Clean unused imports
 
-## NEXT
+## 0.7.2
 - Fixed that tried to run refresh on EDN files
 - Fix on `get-selection` for configs in ClojureScript
 - Remove Ink
