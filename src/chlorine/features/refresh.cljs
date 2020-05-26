@@ -26,7 +26,7 @@
             code (if (= :simple mode)
                    (str "(do (require '[" ns-name " :reload :all]) :ok)")
                    (full-command))]
-        (.. (evaluate code {:aux true :auto-detect true})
+        (.. (evaluate code {:aux true})
             (then #(if (-> % :result (= :ok))
                      (do
                        (swap! state assoc-in [:refresh :needs-clear?] false)
