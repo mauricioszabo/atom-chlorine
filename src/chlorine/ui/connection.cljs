@@ -9,7 +9,7 @@
 
 (defonce local-state
   (r/atom {:hostname "localhost"
-           :port ""}))
+           :port nil}))
 
 (defn view []
   [:div.native-key-bindings.tab-able
@@ -64,6 +64,7 @@
 (defn connect-socket! []
   (if (-> @state :repls :clj-eval nil?)
     (conn-view (fn [panel]
-                 (repl/connect-socket! (:hostname @local-state) (:port @local-state))
+                 (repl/connect-socket! (:hostname @local-state) (or (:port @local-state)
+                                                                    0))
                  (destroy! panel)))
     (already-connected)))
