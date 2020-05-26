@@ -1,13 +1,9 @@
-;; shadow-cljs configuration
 {:source-paths ["test"]
 
- :dependencies [[org.clojure/core.async "0.4.474"]
-                [funcool/promesa "4.0.2"]
-                [check "0.1.0-SNAPSHOT"]]
+ :dependencies [[check "0.1.0-SNAPSHOT"]
+                [etaoin "0.3.6"]]
 
  :socket-repl {:port 3333}
- :builds {:tests {:target :node-library
-                  :compiler-options {:infer-externs :auto}
-                  :exports {:activate chlorine.tests/activate}
-                  :output-to "lib/main.js"
-                  :devtools {:after-load chlorine.tests/after}}}}
+ :builds {:tests {:target :node-script
+                  :main chlorine.tests/main
+                  :output-to "lib/main.js"}}}
