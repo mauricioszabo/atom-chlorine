@@ -60,12 +60,12 @@
   text)
 
 (defn- goto-file [file]
-  (doseq [n (range 5)
+  (doseq [n (range 20)
           :while (not= file (title-of-editor))]
     (run-worspace-cmd! "window:focus-next-pane")
     (run-worspace-cmd! "pane:show-next-item"))
   (when-not (= file (title-of-editor))
-    (throw (ex-info "Can't file file!" {:last-file (title-of-editor)
+    (throw (ex-info "Can't find file!" {:last-file (title-of-editor)
                                         :expected-file file}))))
 
 (defn- with-file [file contents]
