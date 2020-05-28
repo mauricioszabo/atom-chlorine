@@ -12,7 +12,8 @@
 
 (defn- subscribe-editor-events [^js editor]
   (when (and (-> editor .getGrammar .-scopeName (= "source.clojure"))
-             (not (str/ends-with? (.getPath editor) "edn")))
+             (.getPath editor)
+             (not (some-> str/ends-with? (.getPath editor) "edn")))
     (.add ^js @aux/subscriptions (.onDidSave editor #(refresh/run-editor-refresh!)))))
 
 (defn- observe-editors []
