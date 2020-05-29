@@ -17,11 +17,20 @@ Chlorine connects to a Socket REPL and adds autocomplete, goto var definition, e
 As it is possible to see above, Chlorine works both with Clojure and ClojureScript (only shadow-cljs for now).
 
 ## Usage:
-Fire up a clojure REPL with Socket REPL support. With `shadow-cljs`, when you `watch` some build ID it'll give you a port for nREPL and Socket REPL. With `lein`, invoke it in a folder where you have `project.clj` and you can use `JVM_OPTS` environment variable like:
+Fire up a clojure REPL with Socket REPL support. With `shadow-cljs`, when you `watch` some build ID it'll give you a port for nREPL and Socket REPL. With `lein`, invoke it in a folder where you have `project.clj` and you can use `JVM_OPTS` environment variable like (on Linux or MacOS):
 
 ```bash
 JVM_OPTS='-Dclojure.server.myrepl={:port,5555,:accept,clojure.core.server/repl}' lein repl
 ```
+
+On Windows, you can add a profile on `project.clj` that will add these JVM options; to do it, check if your `project.clj` have the `:profiles` key. If it does, just add the `:socket` part, if it does not, add the `:profiles` tag and then the `:socket`:
+
+```clojure
+  ; ... dependencies, main, etc ...
+  :profiles {:socket {:jvm-opts ["-Dclojure.server.myrepl={:port,5555,:accept,clojure.core.server/repl}"]}}
+```
+
+Then, you can run `lein with-profile +socket repl`, and it'll open a Socket REPL on port `5555`.
 
 On Shadow-CLJS' newer versions, when you start a build with `shadow-cljs watch <some-id>`, it doesn't shows the Socket REPL port on the console, but it does create a file with the port number on `.shadow-cljs/socket-repl.port`. You can read that file to see the port number (Chlorine currently uses this file to mark the port as default).
 
