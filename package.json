@@ -1,7 +1,7 @@
 {
   "name": "chlorine",
   "main": "./lib/main",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "description": "Socket REPL client for Clojure and ClojureScript",
   "keywords": [
     "clojure",
