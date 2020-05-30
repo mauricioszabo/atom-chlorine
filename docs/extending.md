@@ -10,7 +10,7 @@ First you'll run `Chlorine: Open Config`. Then, on this file, you'll add functio
 
 ```clojure
 (defn explain-schema []
-  (let [editor-data (editor/get-var)]
+  (p/let [editor-data (editor/get-var)]
     (when editor-data
       (-> editor-data
           (update :text #(str "(if (satisfies? schema.core/Schema " % ") "
@@ -24,7 +24,7 @@ Example of the above code running:
 
 ![Getting Schema](./get-schema.gif)
 
-Please, notice that **you cannot use** (for now) `when-let`, `if-let`, etc... the reason is that some commands on Chlorine's side return Javascript's promises, and `let` was re-wrired to await for promises to resolve before defining vars.
+Please, notice that `p/let` is being used instead of `let`: the reason is that some commands on Chlorine's side return Javascript's promises, and `p/let` is able to "wait" for then before running the next bindings.
 
 The current (incomplete) API is:
 * `get-top-block`, `get-block`, `get-var`, `get-selection` - Return the current text refering to top-block, block, current Clojure var, or selection. Will return a map with `:text`, a string containing the current text, an `:range`, a 0-based `[[start-row start-col] [end-row end-col]]` that corresponds to the start and end of the selection/block/var.
@@ -91,7 +91,7 @@ To render an interactive result, you must render a map that contains, at least, 
 **In ClojureScript**:
 ```clojure
 (defn re-print []
-  (let [res (editor/get-block)]
+  (p/let [res (editor/get-block)]
     (when res
       (-> res
           (update :text #(str "{:html (pr-str (quote " % "))}"))
