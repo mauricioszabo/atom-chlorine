@@ -10,7 +10,6 @@
   (if (-> @state :refresh :needs-clear?)
     '(do
        (clojure.core/require '[clojure.tools.namespace.repl])
-       (clojure.core/require '[clojure.test])
        (clojure.tools.namespace.repl/clear)
        (clojure.tools.namespace.repl/refresh-all))
     '(do
@@ -19,6 +18,7 @@
 
 (defn- refresh-editor [editor mode]
   (when-not (e-eval/need-cljs? (:config @state) (.getFileName editor))
+    ;; TODO: use cmds/run-feature! here.
     (when-let [evaluate (some-> @state :tooling-state deref :editor/features :eval)]
       (let [editor-data (repl/get-editor-data)
             [_ ns-name] (helpers/ns-range-for (:contents editor-data)
@@ -26,7 +26,7 @@
             code (if (= :simple mode)
                    (str "(do (require '[" ns-name " :reload :all]) :ok)")
                    (full-command))]
-        (.. (evaluate {:code code :aux true})
+        (.. (evaluate {:text code :aux true})
             (then #(if (-> % :result (= :ok))
                      (do
                        (swap! state assoc-in [:refresh :needs-clear?] false)
