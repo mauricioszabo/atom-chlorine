@@ -17,6 +17,7 @@ nohup ffmpeg -video_size 1024x768 -f x11grab -i :80.0 /tmp/junit/out.mpg &
 
 cd integration/chlorine-tests
 
+sleep 20
 echo "--- RUNNING INTEGRATION TESTS ---"
 echo -e "(load-file \"test/chlorine/tests.clj\")(in-ns 'chlorine.tests)(run-all-tests)\n" | nc localhost 3333 &
 # npx shadow-cljs clj-eval "(load-file \"test/chlorine/tests.clj\")(in-ns 'chlorine.tests)(run-all-tests)" &
