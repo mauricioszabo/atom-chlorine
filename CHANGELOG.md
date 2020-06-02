@@ -6,6 +6,9 @@
 * Auto-import
 * Clean unused imports
 
+## 0.7.4
+- Fixed refresh code not working
+
 ## 0.7.3
 - Forward-finding namespaces if a NS form was not found before the cursor (fixes https://github.com/mauricioszabo/atom-chlorine/issues/193)
 - Waiting for REPL results before forwarding new commands to the REPL (probably fixes https://github.com/mauricioszabo/atom-chlorine/issues/192)
