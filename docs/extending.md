@@ -6,6 +6,8 @@ There's also an experimental feature to add commands to Chlorine in ClojureScrip
 
 ## Extending from ClojureScript
 
+See also: [Custom Renderers](custom-remderers.md)
+
 First you'll run `Chlorine: Open Config`. Then, on this file, you'll add functions that will be converted to `Chlorine: ....` commands. For example, to add a command to explain a prismatic schema:
 
 ```clojure
