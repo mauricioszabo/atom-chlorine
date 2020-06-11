@@ -57,7 +57,7 @@ This package does not register any keybindings to avoid keybinding conflict issu
   'shift-enter':  'chlorine:evaluate-block'
   'ctrl-enter':   'chlorine:evaluate-top-block'
   'ctrl-c':       'chlorine:break-evaluation'
-  'space space':  'inline-results:clear-all'
+  'space space':  'chlorine:clear-inline-results'
   'space x':      'chlorine:run-tests-in-ns'
   'space t':      'chlorine:run-test-for-var'
 
