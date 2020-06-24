@@ -36,15 +36,15 @@
            first)))
 
 (s/defn new-result [data :- schemas/EvalData]
-  (let [id (:id data)
-        range (:range data)
-        {:keys [editor]} (:editor-data data)
-        _ (when-let [old-marker (find-result editor range)]
-            (.destroy old-marker))
-        div (create-result id editor range)]
-    (doto div
-      (aset "classList" "chlorine result-overlay native-key-bindings")
-      (aset "innerHTML" "<div><span class='repl-tooling icon loading'></span></div>"))))
+  (when-let [editor (-> data :editor-data :editor)]
+    (let [id (:id data)
+          range (:range data)
+          _ (when-let [old-marker (find-result editor range)]
+              (.destroy old-marker))
+          div (create-result id editor range)]
+      (doto div
+        (aset "classList" "chlorine result-overlay native-key-bindings")
+        (aset "innerHTML" "<div><span class='repl-tooling icon loading'></span></div>")))))
 
 (s/defn update-result [result :- schemas/EvalResult]
   (let [id (:id result)
