@@ -6,6 +6,13 @@
 * Auto-import
 * Clean unused imports
 
+## 0.8.0
+- Fix on regexp printing
+- Using another way to connect to Shadow-CLJS
+#### Experimental features on this version
+- Implemented the new Websocket REPL of Shadow-CLJS (Remote API)
+- For now, removed inspection of JS and resolving promises
+
 ## 0.7.5
 - Fixes on nREPL imports for Orchard, Compliment, etc (https://github.com/mauricioszabo/atom-chlorine/issues/191)
 
