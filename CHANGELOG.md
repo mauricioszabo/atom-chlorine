@@ -6,6 +6,10 @@
 * Auto-import
 * Clean unused imports
 
+## 0.8.1
+- Possibility of running Shadow-CLJS Remote API commands (see: https://github.com/mauricioszabo/repl-tooling/pull/83)
+- Small fix on inline results, with Experimental Features, when saving a file with errors on Shadow-CLJS
+
 ## 0.8.0
 - Fix on regexp printing
 - Using another way to connect to Shadow-CLJS
