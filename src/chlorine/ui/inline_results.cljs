@@ -30,10 +30,10 @@
     div))
 
 (defn- find-result [^js editor range]
-  (-> editor
-      (.findMarkers #js {:endBufferRow (-> range last first)})
-      (->> (filter #(.-__divElement ^js %))
-           first)))
+  (some-> editor
+          (.findMarkers #js {:endBufferRow (-> range last first)})
+          (->> (filter #(.-__divElement ^js %))
+               first)))
 
 (s/defn new-result [data :- schemas/EvalData]
   (when-let [editor (-> data :editor-data :editor)]
