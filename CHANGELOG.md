@@ -6,6 +6,10 @@
 * Auto-import
 * Clean unused imports
 
+## 0.8.2
+- Support for resolving promises on Shadow Relay API
+- `tap>` support for Shadow-CLJS Relay API
+
 ## 0.8.1
 - Possibility of running Shadow-CLJS Remote API commands (see: https://github.com/mauricioszabo/repl-tooling/pull/83)
 - Small fix on inline results, with Experimental Features, when saving a file with errors on Shadow-CLJS
