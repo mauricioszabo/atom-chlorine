@@ -1,9 +1,0 @@
-{:source-paths ["test"]
-
- :dependencies [[check "0.1.0-SNAPSHOT"]
-                [etaoin "0.3.6"]]
-
- :socket-repl {:port 3333}
- :builds {:tests {:target :node-script
-                  :main chlorine.tests/main
-                  :output-to "lib/main.js"}}}
