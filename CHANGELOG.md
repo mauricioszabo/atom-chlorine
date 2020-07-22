@@ -6,6 +6,9 @@
 * Auto-import
 * Clean unused imports
 
+## 0.8.3
+- Fix error while trying to print lots of really small lines
+
 ## 0.8.2
 - Support for resolving promises on Shadow Relay API
 - `tap>` support for Shadow-CLJS Relay API
