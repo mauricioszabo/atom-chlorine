@@ -6,6 +6,11 @@
 * Auto-import
 * Clean unused imports
 
+## 0.9.0
+- Clickable stacktraces for Clojerl
+- Better printer for Clojerl and nREPL
+- Cutting some stdout messages from aux REPL
+
 ## 0.8.3
 - Fix error while trying to print lots of really small lines
 

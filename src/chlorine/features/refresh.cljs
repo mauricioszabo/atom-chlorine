@@ -26,6 +26,7 @@
             code (if (= :simple mode)
                    (str "(do (require '[" ns-name " :reload :all]) :ok)")
                    (full-command))]
+        (set! helpers/*out-on-aux* true)
         (.. (evaluate {:text code :aux true})
             (then #(if (-> % :result (= :ok))
                      (do
@@ -45,7 +46,9 @@
                      (console/result {:id (gensym "refresh")
                                       :editor-data editor-data
                                       :repl (-> @state :tooling-state deref :clj/aux)
-                                      :result result}))))))))
+                                      :result result})))
+            (finally #(set! helpers/*out-on-aux* false)))))))
+
 
 (defn run-refresh! []
   (refresh-editor (.. js/atom -workspace getActiveTextEditor)
