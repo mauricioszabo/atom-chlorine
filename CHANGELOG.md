@@ -10,6 +10,7 @@
 - Clickable stacktraces for Clojerl
 - Better printer for Clojerl and nREPL
 - Cutting some stdout messages from aux REPL
+- Better support for Lumo, CLR, and Joker
 
 ## 0.8.3
 - Fix error while trying to print lots of really small lines
