@@ -6,6 +6,10 @@
 * Auto-import
 * Clean unused imports
 
+## 0.9.1
+- Adding commands `render/add-class` and `render/set-attr`
+- Adding custom tag `:div/ansi` to render ANSI char codes
+
 ## 0.9.0
 - Clickable stacktraces for Clojerl
 - Better printer for Clojerl and nREPL
