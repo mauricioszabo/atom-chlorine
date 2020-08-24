@@ -52,7 +52,7 @@ This package does not register any keybindings to avoid keybinding conflict issu
 'atom-text-editor.vim-mode-plus.normal-mode[data-grammar="source clojure"]':
   'g f':          'chlorine:go-to-var-definition'
   'ctrl-d':       'chlorine:doc-for-var'
-  'space c':      'chlorine:connect-clojure-socket-repl'
+  'space c':      'chlorine:connect-socket-repl'
   'space l':      'chlorine:clear-console'
   'shift-enter':  'chlorine:evaluate-block'
   'ctrl-enter':   'chlorine:evaluate-top-block'
@@ -69,7 +69,7 @@ This package does not register any keybindings to avoid keybinding conflict issu
 **If you don't use vim bindings:**
 ```cson
 'atom-text-editor[data-grammar="source clojure"]':
-  'ctrl-; y':       'chlorine:connect-clojure-socket-repl'
+  'ctrl-; y':       'chlorine:connect-socket-repl'
   'ctrl-; e':       'chlorine:disconnect'
   'ctrl-; k':       'chlorine:clear-console'
   'ctrl-; f':       'chlorine:load-file'
