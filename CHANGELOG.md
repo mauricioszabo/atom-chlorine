@@ -6,6 +6,9 @@
 * Auto-import
 * Clean unused imports
 
+## 0.9.3
+- Adding custom tag `:div/clj` to render Clojure forms
+
 ## 0.9.2
 - Adding commands `render/add-class` and `render/set-attr`
 - Adding custom tag `:div/ansi` to render ANSI char codes
