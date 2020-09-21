@@ -6,6 +6,11 @@
 * Auto-import
 * Clean unused imports
 
+## 0.9.4
+- Fixed defining functions with same name as `clojure.core` (fixes https://github.com/mauricioszabo/atom-chlorine/issues/214).
+- Fixed clojure REPL not connecting on first try
+- Interactive eval redirects STDOUT
+
 ## 0.9.3
 - Adding custom tag `:div/clj` to render Clojure forms
 
