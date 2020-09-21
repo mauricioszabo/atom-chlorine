@@ -8,6 +8,8 @@
 
 ## 0.9.3
 - Adding custom tag `:div/clj` to render Clojure forms
+- Fixed defining functions with same name as `clojure.core` (fixes https://github.com/mauricioszabo/atom-chlorine/issues/214).
+- Fixed clojure REPL not connecting on first try
 
 ## 0.9.2
 - Adding commands `render/add-class` and `render/set-attr`
