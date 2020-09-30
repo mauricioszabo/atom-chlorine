@@ -15,6 +15,9 @@ Chlorine connects to a Socket REPL and adds autocomplete, goto var definition, e
 As it is possible to see above, Chlorine works both with Clojure and ClojureScript (only shadow-cljs for now).
 
 ## Usage:
+
+>If you are a beginner, you may check this [quickstart guide](docs/quickstart.md).
+
 Fire up a clojure REPL with Socket REPL support. With `shadow-cljs`, when you `watch` some build ID it'll give you a port for nREPL and Socket REPL. With `lein`, invoke it in a folder where you have `project.clj` and you can use `JVM_OPTS` environment variable like (on Linux or MacOS):
 
 ```bash
