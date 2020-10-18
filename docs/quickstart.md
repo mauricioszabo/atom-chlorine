@@ -1,6 +1,6 @@
 # Using Clojure with Atom Quickstart
 
-This is a quick guide for beginners in Clojure and/or Atom. It will cover all steps to set up environment and start coding!
+This is a quick guide. If you are new to Clojure or Atom, start here. It will cover all steps to set up environment and start coding!
 
 ## Requirements
 
@@ -105,12 +105,13 @@ A list useful Atom packages to install. You may find them in Atom typing `ctrl+,
 ### Highly Recommended
 
 -   [Chlorine](https://github.com/mauricioszabo/atom-chlorine)
+-   [Parinfer](https://github.com/oakmac/atom-parinfer)
 -   [Parinfer Plus](https://github.com/mauricioszabo/atom-parinfer-plus)
 
-### Optional
+### Useful optional packages
 
--   [Atom Clock](https://github.com/b3by/atom-clock)
 -   [Keymap Control](https://github.com/hanslivingstone/keymap-control)
+-   [linter-kondo](https://github.com/gerred/linter-kondo)
 
 ## Configuring and Using Chlorine
 
