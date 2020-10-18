@@ -96,7 +96,7 @@ lein repl
 
 ### Atom
 
-To install Atom, follow the [Linux installation instructions](https://flight-manual.atom.io/getting-started/sections/installing-atom/#platform-linux) or get the [Windows version](https://github.com/atom/atom/releases/download/v1.51.0/AtomSetup-x64.exe).
+To install Atom, follow the [installation instructions](https://flight-manual.atom.io/getting-started/sections/installing-atom/).
 
 ## Atom packages
 
