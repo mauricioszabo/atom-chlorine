@@ -50,11 +50,29 @@ brew cask install java
 
 Easy way to install:
 
+> Debian-based Systems (Ubuntu, Mint):
+
 ```bash
 cd /usr/local/bin
 sudo wget https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein
 sudo chmod +x lein
 ./lein
+```
+
+> RHEL-based Systems (CentOS, Red Hat):
+
+```bash
+wget https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein
+sudo su -c "chown root:root ./lein && chmod a+x ./lein"
+sudo su -c "mv ./lein /usr/local/bin/"
+```
+
+> Mac Systems
+
+```bash
+curl https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein > lein
+sudo mv lein /usr/local/bin/lein
+sudo chmod a+x /usr/local/bin/lein
 ```
 
 You may check the installation with
