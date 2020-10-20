@@ -91,6 +91,9 @@ With Lumo, you fire up lumo with `lumo -n 3322` to start a socket REPL on port `
 
 With Shadow-CLJS, after watching (or after starting a server, or anything that starts a socket REPL) you connect with "Connect Clojure Socket REPL", then run the command "Connect Embedded". Then you can run code on .cljs files too.
 
+> ### WARNING
+> Do not evaluate the `ns` form in Shadow-CLJS. Shadow keeps your namespaces reloaded all the time, and sometimes re-evaluating then can lead to strange issues. If you **do evaluate** the ns form and get errors, just save the current file and Shadow will hot-reload it, and things will be fine. For more info, see: https://github.com/mauricioszabo/atom-chlorine/issues/213
+
 ### Detection
 Chlorine will try to detect the current file extension, falling back to `.clj` if the file is not saved. With ClojureScript, it'll only evaluate `.cljs` files, and it'll use the Clojure REPL to evaluate `.clj` and `.cljc` files. You can override this behavior in the package's configuration to one of the following:
 
