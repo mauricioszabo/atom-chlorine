@@ -22,11 +22,6 @@
   "engines": {
     "atom": ">=1.0.0 <2.0.0"
   },
-  "activationCommands": {
-    "atom-workspace": [
-      "chlorine:connect-socket-repl"
-    ]
-  },
   "providedServices": {
     "everything.search": {
       "versions": {
