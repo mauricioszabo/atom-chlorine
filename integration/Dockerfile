@@ -10,7 +10,7 @@ RUN cd /tmp && curl https://nodejs.org/dist/v10.16.3/node-v10.16.3-linux-x64.tar
 RUN cp -a /tmp/node-v10.16.3-linux-x64/* /usr
 RUN rm -R /tmp/node-v10.16.3-linux-x64
 
-RUN wget https://chromedriver.storage.googleapis.com/73.0.3683.68/chromedriver_linux64.zip
+RUN wget https://chromedriver.storage.googleapis.com/76.0.3809.126/chromedriver_linux64.zip
 RUN unzip chromedriver_linux64.zip
 RUN mv chromedriver /usr/bin
 RUN rm chromedriver_linux64.zip
