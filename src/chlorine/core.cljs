@@ -35,6 +35,7 @@
 
 (def aux #js {:reload aux/reload-subscriptions!
               :observe_editor observe-editors
+              :connect_static repl/connect-static!
               :observe_config configs/observe-configs!
               :get_disposable (fn [] @aux/subscriptions)})
 
