@@ -6,6 +6,11 @@
 * Auto-import
 * Clean unused imports
 
+## 0.10.0
+- Goto var definition and doc for var now work with ClojureScript's macros
+- Added clj-kondo statical analysis if it's on the path for goto-var and doc
+- Added a new feature - `eql` - to check for info data in extension points with EQL
+
 ## 0.9.4
 - Fixed defining functions with same name as `clojure.core` (fixes https://github.com/mauricioszabo/atom-chlorine/issues/214).
 - Fixed clojure REPL not connecting on first try
