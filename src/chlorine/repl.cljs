@@ -14,6 +14,7 @@
 
 (defonce ^:private commands-subs (atom (CompositeDisposable.)))
 
+(declare connect-static!)
 (defn- handle-disconnect! []
   (let [repls (:repls @state)
         any-repl (or (:clj-eval repls) (:cljs-eval repls))]
@@ -26,7 +27,8 @@
                  :cljs-eval nil
                  :clj-aux nil}
          :connection nil)
-  (.dispose ^js @commands-subs))
+  (.dispose ^js @commands-subs)
+  (connect-static!))
 
 (defn- decide-command [command]
   (let [old-cmd (:old-command command)
@@ -110,41 +112,46 @@
       (open-ro-editor file-name line column position contents)
       (.. js/atom -workspace (open file-name position)))))
 
-(defn connect-socket! [host port]
-  (let [p (connection/connect!
-           host port
-           {:on-stdout console/stdout
-            :config-file-path (join (.getConfigDirPath js/atom) "chlorine-config.cljs")
-            :register-commands register-commands!
-            :on-stderr console/stderr
-            :on-disconnect handle-disconnect!
-            :on-start-eval #(inline/new-result %)
-            :on-eval (fn [res]
-                       (c-console/result res)
-                       (inline/update-result res))
-            :get-rendered-results #(concat (inline/all-parsed-results)
-                                           (->> @console/out-state
-                                                (filter (fn [r] (-> r first (= :result))))
-                                                (map second)))
-            :on-copy on-copy!
-            :editor-data get-editor-data
-            :open-editor open-editor
-            :get-config get-config
-            :notify notify!
-            :prompt prompt!})]
+(def callbacks {:on-stdout console/stdout
+                :config-file-path (join (.getConfigDirPath js/atom) "chlorine-config.cljs")
+                :register-commands register-commands!
+                :on-stderr console/stderr
+                :on-disconnect handle-disconnect!
+                :on-start-eval #(inline/new-result %)
+                :on-eval (fn [res]
+                           (c-console/result res)
+                           (inline/update-result res))
+                :get-rendered-results #(concat (inline/all-parsed-results)
+                                               (->> @console/out-state
+                                                    (filter (fn [r] (-> r first (= :result))))
+                                                    (map second)))
+                :on-copy on-copy!
+                :editor-data get-editor-data
+                :open-editor open-editor
+                :get-config get-config
+                :notify notify!
+                :prompt prompt!})
 
-    (.then p (fn [st]
-               (when st
-                 (c-console/open-console (-> @state :config :console-pos)
-                                         #(connection/disconnect!))
-                 (swap! state #(-> %
-                                   (assoc-in [:repls :clj-eval] (:clj/repl @st))
-                                   (assoc-in [:repls :clj-aux] (:clj/aux @st))
-                                   (assoc :parse (-> @st :editor/features :result-for-renderer))
-                                   (assoc :connection {:host host :port port}
-                                          ; FIXME: This is just here so we can migrate
-                                          ; code to REPL-Tooling little by little
-                                          :tooling-state st))))))))
+(defn connect-socket! [host port]
+  (p/let [st (connection/connect! host port callbacks)]
+    (when st
+      (c-console/open-console (-> @state :config :console-pos)
+                              #(connection/disconnect!))
+      (swap! state #(-> %
+                        (assoc-in [:repls :clj-eval] (:clj/repl @st))
+                        (assoc-in [:repls :clj-aux] (:clj/aux @st))
+                        (assoc :parse (-> @st :editor/features :result-for-renderer))
+                        (assoc :connection {:host host :port port}
+                               ; FIXME: This is just here so we can migrate
+                               ; code to REPL-Tooling little by little
+                               :tooling-state st))))))
+
+(defn connect-static! []
+  (when-not (some-> @state :tooling-state deref :repl/info)
+    (let [st (connection/connect-callbacks! callbacks)]
+      (swap! state assoc
+             :tooling-state st
+             :parse (-> @st :editor/features :result-for-renderer)))))
 
 (defn- txt-in-range []
   (let [{:keys [contents range]} (get-editor-data)]

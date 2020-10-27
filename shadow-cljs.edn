@@ -1,7 +1,7 @@
 {:source-paths ["src" "repl-tooling/src" "repl-tooling/test"
                 "repl-tooling/resources"]
 
- :dependencies [[check "0.1.0-SNAPSHOT" :exclusions [midje]]
+ :dependencies [[check "0.2.0-SNAPSHOT"]
                 [com.cognitect/transit-cljs "0.8.264"]
                 [funcool/promesa "4.0.2"]
                 [paprika "0.1.3-SNAPSHOT"]
@@ -12,6 +12,7 @@
                 [devcards "0.2.5"]
                 [org.rksm/suitable "0.3.2"]
                 [cider/orchard "0.5.8"]
+                [com.wsscode/pathom "2.3.0-alpha10"]
                 [org.pinkgorilla/gorilla-renderable-ui "0.1.33"]]
 
  :builds
@@ -20,7 +21,8 @@
                      :keep-native-requires true
                      :keep-as-require #{"atom"}}
 
-        :dev {:closure-defines {chlorine.aux/TESTS true}}
+        :dev {:closure-defines {chlorine.aux/TESTS true
+                                com.wsscode.pathom.misc.INCLUDE_SPECS false}}
         :compiler-options {:infer-externs :auto}
         :exports {:config chlorine.core/config
                   :commands chlorine.core/commands
