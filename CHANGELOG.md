@@ -6,6 +6,10 @@
 * Auto-import
 * Clean unused imports
 
+## 0.10.1
+- Fixed nREPL code disconnecting when you send accents
+- Fixed some undetectable var definitions on ClojureScript
+
 ## 0.10.0
 - Goto var definition and doc for var now work with ClojureScript's macros
 - Added clj-kondo statical analysis if it's on the path for goto-var and doc
