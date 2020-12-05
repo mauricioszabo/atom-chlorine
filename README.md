@@ -16,7 +16,7 @@ As it is possible to see above, Chlorine works both with Clojure and ClojureScri
 
 ## Usage:
 
->If you are a beginner, you may check this [quickstart guide](docs/quickstart.md).
+>If you are new to Clojure or Atom, you may check this [quickstart guide](docs/quickstart.md).
 
 Fire up a clojure REPL with Socket REPL support. With `shadow-cljs`, when you `watch` some build ID it'll give you a port for nREPL and Socket REPL. With `lein`, invoke it in a folder where you have `project.clj` and you can use `JVM_OPTS` environment variable like (on Linux or MacOS):
 

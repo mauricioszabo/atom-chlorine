@@ -1,10 +1,10 @@
 # Using Clojure with Atom Quickstart
 
-This is a quick guide. If you are new to Clojure or Atom, start here. It will cover all steps to set up environment and start coding!
+This is a quick guide - if you are new to Clojure or Atom, start here. It will cover all steps to set up environment and start coding!
 
 ## Requirements
 
-First, you will need the [Java Development Kit](http://openjdk.java.net/), [Leiningen](http://leiningen.org/) and [Atom](https://atom.io/) installed.
+First, you will need the [Java Development Kit](http://openjdk.java.net/), [Leiningen](http://leiningen.org/) or [Clojure CLI tools](https://clojure.org/guides/getting_started) and [Atom](https://atom.io/) installed.
 
 ### Java
 
@@ -14,7 +14,7 @@ You may check if the JDK is installed with
 java --version
 ```
 
-If something like this is returned, go to Leiningen.
+If something like this is returned, go to Leiningen or CLI tools.
 
 ```bash
 openjdk 14.0.1 2020-04-14
@@ -28,14 +28,14 @@ Else, you may install OpenJDK these way:
 
 ```bash
 sudo apt update
-sudo apt install openjdk-14-jre-headless
+sudo apt install openjdk-11-jdk
 ```
 
 > RHEL-based Systems (CentOS, Red Hat):
 
 ```bash
 sudo yum update
-sudo yum install java-14-openjdk-devel
+sudo yum install java-11-openjdk-devel
 ```
 
 > Mac Systems:
@@ -56,7 +56,6 @@ Easy way to install:
 cd /usr/local/bin
 sudo wget https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein
 sudo chmod +x lein
-./lein
 ```
 
 > RHEL-based Systems (CentOS, Red Hat):
@@ -88,11 +87,31 @@ OpenJDK 64-Bit Server VM warning: Options -Xverify:none and -noverify were depre
 Leiningen 2.9.4 on Java 14.0.1 OpenJDK 64-Bit Server VM
 ```
 
-Now, you can use the [REPL](https://clojure.org/guides/repl/introduction) by typing
+### Clojure CLI tools
+Please notice that you don't need to install both `lein` and `clj` - you can choose only one of then.
+
+To install Clojure CLI tools, follow the steps on the site, or as a quick guide:
+
+> For Linux:
 
 ```bash
-lein repl
+curl -O https://download.clojure.org/install/linux-install-1.10.1.739.sh
+chmod +x linux-install-1.10.1.739.sh
+sudo ./linux-install-1.10.1.739.sh
 ```
+> For Mac with Homebrew:
+
+```bash
+brew install clojure/tools/clojure
+```
+
+> On Windows with PowerShell 5 (or later), .NET Core SDK 2.1+ or .NET Framework 4.5+ (or later):
+
+```powershell
+Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://download.clojure.org/install/win-install-1.10.1.739.ps1')
+```
+
+And follow the instructions
 
 ### Atom
 
@@ -105,27 +124,23 @@ A list useful Atom packages to install. You may find them in Atom typing `ctrl+,
 ### Highly Recommended
 
 -   [Chlorine](https://github.com/mauricioszabo/atom-chlorine)
--   [Parinfer](https://github.com/oakmac/atom-parinfer)
--   [Parinfer Plus](https://github.com/mauricioszabo/atom-parinfer-plus)
+-   [Lisp Paredit](https://github.com/neil-lindquist/lisp-paredit)
+-   [Parinfer](https://github.com/oakmac/atom-parinfer) or [Parinfer Plus](https://github.com/mauricioszabo/atom-parinfer-plus)
 
 ### Useful optional packages
-
--   [Keymap Control](https://github.com/hanslivingstone/keymap-control)
 -   [linter-kondo](https://github.com/gerred/linter-kondo)
 
 ## Configuring and Using Chlorine
 
 ### How it works:
 
-Chlorine will connect with the REPL environment and let you evaluate code right from the Atom, without need to change windows.
+Chlorine will connect with the REPL environment and let you evaluate code right from the Atom, without needing to change windows.
 
-Parinfer Plus will autocomplete and indent code easily for you.
-
-### How to use Chlorine
+Parinfer (or Parinfer Plus) will indent code easily for you.
 
 #### Connecting to a running REPL
 
-Chlorine needs to connect to a running REPL to evaluate code. Following is the shortest and easiest way to do this:
+Chlorine needs to connect to a running REPL to evaluate code. The shortest and easiest way to do this is the following:
 
 1.  Change to a directory with a Clojure project or create one with and moves to its directory:
 
@@ -139,56 +154,34 @@ cd <APP_NAME>
 2.  Inside the app directory, start a REPL enviroment with an specific port to connect to it later
 
 ```bash
+# Recomended, pure Socket REPL
+JVM_OPTS='-Dclojure.server.myrepl={:port,5555,:accept,clojure.core.server/repl}' lein repl
+# OR you can use nREPL
 lein repl :start :port 5555
 ```
 
-> Again, you do not _need_ to specify port, but believe me, you want to do it
-
 3.  In Atom, open the app folder or a single .clj file (or create one if you didn't do this before).
 
-4.  Connect Chlorine to the running REPL, typing `ctrl+shift+p` and then, `Repl`, to open `Connect Socket Repl`. In the next window set `Host: localhost` and `Port: 5555` or any other port that you have specified.
+4.  Connect Chlorine to the running REPL, typing `ctrl+shift+p` and then, `Repl`, to open `Connect Socket Repl`. In the next window set host to `localhost` and port to `5555` (or any other port that you have specified).
 
-5.  Be happy with your parentheses ;)
+5.  Be happy with your parenthesis ;)
 
 #### Suggested Keymaps
 
 You may configure your shortcuts in Atom for a better Chlorine experience.
 
 1.  In Atom, type `ctrl+shift+p` and then, `keymap` to open `Application: Open your keymap`.
-
-2.  Then, input your keymap shortcut setting. Mine is this way:
-
-```text
-'atom-text-editor[data-grammar="source clojure"]':
-  'ctrl-; r':       'chlorine:connect-socket-repl'
-  'ctrl-; u':       'chlorine:disconnect'
-  'ctrl-; c':       'chlorine:clear-console'
-  'ctrl-; l':       'chlorine:load-file'
-  'ctrl-; e':       'chlorine:evaluate-block'
-  'ctrl-; E':       'chlorine:evaluate-top-block'
-  'ctrl-; s':       'chlorine:evaluate-selection'
-  'ctrl-; b':       'chlorine:break-evaluation'
-  'ctrl-; S':       'chlorine:source-for-var'
-  'ctrl-; d':       'chlorine:doc-for-var'
-  'ctrl-; n':       'chlorine:run-tests-in-ns'
-  'ctrl-; v':       'chlorine:run-test-for-var'
-  'ctrl-; i':       'chlorine:clear-inline-results'
-```
-
-This way, all Chlorine related commands start with `ctrl+;` and then, press the respective letter. Note that the keybindings from the example above use mnemonics to make it easier to memorize them. But this is just a suggestion and you can pick whatever you feel most comfortable with
-
+2.  Copy-paste the recomended keymaps on the [README](../README.md#keybindings) file or change the keymaps to your own liking
 3.  Save it
 
-## Final words
+If you follow the keymaps on the [README](../README.md#keybindings) (the ones that do not use vim-mode), all Chlorine related commands will be activated by pressing `ctrl+;` and then pressing the respective letter.
 
-This is just a really quickstart to give a little help to avoid get lost or stuck in basic things. You still need to explore [Atom](https://atom.io/), [Chlorine](https://github.com/mauricioszabo/atom-chlorine), [Clojure](https://clojure.org/api/cheatsheet) and [Leiningen](https://leiningen.org/).
+## Final words
 
 [This playlist of Between Two Parens](https://www.youtube.com/watch?v=XJ4DUFjqDuQ&list=PLaGDS2KB3-AqeOryQptgApJ6M7mfoFXIp) may help you through this process.
 
 I also recommend [Clojure for the Brave and True](https://www.braveclojure.com/) and this [Clojure Tutorial from Derek Banas](https://www.youtube.com/watch?v=ciGyHkDuPAE).
 
-### Extra tip for Brazilian Portuguese speakers
+## If you speak Brazilian Portuguese
 
-Eu aprendi Clojure com [o livro do Gregório Melo](https://www.casadocodigo.com.br/products/livro-programacao-funcional-clojure?_pos=1&_sid=e2ee9f78c&_ss=r).
-
-Participe dessa [comunidade super receptiva](https://t.me/clojurebrasil) de Clojure.
+Cheque também [o livro do Gregório Melo](https://www.casadocodigo.com.br/products/livro-programacao-funcional-clojure?_pos=1&_sid=e2ee9f78c&_ss=r) sobre Clojure.
