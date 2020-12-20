@@ -1,7 +1,7 @@
 {
   "name": "chlorine",
   "main": "./lib/main",
-  "version": "0.10.1",
+  "version": "0.10.2",
   "description": "Socket REPL client for Clojure and ClojureScript",
   "keywords": [
     "clojure",
@@ -49,7 +49,7 @@
     "grim": "^2.0.2",
     "react": "^16.3.0",
     "react-dom": "^16.13.0",
-    "shadow-cljs": "^2.10.18",
+    "shadow-cljs": "^2.11.8",
     "source-map-support": "^0.5.13",
     "utf-8-validate": "^5.0.2",
     "ws": "^7.1.2"
