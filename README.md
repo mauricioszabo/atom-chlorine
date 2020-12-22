@@ -125,7 +125,6 @@ This project exists thanks to all the people who contribute. [[Contribute](docs/
 
 Become a financial contributor and help us sustain our community. Contribute:
 
-<style>.patreon {border-radius: 10px;}</style>
 <a href="https://opencollective.com/atom-chlorine"><img src="https://opencollective.com/atom-chlorine/tiers/backers.svg?avatarHeight=60&width=800"></a>
 <a href="https://www.patreon.com/bePatron?u=34618740"><img alt="become a patron" src="https://c5.patreon.com/external/logo/become_a_patron_button.png" height="35px" class="patreon"></a>
 
