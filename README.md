@@ -105,7 +105,9 @@ Chlorine will try to detect the current file extension, falling back to `.clj` i
 * CLJ - It'll use the Clojure REPL to evaluate all files
 * CLJS - It'll use the ClojureScripte REPL to evaluate all files
 
-## How to contribute?
+## Contributors
+
+### How to contribute?
 As Chlorine is in active development, it was starting to become tedious to publish a newer version of repl-tooling for every experiment, so for now, the library is registered as a submodule. To contribute, you clone this repository and run:
 
 ```
@@ -114,32 +116,26 @@ As Chlorine is in active development, it was starting to become tedious to publi
 
 To register the submodule. More info on [Developing](docs/developing.md) document.
 
-## Contributors
-
 ### Code Contributors
 
-This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
+This project exists thanks to all the people who contribute. [[Contribute](docs/developing.md)].
 <a href="https://github.com/mauricioszabo/atom-chlorine/graphs/contributors"><img src="https://opencollective.com/atom-chlorine/contributors.svg?width=890&button=false" /></a>
 
 ### Financial Contributors
 
-Become a financial contributor and help us sustain our community. [[Contribute](https://opencollective.com/atom-chlorine/contribute)]
+Become a financial contributor and help us sustain our community. Contribute:
+
+* [OpenCollective](https://opencollective.com/atom-chlorine/contribute),
+* [PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=GNVSYLBPP2HGY&currency_code=BRL&source=url),
+* <a href="https://www.patreon.com/bePatron?u=34618740" data-patreon-widget-type="become-patron-button">Become a Patron!</a><script async src="https://c6.patreon.com/becomePatronButton.bundle.js"></script>
 
 #### Individuals
 
 <a href="https://opencollective.com/atom-chlorine"><img src="https://opencollective.com/atom-chlorine/individuals.svg?width=890"></a>
+
 
 #### Organizations
 
 Support this project with your organization. Your logo will show up here with a link to your website. [[Contribute](https://opencollective.com/atom-chlorine/contribute)]
 
 <a href="https://opencollective.com/atom-chlorine/organization/0/website"><img src="https://opencollective.com/atom-chlorine/organization/0/avatar.svg"></a>
-<a href="https://opencollective.com/atom-chlorine/organization/1/website"><img src="https://opencollective.com/atom-chlorine/organization/1/avatar.svg"></a>
-<a href="https://opencollective.com/atom-chlorine/organization/2/website"><img src="https://opencollective.com/atom-chlorine/organization/2/avatar.svg"></a>
-<a href="https://opencollective.com/atom-chlorine/organization/3/website"><img src="https://opencollective.com/atom-chlorine/organization/3/avatar.svg"></a>
-<a href="https://opencollective.com/atom-chlorine/organization/4/website"><img src="https://opencollective.com/atom-chlorine/organization/4/avatar.svg"></a>
-<a href="https://opencollective.com/atom-chlorine/organization/5/website"><img src="https://opencollective.com/atom-chlorine/organization/5/avatar.svg"></a>
-<a href="https://opencollective.com/atom-chlorine/organization/6/website"><img src="https://opencollective.com/atom-chlorine/organization/6/avatar.svg"></a>
-<a href="https://opencollective.com/atom-chlorine/organization/7/website"><img src="https://opencollective.com/atom-chlorine/organization/7/avatar.svg"></a>
-<a href="https://opencollective.com/atom-chlorine/organization/8/website"><img src="https://opencollective.com/atom-chlorine/organization/8/avatar.svg"></a>
-<a href="https://opencollective.com/atom-chlorine/organization/9/website"><img src="https://opencollective.com/atom-chlorine/organization/9/avatar.svg"></a>
