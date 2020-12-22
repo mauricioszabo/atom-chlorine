@@ -125,9 +125,16 @@ This project exists thanks to all the people who contribute. [[Contribute](docs/
 
 Become a financial contributor and help us sustain our community. Contribute:
 
-* [OpenCollective](https://opencollective.com/atom-chlorine/contribute),
-* [PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=GNVSYLBPP2HGY&currency_code=BRL&source=url),
-* <a href="https://www.patreon.com/bePatron?u=34618740" data-patreon-widget-type="become-patron-button">Become a Patron!</a><script async src="https://c6.patreon.com/becomePatronButton.bundle.js"></script>
+* <a href="https://opencollective.com/atom-chlorine"><img src="https://opencollective.com/atom-chlorine/tiers/backers.svg?avatarHeight=60&width=800"></a>
+* <a href="https://www.patreon.com/bePatron?u=34618740"><img alt="become a patron" src="https://c5.patreon.com/external/logo/become_a_patron_button.png" height="35px" style="border-radius: 10px;"></a>
+
+* <form action="https://www.paypal.com/donate" method="post" target="_top"><input type="hidden" name="cmd" value="_donations" />
+<input type="hidden" name="business" value="GNVSYLBPP2HGY" />
+<input type="hidden" name="currency_code" value="USD" />
+<input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button" />
+<img alt="" border="0" src="https://www.paypal.com/en_UY/i/scr/pixel.gif" width="1" height="1" />
+</form>
+
 
 #### Individuals
 
