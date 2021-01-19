@@ -92,7 +92,7 @@ For now, it only works with Shadow-CLJS or ClojureScript implementations like Lu
 
 With Lumo, you fire up lumo with `lumo -n 3322` to start a socket REPL on port `3322` (or any other port), then connect Chlorine with "Connect ClojureScript Socket REPL".
 
-With Shadow-CLJS, after watching (or after starting a server, or anything that starts a socket REPL) you connect with "Connect Clojure Socket REPL", then run the command "Connect Embedded". Then you can run code on .cljs files too.
+With Shadow-CLJS, after watching (or after starting a server, or anything that starts a socket REPL) you connect with "Connect Clojure Socket REPL" (Chlorine will auto-detect the port - you don't need to change it), then run the command "Connect Embedded". Then you can run code on .cljs files too.
 
 > ### WARNING
 > Do not evaluate the `ns` form in Shadow-CLJS. Shadow keeps your namespaces reloaded all the time, and sometimes re-evaluating then can lead to strange issues. If you **do evaluate** the ns form and get errors, just save the current file and Shadow will hot-reload it, and things will be fine. For more info, see: https://github.com/mauricioszabo/atom-chlorine/issues/213
