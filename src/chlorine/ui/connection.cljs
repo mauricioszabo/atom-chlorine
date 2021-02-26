@@ -46,9 +46,14 @@
 (defn conn-view [cmd]
   (let [div (. js/document (createElement "div"))
         panel (.. js/atom -workspace (addModalPanel #js {:item div}))
-        port-file (-> js/atom .-project .getPaths first
-                      (str "/.shadow-cljs/socket-repl.port"))]
-    (when (existsSync port-file)
+        port-file (->> ["/.shadow-cljs/socket-repl.port"
+                        "/.nrepl-port"]
+                       (map (fn [path]
+                             (-> js/atom .-project .getPaths first
+                                 (str path))))
+                       (filter existsSync)
+                       first)]
+    (when port-file
       (swap! local-state assoc :port (-> port-file readFileSync .toString int)))
     (rdom/render [view] div)
     (aux/save-focus! div)
