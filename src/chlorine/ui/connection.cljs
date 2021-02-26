@@ -47,6 +47,7 @@
   (let [div (. js/document (createElement "div"))
         panel (.. js/atom -workspace (addModalPanel #js {:item div}))
         port-file (->> ["/.shadow-cljs/socket-repl.port"
+                        "/.socket-repl-port"
                         "/.nrepl-port"]
                        (map (fn [path]
                              (-> js/atom .-project .getPaths first
