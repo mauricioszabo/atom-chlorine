@@ -6,6 +6,10 @@
 * Auto-import
 * Clean unused imports
 
+## 0.10.3
+- Fixed issue detecting port from `.shadow-cljs/socket-repl.port` file on Windows
+- Added support for detecting port from `.nrepl-port` and `.socket-repl-port` files
+
 ## 0.10.2
 - Fixed issues with `prn` inside interactive renderer
 - Fixed issues with disconnect (sometimes it tries to run callbacks after disconnected)
