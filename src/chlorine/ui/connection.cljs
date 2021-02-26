@@ -5,7 +5,8 @@
             [chlorine.state :refer [state]]
             [chlorine.ui.atom :as atom]
             [chlorine.utils :as aux]
-            ["fs" :refer [existsSync readFileSync]]))
+            ["fs" :as node.fs]
+            ["path" :as node.path]))
 
 (defonce local-state
   (r/atom {:hostname "localhost"
@@ -43,13 +44,23 @@
 (defn- as-clj [nodelist]
   (js->clj (.. js/Array -prototype -slice (call nodelist))))
 
+(defn- set-port-from-file! []
+  (let [port-file (->> [[".shadow-cljs" "socket-repl.port"]
+                        [".socket-repl-port"]
+                        [".nrepl-port"]]
+                       (map (fn [path]
+                             (apply node.path/join
+                                    (-> js/atom .-project .getPaths first)
+                                    path)))
+                       (filter node.fs/existsSync)
+                       first)]
+   (when port-file
+    (swap! local-state assoc :port (-> port-file node.fs/readFileSync .toString int)))))
+
 (defn conn-view [cmd]
   (let [div (. js/document (createElement "div"))
-        panel (.. js/atom -workspace (addModalPanel #js {:item div}))
-        port-file (-> js/atom .-project .getPaths first
-                      (str "/.shadow-cljs/socket-repl.port"))]
-    (when (existsSync port-file)
-      (swap! local-state assoc :port (-> port-file readFileSync .toString int)))
+        panel (.. js/atom -workspace (addModalPanel #js {:item div}))]
+    (set-port-from-file!)
     (rdom/render [view] div)
     (aux/save-focus! div)
     (doseq [elem (-> div (.querySelectorAll "input") as-clj)]
