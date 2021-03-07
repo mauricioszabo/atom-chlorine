@@ -6,6 +6,9 @@
 * Auto-import
 * Clean unused imports
 
+## 0.10.4
+- Removed error on ClojureScript, with experimental features, for Browser targets
+
 ## 0.10.3
 - Fixed issue detecting port from `.shadow-cljs/socket-repl.port` file on Windows
 - Added support for detecting port from `.nrepl-port` and `.socket-repl-port` files
