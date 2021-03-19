@@ -6,6 +6,14 @@
 * Auto-import
 * Clean unused imports
 
+## Next
+
+## 0.10.5
+- nREPL port will only be detected if a config is enabled
+- Adding a "timeout" when you can't connect to CLJS, with an error with possible reasons
+- Fixed connecting to ClojureScript without experimental features on
+- Removed error on ClojureScript, with experimental features, for Browser targets
+
 ## 0.10.4
 - Removed error on ClojureScript, with experimental features, for Browser targets
 
