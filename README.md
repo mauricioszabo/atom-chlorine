@@ -1,4 +1,5 @@
-# Chlorine
+![Chlorine](docs/chlorine-logo.png)
+
 [![CircleCI](https://circleci.com/gh/mauricioszabo/atom-chlorine.svg?style=svg)](https://circleci.com/gh/mauricioszabo/atom-chlorine)
 
 Cl + Atom = Chlorine
@@ -125,10 +126,11 @@ This project exists thanks to all the people who contribute. [[Contribute](docs/
 
 Become a financial contributor and help us sustain our community. Contribute:
 
-<a href="https://opencollective.com/atom-chlorine"><img src="https://opencollective.com/atom-chlorine/tiers/backers.svg?avatarHeight=60&width=800"></a>
-<a href="https://www.patreon.com/bePatron?u=34618740"><img alt="become a patron" src="https://c5.patreon.com/external/logo/become_a_patron_button.png" height="35px" class="patreon"></a>
+<a href="https://opencollective.com/atom-chlorine">OpenCollective: <img src="https://opencollective.com/atom-chlorine/tiers/backers.svg?avatarHeight=60&width=800"></a>
 
-[[Or via PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=GNVSYLBPP2HGY&currency_code=USD)]
+<a href="https://www.patreon.com/bePatron?u=34618740">Patreon: <img alt="become a patron" src="https://c5.patreon.com/external/logo/become_a_patron_button.png" height="35px" class="patreon"></a>
+
+[Or via PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=GNVSYLBPP2HGY&currency_code=USD)
 
 
 #### Individuals

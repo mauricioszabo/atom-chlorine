@@ -30,23 +30,17 @@
                                       :default (:default v)}
                                      (vector? (:type v)) (assoc :enum (:type v)))]))
          (into {}))))
-;
-; (when aux/TESTS
-;   (check (transform-config {:foo {:type [:a :b] :default :a
-;                                   :description "Some Foo"}})
-;          => {:foo {:type :string :enum [:a :b] :default :a
-;                              :title "Some Foo"}})
-;
-;   (check (transform-config {:bar {:type :boolean :default false :description "BAR"}})
-;          => {:bar {:type :boolean :default false :title "BAR"}}))
-;
+
 (defn get-configs []
   (-> configs
       transform-config
-      (merge {:console-pos {:type "string"
-                            :title "Position of console when connecting REPL"
-                            :enum ["right" "down"]
-                            :default "right"}})
+      (assoc :console-pos {:type "string"
+                           :title "Position of console when connecting REPL"
+                           :enum ["right" "down"]
+                           :default "right"}
+             :autodetect-nrepl {:type "boolean"
+                                :title "Auto-detect nREPL port when connecting to socket"
+                                :default false})
       clj->js))
 
 (defn observe-configs! []

@@ -88,11 +88,10 @@
   (atom/info "Copied result" ""))
 
 (s/defn get-config :- schemas/Config []
-  (assoc (:config @state)
-         :project-paths (->> js/atom
-                             .-project
-                             .getDirectories
-                             (map #(.getPath ^js %)))))
+  (let [paths (->> js/atom .-project .getDirectories (map #(.getPath ^js %)))]
+    (assoc (:config @state)
+           :project-paths (or (not-empty paths)
+                              ["."]))))
 
 (defn- open-ro-editor [file-name line col position contents]
   (.. js/atom
