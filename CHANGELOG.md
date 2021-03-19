@@ -8,6 +8,9 @@
 
 ## Next
 
+## 0.10.6
+- Fixed nREPL connection
+
 ## 0.10.5
 - nREPL port will only be detected if a config is enabled
 - Adding a "timeout" when you can't connect to CLJS, with an error with possible reasons
