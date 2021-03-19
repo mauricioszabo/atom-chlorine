@@ -5,8 +5,8 @@
             [chlorine.state :refer [state]]
             [chlorine.ui.atom :as atom]
             [chlorine.utils :as aux]
-            ["fs" :as node.fs]
-            ["path" :as node.path]))
+            ["fs" :as fs]
+            ["path" :as path]))
 
 (defonce local-state
   (r/atom {:hostname "localhost"
@@ -45,17 +45,16 @@
   (js->clj (.. js/Array -prototype -slice (call nodelist))))
 
 (defn- set-port-from-file! []
-  (let [port-file (->> [[".shadow-cljs" "socket-repl.port"]
-                        [".socket-repl-port"]
-                        [".nrepl-port"]]
-                       (map (fn [path]
-                             (apply node.path/join
-                                    (-> js/atom .-project .getPaths first)
-                                    path)))
-                       (filter node.fs/existsSync)
+  (let [root-path (-> js/atom .-project .getPaths first (or "."))
+        ports (cond-> [".socket-repl-port"
+                       (path/join ".shadow-cljs" "socket-repl.port")]
+                      (-> @state :config :console-pos) (conj ".nrepl-port"))
+        port-file (->> ports
+                       (map #(path/join root-path %))
+                       (filter fs/existsSync)
                        first)]
-   (when port-file
-    (swap! local-state assoc :port (-> port-file node.fs/readFileSync .toString int)))))
+   (when (and port-file (nil? (:port @local-state)))
+    (swap! local-state assoc :port (-> port-file fs/readFileSync str js/parseInt)))))
 
 (defn conn-view [cmd]
   (let [div (. js/document (createElement "div"))
