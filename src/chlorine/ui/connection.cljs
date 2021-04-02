@@ -5,9 +5,7 @@
             [chlorine.state :refer [state]]
             [chlorine.ui.atom :as atom]
             [chlorine.utils :as aux]
-            [repl-tooling.editor-helpers :as helpers]
-            ["fs" :as fs]
-            ["path" :as path]))
+            [repl-tooling.editor-helpers :as helpers]))
 
 (defonce local-state
   (r/atom {:hostname "localhost"
