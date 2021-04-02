@@ -5,6 +5,7 @@
             [chlorine.state :refer [state]]
             [chlorine.ui.atom :as atom]
             [chlorine.utils :as aux]
+            [repl-tooling.editor-helpers :as helpers]
             ["fs" :as fs]
             ["path" :as path]))
 
@@ -28,7 +29,9 @@
                         :tab-index "2"
                         :placeholder "port"
                         :value (:port @local-state)
-                        :on-change #(swap! local-state assoc :port (-> % .-target .-value int))
+                        :on-change #(swap! local-state assoc
+                                           :port (-> % .-target .-value int)
+                                           :typed-port (-> % .-target .-value int))
                         :on-focus #(-> % .-target .select)}]]])
 
 (defn destroy! [^js panel]
@@ -45,16 +48,9 @@
   (js->clj (.. js/Array -prototype -slice (call nodelist))))
 
 (defn- set-port-from-file! []
-  (let [root-path (-> js/atom .-project .getPaths first (or "."))
-        ports (cond-> [".socket-repl-port"
-                       (path/join ".shadow-cljs" "socket-repl.port")]
-                      (-> @state :config :console-pos) (conj ".nrepl-port"))
-        port-file (->> ports
-                       (map #(path/join root-path %))
-                       (filter fs/existsSync)
-                       first)]
-   (when (and port-file (nil? (:port @local-state)))
-    (swap! local-state assoc :port (-> port-file fs/readFileSync str js/parseInt)))))
+  (let [paths (into [] (-> js/atom .-project .getPaths (or ["."])))
+        detect-nrepl? (-> @state :config :autodetect-nrepl)]
+    (helpers/get-possible-port paths detect-nrepl? (:typed-port @local-state))))
 
 (defn conn-view [cmd]
   (let [div (. js/document (createElement "div"))
