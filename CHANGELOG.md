@@ -8,6 +8,9 @@
 
 ## Next
 
+## 0.10.8
+- Auto-detect port fix
+
 ## 0.10.6
 - Fixed nREPL connection
 

@@ -47,8 +47,10 @@
 
 (defn- set-port-from-file! []
   (let [paths (into [] (-> js/atom .-project .getPaths (or ["."])))
-        detect-nrepl? (-> @state :config :autodetect-nrepl)]
-    (helpers/get-possible-port paths detect-nrepl? (:typed-port @local-state))))
+        detect-nrepl? (-> @state :config :autodetect-nrepl)
+        port (helpers/get-possible-port paths detect-nrepl? (:typed-port @local-state))]
+    (when port
+      (swap! local-state assoc :port port))))
 
 (defn conn-view [cmd]
   (let [div (. js/document (createElement "div"))
