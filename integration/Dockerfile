@@ -6,11 +6,14 @@ RUN apt-get update
 RUN apt-get install -y wget gpg unzip
 RUN apt-get install -y xvfb ffmpeg netcat xz-utils openjdk-11-jdk
 
+# FIX for docker image of Atom
+RUN apt-get install -y libgbm-dev
+
 RUN cd /tmp && curl https://nodejs.org/dist/v10.16.3/node-v10.16.3-linux-x64.tar.xz | tar -xJ
 RUN cp -a /tmp/node-v10.16.3-linux-x64/* /usr
 RUN rm -R /tmp/node-v10.16.3-linux-x64
 
-RUN wget https://chromedriver.storage.googleapis.com/76.0.3809.126/chromedriver_linux64.zip
+RUN wget https://chromedriver.storage.googleapis.com/83.0.4103.39/chromedriver_linux64.zip
 RUN unzip chromedriver_linux64.zip
 RUN mv chromedriver /usr/bin
 RUN rm chromedriver_linux64.zip

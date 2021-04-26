@@ -4,10 +4,24 @@ defaults: &defaults
     image: circleci/classic:edge
 
 jobs:
-  test:
+  compile:
     <<: *defaults
     steps:
       - checkout
+      - run:
+          command: ./scripts/ci-compile
+          when: always
+      - persist_to_workspace:
+          root: '.'
+          paths:
+            - ./docker-image.img
+            - ./scripts
+
+  test:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: '.'
       - run:
           command: ./scripts/ci
           when: always
@@ -19,14 +33,19 @@ jobs:
   publish:
     <<: *defaults
     steps:
-      - checkout
+      - attach_workspace:
+          at: '.'
       - run: ./scripts/ci-prepare-release
 
 workflows:
   version: 2
   default-workflow:
     jobs:
-      - test
+      - compile
+
+      - test:
+          requires:
+            - compile
 
       - publish:
           requires:
