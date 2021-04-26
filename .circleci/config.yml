@@ -40,7 +40,7 @@ workflows:
   version: 2
   default-workflow:
     jobs:
-      - test
+      - test:
           requires:
             - compile
 
