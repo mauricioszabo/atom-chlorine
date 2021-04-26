@@ -5,6 +5,7 @@ defaults: &defaults
 
 jobs:
   compile:
+    <<: *defaults
     steps:
       - checkout
       - run:
@@ -40,6 +41,8 @@ workflows:
   default-workflow:
     jobs:
       - test
+          requires:
+            - compile
 
       - publish:
           requires:
