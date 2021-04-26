@@ -1,13 +1,7 @@
 #!/bin/bash
 
-echo "--- STARTING CLONE ---"
-git submodule init
-cp .git/config /tmp/config
-sed 's/git.github.com:mauricioszabo.repl-tooling/https:\/\/github.com\/mauricioszabo\/repl-tooling.git/' /tmp/config > .git/config
-git submodule update
-
-echo "--- BUILD BASE IMAGE ---"
-docker build -f integration/Dockerfile -t atom .
+echo "--- LOAD IMAGE ---"
+docker load -i docker-image.img
 
 echo "--- FIRE UP INTEGRATION TESTS ---"
 docker run --rm \
