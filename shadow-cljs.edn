@@ -12,7 +12,7 @@
                 [devcards "0.2.5"]
                 [org.rksm/suitable "0.3.2"]
                 [cider/orchard "0.5.8"]
-                [com.wsscode/pathom "2.3.0-alpha10"]
+                [com.wsscode/pathom "2.3.1"]
                 [org.pinkgorilla/gorilla-renderable-ui "0.1.33"]]
 
  :jvm-opts ["-Xmx800M"]
