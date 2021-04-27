@@ -1,0 +1,8 @@
+#!/bin/bash
+
+docker run \
+  --network=host \
+  -v ~/.ssh:/root/.ssh \
+  -e CIRCLE_BRANCH=$CIRCLE_BRANCH \
+  atom \
+  /work/scripts/ci-prepare-release

@@ -35,7 +35,7 @@ jobs:
     steps:
       - attach_workspace:
           at: '.'
-      - run: ./scripts/ci-prepare-release
+      - run: ./scripts/ci-release
 
 workflows:
   version: 2
