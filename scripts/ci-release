@@ -1,5 +1,9 @@
 #!/bin/bash
 
+echo "--- LOAD IMAGE ---"
+docker load -i docker-image.img
+
+echo "--- PUBLISH ---"
 docker run \
   --network=host \
   -v ~/.ssh:/root/.ssh \
