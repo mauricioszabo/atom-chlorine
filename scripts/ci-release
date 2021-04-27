@@ -1,12 +1,20 @@
 #!/bin/bash
+set -e
 
 echo "--- LOAD IMAGE ---"
 docker load -i docker-image.img
 
 echo "--- PUBLISH ---"
-docker run \
-  --network=host \
-  -v ~/.ssh:/root/.ssh \
-  -e CIRCLE_BRANCH=$CIRCLE_BRANCH \
-  atom \
-  /work/scripts/ci-prepare-release
+docker run -v ~/project:/proj atom cp -av /work /proj
+sudo chown circleci -R work
+cd work
+git tag `echo "$CIRCLE_BRANCH-source" | sed s/release-//`
+
+git config --global user.email "circleci@chlorine.plugin"
+git config --global user.name "CircleCI Automated Build"
+git checkout -b release-prepare-DELETE-THIS
+git rm -r src integration scripts
+git add -f lib/cmds.js lib/main.js
+git commit -m 'Compiled version for release'
+git tag `echo $CIRCLE_BRANCH | sed s/release-//`
+git push --tags
