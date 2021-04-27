@@ -8,6 +8,11 @@
 
 ## Next
 
+## 0.11.0
+- Pathom resolvers are now customizable
+- Go to var definition now works with namespaces
+- Several fixes for clickable stacktraces in Clojure
+
 ## 0.10.8
 - Auto-detect port fix
 

@@ -4,7 +4,7 @@ USER root
 
 RUN apt-get update
 RUN apt-get install -y wget gpg unzip
-RUN apt-get install -y xvfb ffmpeg netcat xz-utils openjdk-11-jdk
+RUN apt-get install -y xvfb ffmpeg netcat xz-utils openjdk-11-jdk ssh
 
 # FIX for docker image of Atom
 RUN apt-get install -y libgbm-dev
