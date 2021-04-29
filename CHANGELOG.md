@@ -8,6 +8,9 @@
 
 ## Next
 
+## 0.11.1
+- Fixed goto var definition with CLJ-Kondo
+
 ## 0.11.0
 - Pathom resolvers are now customizable
 - Go to var definition now works with namespaces
