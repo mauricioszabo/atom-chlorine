@@ -67,10 +67,15 @@
                   "Please, disconnect the current REPL "
                   "if you want to connect to another.")))
 
-(defn connect-socket! []
-  (if (-> @state :repls :clj-eval nil?)
-    (conn-view (fn [panel]
-                 (repl/connect-socket! (:hostname @local-state) (or (:port @local-state)
-                                                                    0))
-                 (destroy! panel)))
-    (already-connected)))
+(defn connect-socket!
+  ([]
+   (if (-> @state :repls :clj-eval nil?)
+     (conn-view (fn [panel]
+                  (repl/connect-socket! (:hostname @local-state)
+                                        (or (:port @local-state) 0))
+                  (destroy! panel)))
+     (already-connected)))
+  ([host port]
+   (if (-> @state :repls :clj-eval nil?)
+     (repl/connect-socket! host port)
+     (already-connected))))

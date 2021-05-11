@@ -67,6 +67,20 @@ atom.packages.activatePackage('chlorine').then(package => {
   })
 })
 ```
+
+There's only ONE api that's supported only by Atom's `init.js` or `init.coffee` and not by ClojureScript, that's the ability to connect to a Socket REPL without using the popup UI. To do so, the same rules apply: you have to wait for the package to activate, then register a command that will connect to a specific host/port:
+
+```javascript
+atom.packages.activatePackage('chlorine').then(package => {
+  // This picks up the "main module" of the package
+  const pkg = package.mainModule
+
+  atom.commands.add('atom-workspace', 'chlorine:connect-on-5555-port', () => {
+    pkg.connect_socket('localhost', 5555)
+  })
+})
+```
+
 ### API
 
 Once you've got the package's `mainModule`, inside `.ext` there are the following commands to help you extend functionality:
