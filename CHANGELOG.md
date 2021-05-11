@@ -8,6 +8,9 @@
 
 ## Next
 
+## 0.11.2
+- Making connect_socket callable from init.js/init.coffee
+
 ## 0.11.1
 - Fixed goto var definition with CLJ-Kondo
 
