@@ -111,6 +111,24 @@ div.result-overlay.result, div.repl-tooling.result {
 
 .chlorine.result, .repl-tooling.result {
   white-space: pre;
+  b, strong {
+    font-weight: 800;
+  }
+
+  code {
+    font-size: var(--editor-font-size);
+    font-family: var(--editor-font-family);
+    background: rgba(255, 255, 255, 0.6);
+  }
+
+  pre {
+    background: rgba(255, 255, 255, 0.6);
+    code {
+      background: transparent;
+      font-size: var(--editor-font-size);
+      font-family: var(--editor-font-family);
+    }
+  }
 
   a.chevron {
     &:focus {
