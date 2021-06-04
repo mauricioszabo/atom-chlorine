@@ -45,11 +45,12 @@
   "devDependencies": {
     "ansi_up": "^4.0.4",
     "bufferutil": "^4.0.1",
+    "commonmark": "^0.29.3",
     "create-react-class": "^15.6.3",
     "grim": "^2.0.2",
     "react": "^16.3.0",
     "react-dom": "^16.13.0",
-    "shadow-cljs": "^2.12.5",
+    "shadow-cljs": "^2.14.2",
     "source-map-support": "^0.5.13",
     "utf-8-validate": "^5.0.2",
     "ws": "^7.1.2"
