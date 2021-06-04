@@ -54,5 +54,8 @@
     "source-map-support": "^0.5.13",
     "utf-8-validate": "^5.0.2",
     "ws": "^7.1.2"
+  },
+  "dependencies": {
+    "highlight.js": "^11.0.1"
   }
 }
