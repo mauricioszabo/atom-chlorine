@@ -13,6 +13,7 @@
 - Disabled clj-kondo statistics for now
 - Fixed stacktraces in Clojerl
 - Fixed Lumo REPL
+- Source for var now works for ClojureScript with Shadow-CLJS
 
 ## 0.11.2
 - Making connect_socket callable from init.js/init.coffee
