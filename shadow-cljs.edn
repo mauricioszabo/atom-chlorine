@@ -7,13 +7,13 @@
                 [paprika "0.1.3-SNAPSHOT"]
                 [borkdude/sci "0.1.1-alpha.7"]
                 [compliment "0.4.0-SNAPSHOT"]
-                [reagent "0.10.0"]
+                [reagent "1.1.0"]
                 [devcards "0.2.5"]
                 [org.rksm/suitable "0.3.2"]
                 [cider/orchard "0.5.8"]
                 [com.wsscode/pathom "2.3.1"]
                 [org.pinkgorilla/gorilla-renderable-ui "0.1.33"]
-                [link.szabo.mauricio/duck-repled "0.1.1-SNAPSHOT"]]
+                [link.szabo.mauricio/duck-repled "0.1.2-SNAPSHOT"]]
 
  :jvm-opts ["-Xmx800M"]
  :builds
@@ -22,14 +22,12 @@
                      :keep-native-requires true
                      :keep-as-require #{"atom"}}
 
+        :build-hooks [(shadow.cljs.build-report/hook
+                       {:output-to "report.html"})]
+
         :dev {:closure-defines {chlorine.aux/TESTS true
                                 com.wsscode.pathom.misc.INCLUDE_SPECS false}}
-        :compiler-options {:warnings {:fn-deprecated false}
-                           :external-config
-                           {:devtools/config
-                            {:features-to-install [:formatters :hints]
-                             :fn-symbol "F"
-                             :print-config-overrides true}}}
+        :compiler-options {:warnings {:fn-deprecated false}}
         :exports {:config chlorine.core/config
                   :commands chlorine.core/commands
                   :aux chlorine.core/aux
