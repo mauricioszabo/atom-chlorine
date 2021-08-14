@@ -37,17 +37,32 @@ jobs:
           at: '.'
       - run: ./scripts/ci-release
 
+prepost: &prepost
+  context: org-global
+  pre-steps:
+    - run: 'curl --request POST --header "PRIVATE-TOKEN: $GITLAB_TOKEN" "https://gitlab.com/api/v4/projects/clj-editors%2Fatom-chlorine/statuses/$CIRCLE_SHA1?state=running&name=$CIRCLE_JOB&target_url=$CIRCLE_BUILD_URL"'
+  post-steps:
+    - run:
+        command: 'curl --request POST --header "PRIVATE-TOKEN: $GITLAB_TOKEN" "https://gitlab.com/api/v4/projects/clj-editors%2Fatom-chlorine/statuses/$CIRCLE_SHA1?state=success&name=$CIRCLE_JOB&target_url=$CIRCLE_BUILD_URL"'
+        when: on_success
+    - run:
+        command: 'curl --request POST --header "PRIVATE-TOKEN: $GITLAB_TOKEN" "https://gitlab.com/api/v4/projects/clj-editors%2Fatom-chlorine/statuses/$CIRCLE_SHA1?state=failed&name=$CIRCLE_JOB&target_url=$CIRCLE_BUILD_URL"'
+        when: on_fail
+
 workflows:
   version: 2
   default-workflow:
     jobs:
-      - compile
+      - compile:
+          <<: *prepost
 
       - test:
+          <<: *prepost
           requires:
             - compile
 
       - publish:
+          <<: *prepost
           requires:
             - test
           filters:
