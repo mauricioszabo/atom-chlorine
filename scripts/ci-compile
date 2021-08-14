@@ -3,7 +3,7 @@
 echo "--- STARTING CLONE ---"
 git submodule init
 cp .git/config /tmp/config
-sed 's/git.github.com:mauricioszabo.repl-tooling/https:\/\/github.com\/mauricioszabo\/repl-tooling.git/' /tmp/config > .git/config
+sed 's/git.gitlab.com:clj-editors.repl-tooling/https:\/\/gitlab.com\/clj-editors\/repl-tooling.git/' /tmp/config > .git/config
 git submodule update
 
 echo "--- BUILD BASE IMAGE ---"

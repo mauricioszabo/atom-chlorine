@@ -5,6 +5,6 @@ rm -R target/ .shadow-cljs/ lib/js/cljs-runtime/
 npm install &&
 git submodule init &&
 cp .git/config .git/temp-config &&
-sed 's/git.github.com:mauricioszabo.repl-tooling/https:\/\/github.com\/mauricioszabo\/repl-tooling.git/' .git/temp-config > .git/config &&
+sed 's/git.gitlab.com:clj-editors.repl-tooling/https:\/\/gitlab.com\/clj-editors\/repl-tooling.git/' .git/temp-config > .git/config &&
 rm .git/temp-config &&
 git submodule update
