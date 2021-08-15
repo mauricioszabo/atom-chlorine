@@ -22,9 +22,6 @@
                      :keep-native-requires true
                      :keep-as-require #{"atom"}}
 
-        :build-hooks [(shadow.cljs.build-report/hook
-                       {:output-to "report.html"})]
-
         :dev {:closure-defines {chlorine.aux/TESTS true
                                 com.wsscode.pathom.misc.INCLUDE_SPECS false}}
         :compiler-options {:warnings {:fn-deprecated false}}
