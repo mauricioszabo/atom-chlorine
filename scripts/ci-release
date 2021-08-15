@@ -19,7 +19,8 @@ git commit -m 'Compiled version for release'
 git tag `echo $CIRCLE_BRANCH | sed s/release-//`
 
 git remote add gh git@github.com:mauricioszabo/atom-chlorine.git
+git remote add gitlab git@gitlab.com:clj-editors/atom-chlorine.git
 echo "Push source tag to GitLab"
-git push origin `echo "$CIRCLE_BRANCH-source" | sed s/release-//`
+git push gitlab `echo "$CIRCLE_BRANCH-source" | sed s/release-//`
 echo "Push release tag to GitHub"
 git push gh `echo $CIRCLE_BRANCH | sed s/release-//`
