@@ -26,7 +26,7 @@ RUN echo "'*':\n  welcome:\n    showOnStartup: false\n  core:\n    telemetryCons
 WORKDIR /work
 COPY . /work
 RUN npm install
-RUN npx shadow-cljs release dev
+RUN npx shadow-cljs release dev --debug
 RUN rm -R node_modules
 RUN ln -s /work /root/.atom/packages/chlorine
 
