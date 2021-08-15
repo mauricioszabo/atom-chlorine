@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 echo "--- STARTING CLONE ---"
 git submodule init
