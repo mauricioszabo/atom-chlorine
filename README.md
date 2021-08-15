@@ -6,10 +6,13 @@ Cl + Atom = Chlorine
 
 Socket-REPL integration with Clojure and ClojureScript with Atom.
 
-This project also have a [FAQ](https://github.com/mauricioszabo/repl-tooling/blob/master/doc/FAQ.md) now
+This project also have a [FAQ](https://gitlab.com/clj-editors/repl-tooling/-/blob/master/doc/FAQ.md) now
+
+# WARNING
+This project is migrated to [GitLab](https://gitlab.com/clj-editors/atom-chlorine). This repository just exists because it needs to be on GitHub for publication to work. Updated documentation, etc, must be sent to GitLab only.
 
 ## Example
-Chlorine connects to a Socket REPL and adds autocomplete, goto var definition, evaluation, refresh, and documentation of functions on Atom. It can also add additional things, so check it out on [extending Chlorine](docs/extending.md). The idea of the project is to give Atom a felling of being completely connected to running code that's being developed, like SmallTalk images but still working with textual source codes, git, and every other tool that we already use with our code.
+Chlorine connects to a Socket REPL and adds autocomplete, goto var definition, evaluation, refresh, and documentation of functions on Atom. It can also add additional things, so check it out on [extending Chlorine](https://gitlab.com/clj-editors/atom-chlorine/-/blob/master/docs/extending.md). The idea of the project is to give Atom a felling of being completely connected to running code that's being developed, like SmallTalk images but still working with textual source codes, git, and every other tool that we already use with our code.
 
 ![Evaluating code](docs/eval-code.gif)
 
@@ -17,7 +20,7 @@ As it is possible to see above, Chlorine works both with Clojure and ClojureScri
 
 ## Usage:
 
->If you are new to Clojure or Atom, you may check this [quickstart guide](docs/quickstart.md).
+>If you are new to Clojure or Atom, you may check this [quickstart guide](https://gitlab.com/clj-editors/atom-chlorine/-/blob/master/docs/quickstart.md).
 
 Fire up a clojure REPL with Socket REPL support. With `shadow-cljs`, when you `watch` some build ID it'll give you a port for nREPL and Socket REPL. With `lein`, invoke it in a folder where you have `project.clj` and you can use `JVM_OPTS` environment variable like (on Linux or MacOS):
 
@@ -115,11 +118,11 @@ As Chlorine is in active development, it was starting to become tedious to publi
 ./scripts/setup
 ```
 
-To register the submodule. More info on [Developing](docs/developing.md) document.
+To register the submodule. More info on [Developing](https://gitlab.com/clj-editors/atom-chlorine/-/blob/master/docs/developing.md) document.
 
 ### Code Contributors
 
-This project exists thanks to all the people who contribute. [[Contribute](docs/developing.md)].
+This project exists thanks to all the people who contribute. [[Contribute](https://gitlab.com/clj-editors/atom-chlorine/-/blob/master/docs/developing.md)].
 <a href="https://github.com/mauricioszabo/atom-chlorine/graphs/contributors"><img src="https://opencollective.com/atom-chlorine/contributors.svg?width=890&button=false" /></a>
 
 ### Financial Contributors
