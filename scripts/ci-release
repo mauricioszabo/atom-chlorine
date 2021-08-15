@@ -17,4 +17,9 @@ git rm -r src integration scripts
 git add -f lib/cmds.js lib/main.js
 git commit -m 'Compiled version for release'
 git tag `echo $CIRCLE_BRANCH | sed s/release-//`
-git push --tags
+
+git remote add gh git@github.com:mauricioszabo/atom-chlorine.git
+echo "Push source tag to GitLab"
+git push origin `echo "$CIRCLE_BRANCH-source" | sed s/release-//`
+echo "Push release tag to GitHub"
+git push gh `echo $CIRCLE_BRANCH | sed s/release-//`
