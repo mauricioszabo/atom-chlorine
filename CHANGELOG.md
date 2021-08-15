@@ -8,6 +8,10 @@
 
 ## Next
 
+## 0.12.1
+- Fixed a big issue with interactive renderer and invalid hiccup (specially if there's dynamic code on it)
+- Fixed doc-for-var for Babashka, Lumo, and Clojerl
+
 ## 0.12.0
 - Migrated most of Pathom code to a new project called Duck-REPLed
 - Disabled clj-kondo statistics for now
